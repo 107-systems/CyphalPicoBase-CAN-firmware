@@ -1,2 +1,33 @@
 # l3xz-fw_aux-controller
 Firmware for the auxiliary controller (alarm LEDs and emergency stop)
+
+[![Check Arduino](https://github.com/107-systems/l3xz-fw_aux-controller/actions/workflows/check-arduino.yml/badge.svg)](https://github.com/107-systems/l3xz-fw_aux-controller/actions/workflows/check-arduino.yml)
+[![Check keywords.txt](https://github.com/107-systems/l3xz-fw_aux-controller/actions/workflows/check-keywords-txt.yml/badge.svg)](https://github.com/107-systems/l3xz-fw_aux-controller/actions/workflows/check-keywords-txt.yml)
+[![General Formatting Checks](https://github.com/107-systems/l3xz-fw_aux-controller/workflows/General%20Formatting%20Checks/badge.svg)](https://github.com/107-systems/l3xz-fw_aux-controller/actions?workflow=General+Formatting+Checks)
+[![Spell Check](https://github.com/107-systems/l3xz-fw_aux-controller/workflows/Spell%20Check/badge.svg)](https://github.com/107-systems/l3xz-fw_aux-controller/actions?workflow=Spell+Check)
+[![Compile Examples](https://github.com/107-systems/l3xz-fw_aux-controller/workflows/Compile/badge.svg)](https://github.com/107-systems/l3xz-fw_aux-controller/actions?workflow=Compile)
+
+## uavcan settings
+
+specific seetings for the L3X-Z Hexapod can be found here: ???
+
+### Node-ID
+
+every leg controller needs to have its own Node-ID. The Node-ID is stored in the eeprom.
+
+### Subject-ID
+
+some Subject-IDs are the same as with the leg controller. The host can differentiate between them by their Node-IDs.
+
+| **Subject-ID** | **direction** | **name**          | **type**    |
+|:--------------:|:-------------:|:-----------------:|:-----------:|
+| heartbeat      | pub           | heartbeat         | heartbeat   |
+| 1001           | pub           | input-voltage     | Real32      |
+| 1005           | sub           | LED1              | Bit         |
+| 2001           | pub           | emergency stop    | Bit         |
+| 2002           | sub           | light mode        | Integer8    |
+| 1010           | sub           | update_interval   | Integer16   |
+
+## related repositories
+* https://github.com/107-systems/107-Arduino-MCP2515
+* https://github.com/107-systems/107-Arduino-UAVCAN
