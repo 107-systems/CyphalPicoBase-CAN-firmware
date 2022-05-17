@@ -22,6 +22,7 @@
 #include <ArduinoUAVCAN.h>
 #include <ArduinoMCP2515.h>
 #include <I2C_eeprom.h>
+#include <Adafruit_NeoPixel.h>
 
 /**************************************************************************************
  * DEFINES
@@ -30,6 +31,12 @@
 #define LED1_PIN 13
 #define EMERGENCY_STOP 6
 #define ANALOG_PIN A1
+
+// Which pin on the Arduino is connected to the NeoPixels?
+#define NEOPIXELPIN        5 // On Trinket or Gemma, suggest changing this to 1
+
+// How many NeoPixels are attached to the Arduino?
+#define NUMPIXELS 4 // Popular NeoPixel ring size
 
 /**************************************************************************************
  * NAMESPACE
@@ -78,6 +85,7 @@ Bit_1_0<ID_EMERGENCY_STOP> uavcan_emergency_stop;
 Real32_1_0<ID_INPUT_VOLTAGE> uavcan_input_voltage;
 
 I2C_eeprom ee(0x50, I2C_DEVICESIZE_24LC64);
+Adafruit_NeoPixel pixels(NUMPIXELS, NEOPIXELPIN, NEO_GRB + NEO_KHZ800);
 
 /**************************************************************************************
  * SETUP/LOOP
@@ -109,6 +117,9 @@ void setup()
   /* create UAVCAN class */
   uc = new ArduinoUAVCAN(eeNodeID, transmitCanFrame);
 
+  pixels.begin(); // INITIALIZE NeoPixel strip object (REQUIRED)
+
+
   /* Setup SPI access */
   SPI.begin();
   pinMode(MKRCAN_MCP2515_CS_PIN, OUTPUT);
@@ -135,6 +146,21 @@ void setup()
   /* Subscribe to the reception of Bit message. */
   uc->subscribe<Bit_1_0<ID_LED1>>(onLed1_Received);
   Serial.println("init finished");
+  pixels.clear(); // Set all pixel colors to 'off'
+  pixels.show();   // Send the updated pixel colors to the hardware.
+  delay(300);
+  pixels.setPixelColor(0, pixels.Color(55, 0, 0));
+  pixels.show();   // Send the updated pixel colors to the hardware.
+  delay(300);
+  pixels.setPixelColor(1, pixels.Color(0, 55, 0));
+  pixels.show();   // Send the updated pixel colors to the hardware.
+  delay(300);
+  pixels.setPixelColor(2, pixels.Color(0, 0, 55));
+  pixels.show();   // Send the updated pixel colors to the hardware.
+  delay(300);
+  pixels.setPixelColor(3, pixels.Color(55, 55, 55));
+  pixels.show();   // Send the updated pixel colors to the hardware.
+
 }
 
 void loop()
