@@ -54,6 +54,7 @@ static int const MKRCAN_MCP2515_INT_PIN = A3;
 static CanardPortID const ID_INPUT_VOLTAGE  = 1001U;
 static CanardPortID const ID_LED1           = 1005U;
 static CanardPortID const ID_EMERGENCY_STOP = 2001U;
+static CanardPortID const ID_LIGHT_MODE     = 2002U;
 
 /**************************************************************************************
  * FUNCTION DECLARATION
@@ -66,6 +67,7 @@ void    onExternalEvent    ();
 bool    transmitCanFrame   (CanardFrame const &);
 void    onReceiveBufferFull(CanardFrame const &);
 void    onLed1_Received (CanardTransfer const &, ArduinoUAVCAN &);
+void    onLightMode_Received (CanardTransfer const &, ArduinoUAVCAN &);
 
 /**************************************************************************************
  * GLOBAL VARIABLES
@@ -145,7 +147,10 @@ void setup()
 
   /* Subscribe to the reception of Bit message. */
   uc->subscribe<Bit_1_0<ID_LED1>>(onLed1_Received);
+  uc->subscribe<Integer8_1_0<ID_LIGHT_MODE>>(onLightMode_Received);
   Serial.println("init finished");
+
+  /* Init Neopixel */
   pixels.clear(); // Set all pixel colors to 'off'
   pixels.show();   // Send the updated pixel colors to the hardware.
   delay(300);
@@ -158,7 +163,8 @@ void setup()
   pixels.setPixelColor(2, pixels.Color(0, 0, 55));
   pixels.show();   // Send the updated pixel colors to the hardware.
   delay(300);
-  pixels.setPixelColor(3, pixels.Color(55, 55, 55));
+//  pixels.setPixelColor(3, pixels.Color(55, 55, 55));
+  pixels.setPixelColor(3, pixels.Color(55, 40, 0));
   pixels.show();   // Send the updated pixel colors to the hardware.
 
 }
@@ -249,5 +255,41 @@ void onLed1_Received(CanardTransfer const & transfer, ArduinoUAVCAN & /* uavcan 
   {
     digitalWrite(LED1_PIN, LOW);
     Serial.println("Received Bit1: false");
+  }
+}
+
+void onLightMode_Received(CanardTransfer const & transfer, ArduinoUAVCAN & /* uavcan */)
+{
+  Integer8_1_0<ID_LIGHT_MODE> const uavcan_lightmode = Integer8_1_0<ID_LIGHT_MODE>::deserialize(transfer);
+
+  if(uavcan_lightmode.data.value==1)
+  {
+    pixels.fill(pixels.Color(55, 0, 0));    // red
+    pixels.show();   // Send the updated pixel colors to the hardware.
+  }
+  else if(uavcan_lightmode.data.value==2)
+  {
+    pixels.fill(pixels.Color(0, 55, 0));    // green
+    pixels.show();   // Send the updated pixel colors to the hardware.
+  }
+  else if(uavcan_lightmode.data.value==3)
+  {
+    pixels.fill(pixels.Color(0, 0, 55));    // blue
+    pixels.show();   // Send the updated pixel colors to the hardware.
+  }
+  else if(uavcan_lightmode.data.value==4)
+  {
+    pixels.fill(pixels.Color(55, 55, 55));    // white
+    pixels.show();   // Send the updated pixel colors to the hardware.
+  }
+  else if(uavcan_lightmode.data.value==5)
+  {
+    pixels.fill(pixels.Color(55, 40, 0));    // amber
+    pixels.show();   // Send the updated pixel colors to the hardware.
+  }
+  else
+  {
+    pixels.clear();    // all off
+    pixels.show();   // Send the updated pixel colors to the hardware.
   }
 }
