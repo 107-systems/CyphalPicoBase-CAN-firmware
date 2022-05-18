@@ -88,6 +88,7 @@ Real32_1_0<ID_INPUT_VOLTAGE> uavcan_input_voltage;
 
 I2C_eeprom ee(0x50, I2C_DEVICESIZE_24LC64);
 Adafruit_NeoPixel pixels(NUMPIXELS, NEOPIXELPIN, NEO_GRB + NEO_KHZ800);
+uint8_t light_mode=0;
 
 /**************************************************************************************
  * SETUP/LOOP
@@ -97,7 +98,7 @@ void setup()
 {
   Serial.begin(9600);
   delay(3000);
-//  while(!Serial) { } /* only for debug */
+  while(!Serial) { } /* only for debug */
 
   /* Setup LED pins and initialize */
   pinMode(LED1_PIN, OUTPUT);
@@ -118,9 +119,6 @@ void setup()
 
   /* create UAVCAN class */
   uc = new ArduinoUAVCAN(eeNodeID, transmitCanFrame);
-
-  pixels.begin(); // INITIALIZE NeoPixel strip object (REQUIRED)
-
 
   /* Setup SPI access */
   SPI.begin();
@@ -151,6 +149,8 @@ void setup()
   Serial.println("init finished");
 
   /* Init Neopixel */
+  pixels.begin(); // INITIALIZE NeoPixel strip object (REQUIRED)
+
   pixels.clear(); // Set all pixel colors to 'off'
   pixels.show();   // Send the updated pixel colors to the hardware.
   delay(300);
@@ -167,12 +167,15 @@ void setup()
   pixels.setPixelColor(3, pixels.Color(55, 40, 0));
   pixels.show();   // Send the updated pixel colors to the hardware.
 
+  light_mode=100;
 }
 
 void loop()
 {
   /* check switch */
   static bool bumper_old=0;
+  static bool flag_led=0;
+  static int led_count=0;
   bool bumper_in;
   bumper_in=digitalRead(EMERGENCY_STOP);
   if(bumper_old!=bumper_in)
@@ -183,6 +186,52 @@ void loop()
     Serial.println(bumper_in);
   }
   bumper_old=bumper_in;
+
+  /* LED functions */
+  if((millis()%400)==0)
+  {
+    if(flag_led==0) // execute only once
+    {
+      Serial.println("ping");
+      if(light_mode==100)
+      {
+        Serial.println("pong");
+        if(led_count==0)
+        {
+          pixels.setPixelColor(0, pixels.Color(55, 40, 0));
+          pixels.setPixelColor(1, pixels.Color(20, 15, 0));
+          pixels.setPixelColor(2, pixels.Color(10, 8, 0));
+          pixels.setPixelColor(3, pixels.Color(0, 0, 0));
+        }
+        else if(led_count==1)
+        {
+          pixels.setPixelColor(3, pixels.Color(55, 40, 0));
+          pixels.setPixelColor(0, pixels.Color(20, 15, 0));
+          pixels.setPixelColor(1, pixels.Color(10, 8, 0));
+          pixels.setPixelColor(2, pixels.Color(0, 0, 0));
+        }
+        else if(led_count==2)
+        {
+          pixels.setPixelColor(2, pixels.Color(55, 40, 0));
+          pixels.setPixelColor(3, pixels.Color(20, 15, 0));
+          pixels.setPixelColor(0, pixels.Color(10, 8, 0));
+          pixels.setPixelColor(1, pixels.Color(0, 0, 0));
+        }
+        else if(led_count==3)
+        {
+          pixels.setPixelColor(1, pixels.Color(55, 40, 0));
+          pixels.setPixelColor(2, pixels.Color(20, 15, 0));
+          pixels.setPixelColor(3, pixels.Color(10, 8, 0));
+          pixels.setPixelColor(0, pixels.Color(0, 0, 0));
+        }
+        pixels.show();   // Send the updated pixel colors to the hardware.
+        led_count++;
+        if(led_count>=4) led_count=0;
+      }
+    }
+    flag_led=1;
+  }
+  else flag_led=0;
 
   /* Update the heartbeat object */
   hb.data.uptime = millis() / 1000;
@@ -262,6 +311,8 @@ void onLightMode_Received(CanardTransfer const & transfer, ArduinoUAVCAN & /* ua
 {
   Integer8_1_0<ID_LIGHT_MODE> const uavcan_lightmode = Integer8_1_0<ID_LIGHT_MODE>::deserialize(transfer);
 
+  light_mode=0; // deactivate light functions
+
   if(uavcan_lightmode.data.value==1)
   {
     pixels.fill(pixels.Color(55, 0, 0));    // red
@@ -286,6 +337,10 @@ void onLightMode_Received(CanardTransfer const & transfer, ArduinoUAVCAN & /* ua
   {
     pixels.fill(pixels.Color(55, 40, 0));    // amber
     pixels.show();   // Send the updated pixel colors to the hardware.
+  }
+  else if(uavcan_lightmode.data.value==100)
+  {
+    light_mode=100;
   }
   else
   {
