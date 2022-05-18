@@ -22,7 +22,7 @@
 #include <ArduinoUAVCAN.h>
 #include <ArduinoMCP2515.h>
 #include <I2C_eeprom.h>
-#include <Adafruit_NeoPixel.h>
+#include <Adafruit_NeoPixel_ZeroDMA.h>
 
 /**************************************************************************************
  * DEFINES
@@ -87,7 +87,7 @@ Bit_1_0<ID_EMERGENCY_STOP> uavcan_emergency_stop;
 Real32_1_0<ID_INPUT_VOLTAGE> uavcan_input_voltage;
 
 I2C_eeprom ee(0x50, I2C_DEVICESIZE_24LC64);
-Adafruit_NeoPixel pixels(NUMPIXELS, NEOPIXELPIN, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel_ZeroDMA pixels(NUMPIXELS, NEOPIXELPIN, NEO_GRB);
 uint8_t light_mode=0;
 
 /**************************************************************************************
@@ -149,7 +149,11 @@ void setup()
   Serial.println("init finished");
 
   /* Init Neopixel */
-  pixels.begin(); // INITIALIZE NeoPixel strip object (REQUIRED)
+  if(! pixels.begin()) // INITIALIZE NeoPixel strip object (REQUIRED)
+  {
+    Serial.println("ERROR: Init NeoPixel...");
+    while(1);
+  }
 
   pixels.clear(); // Set all pixel colors to 'off'
   pixels.show();   // Send the updated pixel colors to the hardware.
@@ -181,12 +185,13 @@ void loop()
   if(bumper_old!=bumper_in)
   {
     uavcan_emergency_stop.data.value = bumper_in;
-    uc->publish(uavcan_emergency_stop);
+//    uc->publish(uavcan_emergency_stop);
     Serial.print("send bit: ");
     Serial.println(bumper_in);
   }
   bumper_old=bumper_in;
 
+//  Serial.println("pang");
   /* LED functions */
   if((millis()%400)==0)
   {
@@ -246,10 +251,10 @@ void loop()
     Serial.print("Analog Pin: ");
     Serial.println(analog);
     uavcan_input_voltage.data.value = analog;
-    uc->publish(uavcan_input_voltage);
-
-  /* publish heartbeat */
-    uc->publish(hb);
+//    uc->publish(uavcan_input_voltage);
+//
+//  /* publish heartbeat */
+//    uc->publish(hb);
     prev = now;
   }
 
