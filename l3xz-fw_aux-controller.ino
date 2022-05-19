@@ -22,6 +22,7 @@
 #include <ArduinoUAVCAN.h>
 #include <ArduinoMCP2515.h>
 #include <I2C_eeprom.h>
+#include <Adafruit_SleepyDog.h>
 #include <Adafruit_NeoPixel_ZeroDMA.h>
 
 /**************************************************************************************
@@ -51,21 +52,17 @@ using namespace uavcan::primitive::scalar;
 
 static int const MKRCAN_MCP2515_CS_PIN  = A2;
 static int const MKRCAN_MCP2515_INT_PIN = A3;
-static CanardPortID const ID_INPUT_VOLTAGE  = 1001U;
-static CanardPortID const ID_LED1           = 1005U;
-static CanardPortID const ID_EMERGENCY_STOP = 2001U;
-static CanardPortID const ID_LIGHT_MODE     = 2002U;
+static CanardPortID const ID_INPUT_VOLTAGE       = 1001U;
+static CanardPortID const ID_LED1                = 1005U;
+static CanardPortID const ID_EMERGENCY_STOP      = 2001U;
+static CanardPortID const ID_LIGHT_MODE          = 2002U;
+
+static SPISettings  const MCP2515x_SPI_SETTING{1000000, MSBFIRST, SPI_MODE0};
 
 /**************************************************************************************
  * FUNCTION DECLARATION
  **************************************************************************************/
 
-void    spi_select        ();
-void    spi_deselect       ();
-uint8_t spi_transfer       (uint8_t const);
-void    onExternalEvent    ();
-bool    transmitCanFrame   (CanardFrame const &);
-void    onReceiveBufferFull(CanardFrame const &);
 void    onLed1_Received (CanardTransfer const &, ArduinoUAVCAN &);
 void    onLightMode_Received (CanardTransfer const &, ArduinoUAVCAN &);
 
@@ -73,14 +70,24 @@ void    onLightMode_Received (CanardTransfer const &, ArduinoUAVCAN &);
  * GLOBAL VARIABLES
  **************************************************************************************/
 
-ArduinoMCP2515 mcp2515(spi_select,
-                       spi_deselect,
-                       spi_transfer,
-                       micros,
-                       onReceiveBufferFull,
-                       nullptr);
-
 static ArduinoUAVCAN * uc = nullptr;
+
+ArduinoMCP2515 mcp2515([]()
+                       {
+                         noInterrupts();
+                         SPI.beginTransaction(MCP2515x_SPI_SETTING);
+                         digitalWrite(MKRCAN_MCP2515_CS_PIN, LOW);
+                       },
+                       []()
+                       {
+                         digitalWrite(MKRCAN_MCP2515_CS_PIN, HIGH);
+                         SPI.endTransaction();
+                         interrupts();
+                       },
+                       [](uint8_t const d) { return SPI.transfer(d); },
+                       micros,
+                       [](CanardFrame const & f) { uc->onCanFrameReceived(f); },
+                       nullptr);
 
 Heartbeat_1_0<> hb;
 Bit_1_0<ID_EMERGENCY_STOP> uavcan_emergency_stop;
@@ -96,9 +103,11 @@ uint8_t light_mode=0;
 
 void setup()
 {
-  Serial.begin(9600);
-  delay(3000);
-  while(!Serial) { } /* only for debug */
+  Watchdog.enable(10000);
+
+  Serial.begin(115200);
+  delay(500);
+//  while(!Serial) { } /* only for debug */
 
   /* Setup LED pins and initialize */
   pinMode(LED1_PIN, OUTPUT);
@@ -118,7 +127,7 @@ void setup()
   Serial.println(eeNodeID);
 
   /* create UAVCAN class */
-  uc = new ArduinoUAVCAN(eeNodeID, transmitCanFrame);
+  uc = new ArduinoUAVCAN(eeNodeID, [](CanardFrame const & frame) -> bool { return mcp2515.transmit(frame); });
 
   /* Setup SPI access */
   SPI.begin();
@@ -127,7 +136,7 @@ void setup()
 
   /* Attach interrupt handler to register MCP2515 signaled by taking INT low */
   pinMode(MKRCAN_MCP2515_INT_PIN, INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(MKRCAN_MCP2515_INT_PIN), onExternalEvent, FALLING);
+  attachInterrupt(digitalPinToInterrupt(MKRCAN_MCP2515_INT_PIN), []() { mcp2515.onExternalEventHandler(); }, FALLING);
 
   /* Initialize MCP2515 */
   mcp2515.begin();
@@ -260,41 +269,14 @@ void loop()
 
   /* Transmit all enqeued CAN frames */
   while(uc->transmitCanFrame()) { }
+  
+  /* Feed the watchdog to keep it from biting. */
+  Watchdog.reset();
 }
 
 /**************************************************************************************
  * FUNCTION DEFINITION
  **************************************************************************************/
-
-void spi_select()
-{
-  digitalWrite(MKRCAN_MCP2515_CS_PIN, LOW);
-}
-
-void spi_deselect()
-{
-  digitalWrite(MKRCAN_MCP2515_CS_PIN, HIGH);
-}
-
-uint8_t spi_transfer(uint8_t const data)
-{
-  return SPI.transfer(data);
-}
-
-void onExternalEvent()
-{
-  mcp2515.onExternalEventHandler();
-}
-
-bool transmitCanFrame(CanardFrame const & frame)
-{
-  return mcp2515.transmit(frame);
-}
-
-void onReceiveBufferFull(CanardFrame const & frame)
-{
-  uc->onCanFrameReceived(frame);
-}
 
 void onLed1_Received(CanardTransfer const & transfer, ArduinoUAVCAN & /* uavcan */)
 {
