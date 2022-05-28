@@ -195,7 +195,6 @@ void loop()
 {
   /* check switch */
   static bool bumper_old=0;
-  static bool flag_led=0;
   static int led_count=0;
   bool bumper_in;
   bumper_in=digitalRead(EMERGENCY_STOP);
@@ -208,52 +207,48 @@ void loop()
   }
   bumper_old=bumper_in;
 
-//  Serial.println("pang");
   /* LED functions */
-  if((millis()%400)==0)
+  static unsigned long prev_led = 0;
+  unsigned long const now = millis();
+
+  if((now - prev_led) > 400)
   {
-    if(flag_led==0) // execute only once
+    if(light_mode==100)
     {
-      Serial.println("ping");
-      if(light_mode==100)
+      if(led_count==0)
       {
-        Serial.println("pong");
-        if(led_count==0)
-        {
-          pixels.setPixelColor(0, pixels.Color(55, 40, 0));
-          pixels.setPixelColor(1, pixels.Color(20, 15, 0));
-          pixels.setPixelColor(2, pixels.Color(10, 8, 0));
-          pixels.setPixelColor(3, pixels.Color(0, 0, 0));
-        }
-        else if(led_count==1)
-        {
-          pixels.setPixelColor(3, pixels.Color(55, 40, 0));
-          pixels.setPixelColor(0, pixels.Color(20, 15, 0));
-          pixels.setPixelColor(1, pixels.Color(10, 8, 0));
-          pixels.setPixelColor(2, pixels.Color(0, 0, 0));
-        }
-        else if(led_count==2)
-        {
-          pixels.setPixelColor(2, pixels.Color(55, 40, 0));
-          pixels.setPixelColor(3, pixels.Color(20, 15, 0));
-          pixels.setPixelColor(0, pixels.Color(10, 8, 0));
-          pixels.setPixelColor(1, pixels.Color(0, 0, 0));
-        }
-        else if(led_count==3)
-        {
-          pixels.setPixelColor(1, pixels.Color(55, 40, 0));
-          pixels.setPixelColor(2, pixels.Color(20, 15, 0));
-          pixels.setPixelColor(3, pixels.Color(10, 8, 0));
-          pixels.setPixelColor(0, pixels.Color(0, 0, 0));
-        }
-        pixels.show();   // Send the updated pixel colors to the hardware.
-        led_count++;
-        if(led_count>=4) led_count=0;
+        pixels.setPixelColor(0, pixels.Color(55, 40, 0));
+        pixels.setPixelColor(1, pixels.Color(20, 15, 0));
+        pixels.setPixelColor(2, pixels.Color(10, 8, 0));
+        pixels.setPixelColor(3, pixels.Color(0, 0, 0));
       }
+      else if(led_count==1)
+      {
+        pixels.setPixelColor(3, pixels.Color(55, 40, 0));
+        pixels.setPixelColor(0, pixels.Color(20, 15, 0));
+        pixels.setPixelColor(1, pixels.Color(10, 8, 0));
+        pixels.setPixelColor(2, pixels.Color(0, 0, 0));
+      }
+      else if(led_count==2)
+      {
+        pixels.setPixelColor(2, pixels.Color(55, 40, 0));
+        pixels.setPixelColor(3, pixels.Color(20, 15, 0));
+        pixels.setPixelColor(0, pixels.Color(10, 8, 0));
+        pixels.setPixelColor(1, pixels.Color(0, 0, 0));
+      }
+      else if(led_count==3)
+      {
+        pixels.setPixelColor(1, pixels.Color(55, 40, 0));
+        pixels.setPixelColor(2, pixels.Color(20, 15, 0));
+        pixels.setPixelColor(3, pixels.Color(10, 8, 0));
+        pixels.setPixelColor(0, pixels.Color(0, 0, 0));
+      }
+      pixels.show();   // Send the updated pixel colors to the hardware.
+      led_count++;
+      if(led_count>=4) led_count=0;
     }
-    flag_led=1;
+    prev_led=now;
   }
-  else flag_led=0;
 
   /* Update the heartbeat object */
   hb.data.uptime = millis() / 1000;
@@ -261,7 +256,6 @@ void loop()
 
   /* Publish the heartbeat once/second */
   static unsigned long prev = 0;
-  unsigned long const now = millis();
   if(now - prev > 1000) {
   /* read analog value */
     float analog=analogRead(ANALOG_PIN)*3.3*11.0/1023.0;
