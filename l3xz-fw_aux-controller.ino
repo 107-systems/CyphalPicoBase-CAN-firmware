@@ -31,11 +31,11 @@
 
 //#define LED1_PIN 13
 #define LED1_PIN 2
-#define EMERGENCY_STOP 6
+#define EMERGENCY_STOP 4
 #define ANALOG_PIN A1
 
 // Which pin on the Arduino is connected to the NeoPixels?
-//#define NEOPIXELPIN        5 // Adafruit Feather M0
+//#define NEOPIXELPIN        12 // Adafruit Feather M0
 #define NEOPIXELPIN        A2 // Arduino Nano 33 IoT
 
 // How many NeoPixels are attached to the Arduino?
@@ -119,14 +119,18 @@ void setup()
   pinMode(EMERGENCY_STOP, INPUT_PULLUP);
 
   /* Setup I2C Eeprom */
+  uint8_t eeNodeID=101;
   ee.begin();
   if (! ee.isConnected())
   {
     Serial.println("ERROR: Can't find eeprom\nstopped...");
-    while (1);
+//    while (1);
   }
-  uint8_t const eeNodeID=ee.readByte(0);
-  Serial.print("Node-ID from eeprom: ");
+  else
+  {
+    eeNodeID=ee.readByte(0);
+    Serial.print("Node-ID from eeprom: ");
+  }
 //  ee.writeByte(0,30);
   Serial.println(eeNodeID);
 
