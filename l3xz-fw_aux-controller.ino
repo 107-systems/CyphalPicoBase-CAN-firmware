@@ -29,12 +29,14 @@
  * DEFINES
  **************************************************************************************/
 
-#define LED1_PIN 13
+//#define LED1_PIN 13
+#define LED1_PIN 2
 #define EMERGENCY_STOP 6
 #define ANALOG_PIN A1
 
 // Which pin on the Arduino is connected to the NeoPixels?
-#define NEOPIXELPIN        5 // On Trinket or Gemma, suggest changing this to 1
+//#define NEOPIXELPIN        5 // Adafruit Feather M0
+#define NEOPIXELPIN        A2 // Arduino Nano 33 IoT
 
 // How many NeoPixels are attached to the Arduino?
 #define NUMPIXELS 4 // Popular NeoPixel ring size
@@ -50,8 +52,10 @@ using namespace uavcan::primitive::scalar;
  * CONSTANTS
  **************************************************************************************/
 
-static int const MKRCAN_MCP2515_CS_PIN  = A2;
-static int const MKRCAN_MCP2515_INT_PIN = A3;
+static int const MKRCAN_MCP2515_CS_PIN  = 3;
+static int const MKRCAN_MCP2515_INT_PIN = 9;
+//static int const MKRCAN_MCP2515_CS_PIN  = A2;
+//static int const MKRCAN_MCP2515_INT_PIN = A3;
 static CanardPortID const ID_INPUT_VOLTAGE       = 1001U;
 static CanardPortID const ID_LED1                = 1005U;
 static CanardPortID const ID_EMERGENCY_STOP      = 2001U;
@@ -194,7 +198,7 @@ void loop()
   if(bumper_old!=bumper_in)
   {
     uavcan_emergency_stop.data.value = bumper_in;
-//    uc->publish(uavcan_emergency_stop);
+    uc->publish(uavcan_emergency_stop);
     Serial.print("send bit: ");
     Serial.println(bumper_in);
   }
@@ -260,10 +264,10 @@ void loop()
     Serial.print("Analog Pin: ");
     Serial.println(analog);
     uavcan_input_voltage.data.value = analog;
-//    uc->publish(uavcan_input_voltage);
-//
-//  /* publish heartbeat */
-//    uc->publish(hb);
+    uc->publish(uavcan_input_voltage);
+
+  /* publish heartbeat */
+    uc->publish(hb);
     prev = now;
   }
 
