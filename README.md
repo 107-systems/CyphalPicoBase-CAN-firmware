@@ -9,11 +9,11 @@ Firmware for the auxiliary controller (alarm LEDs and emergency stop)
 
 ## uavcan settings
 
-specific seetings for the L3X-Z Hexapod can be found here: ???
+specific seetings for the L3X-Z Hexapod can be found here: https://github.com/107-systems/l3xz-hw#node-ids
 
 ### Node-ID
 
-every leg controller needs to have its own Node-ID. The Node-ID is stored in the eeprom.
+every leg controller needs to have its own Node-ID. The Node-ID is stored in the eeprom. If no eeprom is found, the Node-ID is 101.
 
 ### Subject-ID
 
@@ -27,6 +27,18 @@ some Subject-IDs are the same as with the leg controller. The host can different
 | 2001           | pub           | emergency stop    | Bit         |
 | 2002           | sub           | light mode        | Integer8    |
 | 1010           | sub           | update_interval   | Integer16   |
+
+### light mode
+
+| **value** | **function**        |
+|:---------:|:-------------------:|
+| 1         | red static          |
+| 2         | green static        |
+| 3         | blue static         |
+| 4         | white static        |
+| 5         | amber static        |
+| 100       | amber running light |
+| other     | all LEDs off        |
 
 ## related repositories
 * https://github.com/107-systems/107-Arduino-MCP2515
