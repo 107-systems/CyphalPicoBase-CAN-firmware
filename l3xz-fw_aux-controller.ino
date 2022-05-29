@@ -271,7 +271,7 @@ void loop()
 
   /* Transmit all enqeued CAN frames */
   while(uc->transmitCanFrame()) { }
-  
+
   /* Feed the watchdog to keep it from biting. */
   Watchdog.reset();
 }
