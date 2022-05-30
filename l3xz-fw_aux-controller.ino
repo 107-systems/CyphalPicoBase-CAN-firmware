@@ -95,7 +95,6 @@ ArduinoMCP2515 mcp2515([]()
 
 Heartbeat_1_0<> hb;
 Bit_1_0<ID_EMERGENCY_STOP> uavcan_emergency_stop;
-Real32_1_0<ID_INPUT_VOLTAGE> uavcan_input_voltage;
 
 I2C_eeprom ee(0x50, I2C_DEVICESIZE_24LC64);
 Adafruit_NeoPixel_ZeroDMA pixels(NUMPIXELS, NEOPIXELPIN, NEO_GRB);
@@ -153,7 +152,6 @@ void setup()
 
   /* Configure initial values */
   uavcan_emergency_stop.data.value = false;
-  uavcan_input_voltage.data.value = 0.0;
   /* Configure initial heartbeat */
   hb.data.uptime = 0;
   hb = Heartbeat_1_0<>::Health::NOMINAL;
@@ -256,15 +254,9 @@ void loop()
 
   /* Publish the heartbeat once/second */
   static unsigned long prev = 0;
-  if(now - prev > 1000) {
-  /* read analog value */
-    float analog=analogRead(ANALOG_PIN)*3.3*11.0/1023.0;
-    Serial.print("Analog Pin: ");
-    Serial.println(analog);
-    uavcan_input_voltage.data.value = analog;
-    uc->publish(uavcan_input_voltage);
-
-  /* publish heartbeat */
+  if(now - prev > 1000)
+  {
+    /* publish heartbeat */
     uc->publish(hb);
     prev = now;
   }
