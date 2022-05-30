@@ -171,7 +171,6 @@ void loop()
   {
     static bool is_light_on = false;
     is_light_on = !is_light_on;
-    
 
     if (is_light_on)
     {
