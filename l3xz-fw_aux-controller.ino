@@ -29,6 +29,8 @@
  * DEFINES
  **************************************************************************************/
 
+#define LED2_PIN 21
+#define LED3_PIN 22
 #define EMERGENCY_STOP 10
 #define ANALOG_PIN 26
 
@@ -136,6 +138,10 @@ void setup()
   /* Setup LED pins and initialize */
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, LOW);
+  pinMode(LED2_PIN, OUTPUT);
+  digitalWrite(LED2_PIN, LOW);
+  pinMode(LED3_PIN, OUTPUT);
+  digitalWrite(LED3_PIN, LOW);
   pinMode(EMERGENCY_STOP, INPUT_PULLUP);
 
   /* create UAVCAN class */
@@ -180,7 +186,24 @@ void loop()
 {
   /* LED functions */
   static unsigned long prev_led = 0;
+  static unsigned long prev_led_toggle = 0;
   unsigned long const now = millis();
+
+  /* toggle LEDS */
+  if((now - prev_led_toggle) > 200)
+  {
+    if(digitalRead(LED2_PIN)==LOW)
+    {
+      digitalWrite(LED2_PIN, HIGH);
+      digitalWrite(LED3_PIN, LOW);
+    }
+    else
+    {
+      digitalWrite(LED2_PIN, LOW);
+      digitalWrite(LED3_PIN, HIGH);
+    }
+    prev_led_toggle = now;
+  }
 
   if((now - prev_led) > 250)
   {
