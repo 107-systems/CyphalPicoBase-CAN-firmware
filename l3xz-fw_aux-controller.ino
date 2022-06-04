@@ -2,7 +2,7 @@
  * Software for the auxiliary controller for the L3X-Z Hexapod
  *
  * Hardware:
- *   - Adafruit Feather M0
+ *   - Raspberry Pi Pico
  *   - MCP2515
  *
  * Used Subject-IDs
@@ -22,8 +22,8 @@
 #include <ArduinoUAVCAN.h>
 #include <ArduinoMCP2515.h>
 #include <I2C_eeprom.h>
-#include <Adafruit_SleepyDog.h>
-#include <Adafruit_NeoPixel_ZeroDMA.h>
+//#include <Adafruit_SleepyDog.h>
+//#include <Adafruit_NeoPixel_ZeroDMA.h>
 
 /**************************************************************************************
  * DEFINES
@@ -31,7 +31,8 @@
 
 // Which pin on the Arduino is connected to the NeoPixels?
 //#define NEOPIXELPIN        12 // Adafruit Feather M0
-#define NEOPIXELPIN        A2 // Arduino Nano 33 IoT
+//#define NEOPIXELPIN        A2 // Arduino Nano 33 IoT
+#define NEOPIXELPIN        12 // Raspberry Pi Pico
 
 // How many NeoPixels are attached to the Arduino?
 #define NUMPIXELS 4 // Popular NeoPixel ring size
@@ -47,8 +48,8 @@ using namespace uavcan::primitive::scalar;
  * CONSTANTS
  **************************************************************************************/
 
-static int const MKRCAN_MCP2515_CS_PIN  = 3;
-static int const MKRCAN_MCP2515_INT_PIN = 9;
+static int const MKRCAN_MCP2515_CS_PIN  = 17;
+static int const MKRCAN_MCP2515_INT_PIN = 15;
 
 static CanardPortID const ID_EMERGENCY_STOP      = 2001U;
 static CanardPortID const ID_LIGHT_MODE          = 2002U;
@@ -91,27 +92,27 @@ ArduinoMCP2515 mcp2515([]()
 Heartbeat_1_0<> hb;
 Integer8_1_0<ID_LIGHT_MODE> uavcan_light_mode;
 
-Adafruit_NeoPixel_ZeroDMA pixels(NUMPIXELS, NEOPIXELPIN, NEO_GRB);
+//Adafruit_NeoPixel_ZeroDMA pixels(NUMPIXELS, NEOPIXELPIN, NEO_GRB);
 
 void light_off()
 {
-  pixels.clear();
-  pixels.show();
+//  pixels.clear();
+//  pixels.show();
 }
 void light_green()
 {
-  pixels.fill(pixels.Color(0, 55, 0));
-  pixels.show();
+//  pixels.fill(pixels.Color(0, 55, 0));
+//  pixels.show();
 }
 void light_red()
 {
-  pixels.fill(pixels.Color(55, 0, 0));
-  pixels.show();
+//  pixels.fill(pixels.Color(55, 0, 0));
+//  pixels.show();
 }
 void light_amber()
 {
-  pixels.fill(pixels.Color(55, 40, 0));
-  pixels.show();
+//  pixels.fill(pixels.Color(55, 40, 0));
+//  pixels.show();
 }
 
 /**************************************************************************************
@@ -120,7 +121,7 @@ void light_amber()
 
 void setup()
 {
-  Watchdog.enable(1000);
+//  Watchdog.enable(1000);
 
   Serial.begin(115200);
 
@@ -153,10 +154,10 @@ void setup()
   uc->subscribe<Integer8_1_0<ID_LIGHT_MODE>>(onLightMode_Received);
 
   /* Init Neopixel */
-  if(! pixels.begin()) {
-    Serial.println("ERROR: Init NeoPixel...");
-    while(1);
-  }
+//  if(! pixels.begin()) {
+//    Serial.println("ERROR: Init NeoPixel...");
+//    while(1);
+//  }
 
   light_off();
 }
@@ -202,7 +203,7 @@ void loop()
   while(uc->transmitCanFrame()) { }
 
   /* Feed the watchdog to keep it from biting. */
-  Watchdog.reset();
+//  Watchdog.reset();
 }
 
 /**************************************************************************************
