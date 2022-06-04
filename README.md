@@ -24,8 +24,13 @@ some Subject-IDs are the same as with the leg controller. The host can different
 | heartbeat      | pub           | heartbeat         | heartbeat   |
 | 1001           | pub           | input-voltage     | Real32      |
 | 1005           | sub           | LED1              | Bit         |
-| 2001           | pub           | emergency stop    | Bit         |
-| 2002           | sub           | light mode        | Integer8    |
+| 2000           | pub           | INPUT 0           | Bit         |
+| 2001           | pub           | INPUT 1           | Bit         |
+| 2002           | pub           | INPUT 2           | Bit         |
+| 2003           | pub           | INPUT 3           | Bit         |
+| 2004           | sub           | OUTPUT 0          | Bit         |
+| 2005           | sub           | OUTPUT 1          | Bit         |
+| 2010           | sub           | light mode        | Integer8    |
 | 1010           | sub           | update_interval   | Integer16   |
 
 ### light mode
