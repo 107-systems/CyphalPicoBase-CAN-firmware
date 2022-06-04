@@ -29,6 +29,9 @@
  * DEFINES
  **************************************************************************************/
 
+#define EMERGENCY_STOP 10
+#define ANALOG_PIN 26
+
 // Which pin on the Arduino is connected to the NeoPixels?
 //#define NEOPIXELPIN        12 // Adafruit Feather M0
 //#define NEOPIXELPIN        A2 // Arduino Nano 33 IoT
@@ -49,8 +52,10 @@ using namespace uavcan::primitive::scalar;
  **************************************************************************************/
 
 static int const MKRCAN_MCP2515_CS_PIN  = 17;
-static int const MKRCAN_MCP2515_INT_PIN = 15;
+static int const MKRCAN_MCP2515_INT_PIN = 20;
 
+static CanardPortID const ID_INPUT_VOLTAGE       = 1001U;
+static CanardPortID const ID_LED1                = 1005U;
 static CanardPortID const ID_EMERGENCY_STOP      = 2001U;
 static CanardPortID const ID_LIGHT_MODE          = 2002U;
 
@@ -64,6 +69,7 @@ static int8_t const LIGHT_MODE_AMBER = 3;
  * FUNCTION DECLARATION
  **************************************************************************************/
 
+void onLed1_Received (CanardTransfer const &, ArduinoUAVCAN &);
 void onLightMode_Received(CanardTransfer const &, ArduinoUAVCAN &);
 
 /**************************************************************************************
@@ -90,6 +96,8 @@ ArduinoMCP2515 mcp2515([]()
                        nullptr);
 
 Heartbeat_1_0<> hb;
+Bit_1_0<ID_EMERGENCY_STOP> uavcan_emergency_stop;
+Real32_1_0<ID_INPUT_VOLTAGE> uavcan_input_voltage;
 Integer8_1_0<ID_LIGHT_MODE> uavcan_light_mode;
 
 //Adafruit_NeoPixel_ZeroDMA pixels(NUMPIXELS, NEOPIXELPIN, NEO_GRB);
@@ -125,6 +133,11 @@ void setup()
 
   Serial.begin(115200);
 
+  /* Setup LED pins and initialize */
+  pinMode(LED_BUILTIN, OUTPUT);
+  digitalWrite(LED_BUILTIN, LOW);
+  pinMode(EMERGENCY_STOP, INPUT_PULLUP);
+
   /* create UAVCAN class */
   uc = new ArduinoUAVCAN(99, [](CanardFrame const & frame) -> bool { return mcp2515.transmit(frame); });
 
@@ -151,6 +164,7 @@ void setup()
   hb.data.vendor_specific_status_code = 0;
 
   /* Subscribe to the reception of Bit message. */
+  uc->subscribe<Bit_1_0<ID_LED1>>(onLed1_Received);
   uc->subscribe<Integer8_1_0<ID_LIGHT_MODE>>(onLightMode_Received);
 
   /* Init Neopixel */
@@ -194,9 +208,21 @@ void loop()
 
   /* Publish the heartbeat once/second */
   static unsigned long prev_hearbeat = 0;
+  static unsigned long prev_battery_voltage = 0;
+
   if(now - prev_hearbeat > 1000) {
     uc->publish(hb);
     prev_hearbeat = now;
+  }
+  if((now - prev_battery_voltage) > (3*1000))
+  {
+    float const analog = analogRead(ANALOG_PIN)*3.3*11.0/1023.0;
+    Serial.print("Analog Pin: ");
+    Serial.println(analog);
+    Real32_1_0<ID_INPUT_VOLTAGE> uavcan_input_voltage;
+    uavcan_input_voltage.data.value = analog;
+    uc->publish(uavcan_input_voltage);
+    prev_battery_voltage = now;
   }
 
   /* Transmit all enqeued CAN frames */
@@ -209,6 +235,22 @@ void loop()
 /**************************************************************************************
  * FUNCTION DEFINITION
  **************************************************************************************/
+
+void onLed1_Received(CanardTransfer const & transfer, ArduinoUAVCAN & /* uavcan */)
+{
+  Bit_1_0<ID_LED1> const uavcan_led1 = Bit_1_0<ID_LED1>::deserialize(transfer);
+
+  if(uavcan_led1.data.value)
+  {
+    digitalWrite(LED_BUILTIN, HIGH);
+    Serial.println("Received Bit1: true");
+  }
+  else
+  {
+    digitalWrite(LED_BUILTIN, LOW);
+    Serial.println("Received Bit1: false");
+  }
+}
 
 void onLightMode_Received(CanardTransfer const & transfer, ArduinoUAVCAN & /* uavcan */)
 {
