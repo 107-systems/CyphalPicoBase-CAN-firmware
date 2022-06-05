@@ -33,6 +33,8 @@ some Subject-IDs are the same as with the leg controller. The host can different
 | 2005           | sub           | OUTPUT 1             | Bit         |
 | 2006           | sub           | SERVO 0              | Integer16   |
 | 2007           | sub           | SERVO 1              | Integer16   |
+| 2008           | pub           | ANALOG INPUT 0       | Integer16   |
+| 2009           | pub           | ANALOG INPUT 1       | Integer16   |
 | 2010           | sub           | light mode           | Integer8    |
 | 1100           | sub           | update_interval      | Integer16   |
 
@@ -85,9 +87,9 @@ some Subject-IDs are the same as with the leg controller. The host can different
 | 29      | GP22         | STATUS_LED3   | internal status LED 3            |
 | 30      | RUN          | RESET         | Reset for Board                  |
 | 31      | GP26         | INPUT_VOLTAGE | measure input voltage            |
-| 32      | GP27         | reserved      | analog input                     |
-| 33      | GND          | GND           | analog input                     |
-| 34      | GP28         | reserved      |                                  |
+| 32      | GP27         | ANALOG_INPUT0 | analog input                     |
+| 33      | GND          | GND           |                                  |
+| 34      | GP28         | ANALOG_INPUT1 | analog input                     |
 | 35      | ADC_VREF     |               |                                  |
 | 36      | 3V3 (OUT)    | 3V3-rail      | supply voltage for board         |
 | 37      | 3V3_EN       |               |                                  |

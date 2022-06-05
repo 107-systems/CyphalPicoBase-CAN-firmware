@@ -8,7 +8,7 @@
  * Used Subject-IDs
  * 1001 - pub - Real32    - input voltage
  * 1005 - sub - Bit       - LED1
- * 101  - pub - Real32    - internal temperature
+ * 1010 - pub - Real32    - internal temperature
  * 2000 - pub - Bit       - input0
  * 2001 - pub - Bit       - input1
  * 2002 - pub - Bit       - input2
@@ -17,6 +17,8 @@
  * 2005 - sub - Bit       - output1
  * 2006 - sub - Integer16 - servo0
  * 2007 - sub - Integer16 - servo1
+ * 2008 - pub - Integer16 - analog_input0
+ * 2009 - pub - Integer16 - analog_input1
  * 2010 - sub - Integer8  - light mode
  */
 
@@ -37,17 +39,19 @@
  * DEFINES
  **************************************************************************************/
 
-#define LED2_PIN      21
-#define LED3_PIN      22
-#define INPUT0_PIN     6
-#define INPUT1_PIN     7
-#define INPUT2_PIN     8
-#define INPUT3_PIN     9
-#define OUTPUT0_PIN   10
-#define OUTPUT1_PIN   11
-#define SERVO0_PIN    14
-#define SERVO1_PIN    15
-#define ANALOG_PIN    26
+#define INPUT0_PIN         6
+#define INPUT1_PIN         7
+#define INPUT2_PIN         8
+#define INPUT3_PIN         9
+#define OUTPUT0_PIN       10
+#define OUTPUT1_PIN       11
+#define SERVO0_PIN        14
+#define SERVO1_PIN        15
+#define LED2_PIN          21
+#define LED3_PIN          22
+#define ANALOG_PIN        26
+#define ANALOG_INPUT0_PIN 27
+#define ANALOG_INPUT1_PIN 28
 
 // Which pin on the Arduino is connected to the NeoPixels?
 //#define NEOPIXELPIN        12 // Adafruit Feather M0
@@ -82,6 +86,8 @@ static CanardPortID const ID_OUTPUT0              = 2004U;
 static CanardPortID const ID_OUTPUT1              = 2005U;
 static CanardPortID const ID_SERVO0               = 2006U;
 static CanardPortID const ID_SERVO1               = 2007U;
+static CanardPortID const ID_ANALOG_INPUT0        = 2008U;
+static CanardPortID const ID_ANALOG_INPUT1        = 2009U;
 static CanardPortID const ID_LIGHT_MODE           = 2010U;
 
 static SPISettings  const MCP2515x_SPI_SETTING{1000000, MSBFIRST, SPI_MODE0};
@@ -129,6 +135,8 @@ Bit_1_0<ID_INPUT0> uavcan_input0;
 Bit_1_0<ID_INPUT1> uavcan_input1;
 Bit_1_0<ID_INPUT2> uavcan_input2;
 Bit_1_0<ID_INPUT3> uavcan_input3;
+Integer16_1_0<ID_ANALOG_INPUT0> uavcan_analog_input0;
+Integer16_1_0<ID_ANALOG_INPUT1> uavcan_analog_input1;
 Real32_1_0<ID_INPUT_VOLTAGE> uavcan_input_voltage;
 Real32_1_0<ID_INTERNAL_TEMPERATURE> uavcan_internal_temperature;
 Integer8_1_0<ID_LIGHT_MODE> uavcan_light_mode;
@@ -246,6 +254,8 @@ void loop()
   static unsigned long prev_input1 = 0;
   static unsigned long prev_input2 = 0;
   static unsigned long prev_input3 = 0;
+  static unsigned long prev_analog_input0 = 0;
+  static unsigned long prev_analog_input1 = 0;
 
   unsigned long const now = millis();
 
@@ -344,6 +354,20 @@ void loop()
     uavcan_input3.data.value = digitalRead(INPUT3_PIN);
     uc->publish(uavcan_input3);
     prev_input3 = now;
+  }
+  if((now - prev_analog_input0) > 500)
+  {
+    Integer16_1_0<ID_ANALOG_INPUT0> uavcan_analog_input0;
+    uavcan_analog_input0.data.value = analogRead(ANALOG_INPUT0_PIN);
+    uc->publish(uavcan_analog_input0);
+    prev_analog_input0 = now;
+  }
+  if((now - prev_analog_input1) > 500)
+  {
+    Integer16_1_0<ID_ANALOG_INPUT1> uavcan_analog_input1;
+    uavcan_analog_input1.data.value = analogRead(ANALOG_INPUT1_PIN);
+    uc->publish(uavcan_analog_input1);
+    prev_analog_input1 = now;
   }
 
   /* Transmit all enqeued CAN frames */
