@@ -8,6 +8,7 @@
  * Used Subject-IDs
  * 1001 - pub - Real32    - input voltage
  * 1005 - sub - Bit       - LED1
+ * 101  - pub - Real32    - internal temperature
  * 2000 - pub - Bit       - input0
  * 2001 - pub - Bit       - input1
  * 2002 - pub - Bit       - input2
@@ -70,17 +71,18 @@ using namespace uavcan::primitive::scalar;
 static int const MKRCAN_MCP2515_CS_PIN  = 17;
 static int const MKRCAN_MCP2515_INT_PIN = 20;
 
-static CanardPortID const ID_INPUT_VOLTAGE       = 1001U;
-static CanardPortID const ID_LED1                = 1005U;
-static CanardPortID const ID_INPUT0              = 2000U;
-static CanardPortID const ID_INPUT1              = 2001U;
-static CanardPortID const ID_INPUT2              = 2002U;
-static CanardPortID const ID_INPUT3              = 2003U;
-static CanardPortID const ID_OUTPUT0             = 2004U;
-static CanardPortID const ID_OUTPUT1             = 2005U;
-static CanardPortID const ID_SERVO0              = 2006U;
-static CanardPortID const ID_SERVO1              = 2007U;
-static CanardPortID const ID_LIGHT_MODE          = 2010U;
+static CanardPortID const ID_INPUT_VOLTAGE        = 1001U;
+static CanardPortID const ID_LED1                 = 1005U;
+static CanardPortID const ID_INTERNAL_TEMPERATURE = 1010U;
+static CanardPortID const ID_INPUT0               = 2000U;
+static CanardPortID const ID_INPUT1               = 2001U;
+static CanardPortID const ID_INPUT2               = 2002U;
+static CanardPortID const ID_INPUT3               = 2003U;
+static CanardPortID const ID_OUTPUT0              = 2004U;
+static CanardPortID const ID_OUTPUT1              = 2005U;
+static CanardPortID const ID_SERVO0               = 2006U;
+static CanardPortID const ID_SERVO1               = 2007U;
+static CanardPortID const ID_LIGHT_MODE           = 2010U;
 
 static SPISettings  const MCP2515x_SPI_SETTING{1000000, MSBFIRST, SPI_MODE0};
 
@@ -128,6 +130,7 @@ Bit_1_0<ID_INPUT1> uavcan_input1;
 Bit_1_0<ID_INPUT2> uavcan_input2;
 Bit_1_0<ID_INPUT3> uavcan_input3;
 Real32_1_0<ID_INPUT_VOLTAGE> uavcan_input_voltage;
+Real32_1_0<ID_INTERNAL_TEMPERATURE> uavcan_internal_temperature;
 Integer8_1_0<ID_LIGHT_MODE> uavcan_light_mode;
 Servo servo0;
 Servo servo1;
@@ -238,6 +241,7 @@ void loop()
   static unsigned long prev_led_toggle = 0;
   static unsigned long prev_hearbeat = 0;
   static unsigned long prev_battery_voltage = 0;
+  static unsigned long prev_internal_temperature = 0;
   static unsigned long prev_input0 = 0;
   static unsigned long prev_input1 = 0;
   static unsigned long prev_input2 = 0;
@@ -300,6 +304,16 @@ void loop()
     uavcan_input_voltage.data.value = analog;
     uc->publish(uavcan_input_voltage);
     prev_battery_voltage = now;
+  }
+  if((now - prev_internal_temperature) > (10*1000))
+  {
+    float const temperature = analogReadTemp();
+    Serial.print("Temperature: ");
+    Serial.println(temperature);
+    Real32_1_0<ID_INTERNAL_TEMPERATURE> uavcan_internal_temperature;
+    uavcan_internal_temperature.data.value = temperature;
+    uc->publish(uavcan_internal_temperature);
+    prev_internal_temperature = now;
   }
 
   /* Handling of inputs */

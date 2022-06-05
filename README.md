@@ -19,21 +19,22 @@ every leg controller needs to have its own Node-ID. The Node-ID is stored in the
 
 some Subject-IDs are the same as with the leg controller. The host can differentiate between them by their Node-IDs.
 
-| **Subject-ID** | **direction** | **name**          | **type**    |
-|:--------------:|:-------------:|:-----------------:|:-----------:|
-| heartbeat      | pub           | heartbeat         | heartbeat   |
-| 1001           | pub           | input-voltage     | Real32      |
-| 1005           | sub           | LED1              | Bit         |
-| 2000           | pub           | INPUT 0           | Bit         |
-| 2001           | pub           | INPUT 1           | Bit         |
-| 2002           | pub           | INPUT 2           | Bit         |
-| 2003           | pub           | INPUT 3           | Bit         |
-| 2004           | sub           | OUTPUT 0          | Bit         |
-| 2005           | sub           | OUTPUT 1          | Bit         |
-| 2006           | sub           | SERVO 0           | Integer16   |
-| 2007           | sub           | SERVO 1           | Integer16   |
-| 2010           | sub           | light mode        | Integer8    |
-| 1010           | sub           | update_interval   | Integer16   |
+| **Subject-ID** | **direction** | **name**             | **type**    |
+|:--------------:|:-------------:|:--------------------:|:-----------:|
+| heartbeat      | pub           | heartbeat            | heartbeat   |
+| 1001           | pub           | input-voltage        | Real32      |
+| 1005           | sub           | LED1                 | Bit         |
+| 1010           | pub           | internal Temperature | Real32      |
+| 2000           | pub           | INPUT 0              | Bit         |
+| 2001           | pub           | INPUT 1              | Bit         |
+| 2002           | pub           | INPUT 2              | Bit         |
+| 2003           | pub           | INPUT 3              | Bit         |
+| 2004           | sub           | OUTPUT 0             | Bit         |
+| 2005           | sub           | OUTPUT 1             | Bit         |
+| 2006           | sub           | SERVO 0              | Integer16   |
+| 2007           | sub           | SERVO 1              | Integer16   |
+| 2010           | sub           | light mode           | Integer8    |
+| 1100           | sub           | update_interval      | Integer16   |
 
 ### light mode
 
