@@ -30,6 +30,8 @@ some Subject-IDs are the same as with the leg controller. The host can different
 | 2003           | pub           | INPUT 3           | Bit         |
 | 2004           | sub           | OUTPUT 0          | Bit         |
 | 2005           | sub           | OUTPUT 1          | Bit         |
+| 2006           | sub           | SERVO 0           | Integer16   |
+| 2007           | sub           | SERVO 1           | Integer16   |
 | 2010           | sub           | light mode        | Integer8    |
 | 1010           | sub           | update_interval   | Integer16   |
 
@@ -69,8 +71,8 @@ some Subject-IDs are the same as with the leg controller. The host can different
 | 16      | GP12         | reserved      | Neopixel                         |
 | 17      | GP13         | reserved      | radiation detector               |
 | 18      | GND          | GND           |                                  |
-| 19      | GP14         | reserved      | servo 0                          |
-| 20      | GP15         | reserved      | servo 1                          |
+| 19      | GP14         | SERVO0        | servo 0                          |
+| 20      | GP15         | SERVO1        | servo 1                          |
 | 21      | GP16         | SPI_MISO      | SPI for MCP2515                  |
 | 22      | GP17         | MCP2515_CS    | SPI for MCP2515                  |
 | 23      | GND          | GND           |                                  |

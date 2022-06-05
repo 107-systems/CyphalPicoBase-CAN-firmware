@@ -6,15 +6,17 @@
  *   - MCP2515
  *
  * Used Subject-IDs
- * 1001 - pub - Real32   - input voltage
- * 1005 - sub - Bit      - LED1
- * 2000 - pub - Bit      - input0
- * 2001 - pub - Bit      - input1
- * 2002 - pub - Bit      - input2
- * 2003 - pub - Bit      - input3
- * 2004 - pub - Bit      - output0
- * 2005 - pub - Bit      - output1
- * 2010 - sub - Integer8 - light mode
+ * 1001 - pub - Real32    - input voltage
+ * 1005 - sub - Bit       - LED1
+ * 2000 - pub - Bit       - input0
+ * 2001 - pub - Bit       - input1
+ * 2002 - pub - Bit       - input2
+ * 2003 - pub - Bit       - input3
+ * 2004 - sub - Bit       - output0
+ * 2005 - sub - Bit       - output1
+ * 2006 - sub - Integer16 - servo0
+ * 2007 - sub - Integer16 - servo1
+ * 2010 - sub - Integer8  - light mode
  */
 
 /**************************************************************************************
@@ -22,7 +24,7 @@
  **************************************************************************************/
 #include <SPI.h>
 #include <Wire.h>
-
+#include <Servo.h>
 
 #include <ArduinoUAVCAN.h>
 #include <ArduinoMCP2515.h>
@@ -34,15 +36,17 @@
  * DEFINES
  **************************************************************************************/
 
-#define LED2_PIN 21
-#define LED3_PIN 22
-#define INPUT0_PIN 6
-#define INPUT1_PIN 7
-#define INPUT2_PIN 8
-#define INPUT3_PIN 9
-#define OUTPUT0_PIN 10
-#define OUTPUT1_PIN 11
-#define ANALOG_PIN 26
+#define LED2_PIN      21
+#define LED3_PIN      22
+#define INPUT0_PIN     6
+#define INPUT1_PIN     7
+#define INPUT2_PIN     8
+#define INPUT3_PIN     9
+#define OUTPUT0_PIN   10
+#define OUTPUT1_PIN   11
+#define SERVO0_PIN    14
+#define SERVO1_PIN    15
+#define ANALOG_PIN    26
 
 // Which pin on the Arduino is connected to the NeoPixels?
 //#define NEOPIXELPIN        12 // Adafruit Feather M0
@@ -74,6 +78,8 @@ static CanardPortID const ID_INPUT2              = 2002U;
 static CanardPortID const ID_INPUT3              = 2003U;
 static CanardPortID const ID_OUTPUT0             = 2004U;
 static CanardPortID const ID_OUTPUT1             = 2005U;
+static CanardPortID const ID_SERVO0              = 2006U;
+static CanardPortID const ID_SERVO1              = 2007U;
 static CanardPortID const ID_LIGHT_MODE          = 2010U;
 
 static SPISettings  const MCP2515x_SPI_SETTING{1000000, MSBFIRST, SPI_MODE0};
@@ -89,6 +95,8 @@ static int8_t const LIGHT_MODE_AMBER = 3;
 void onLed1_Received (CanardTransfer const &, ArduinoUAVCAN &);
 void onOutput0_Received (CanardTransfer const &, ArduinoUAVCAN &);
 void onOutput1_Received (CanardTransfer const &, ArduinoUAVCAN &);
+void onServo0_Received (CanardTransfer const &, ArduinoUAVCAN &);
+void onServo1_Received (CanardTransfer const &, ArduinoUAVCAN &);
 void onLightMode_Received(CanardTransfer const &, ArduinoUAVCAN &);
 
 /**************************************************************************************
@@ -121,6 +129,8 @@ Bit_1_0<ID_INPUT2> uavcan_input2;
 Bit_1_0<ID_INPUT3> uavcan_input3;
 Real32_1_0<ID_INPUT_VOLTAGE> uavcan_input_voltage;
 Integer8_1_0<ID_LIGHT_MODE> uavcan_light_mode;
+Servo servo0;
+Servo servo1;
 
 //Adafruit_NeoPixel_ZeroDMA pixels(NUMPIXELS, NEOPIXELPIN, NEO_GRB);
 
@@ -171,6 +181,12 @@ void setup()
   pinMode(OUTPUT1_PIN, OUTPUT);
   digitalWrite(OUTPUT1_PIN, LOW);
 
+  /* Setup servo pins */
+  servo0.attach(SERVO0_PIN, 800, 2200);
+  servo1.attach(SERVO1_PIN, 800, 2200);
+  servo0.writeMicroseconds(1500);
+  servo1.writeMicroseconds(1500);
+
   /* create UAVCAN class */
   uc = new ArduinoUAVCAN(99, [](CanardFrame const & frame) -> bool { return mcp2515.transmit(frame); });
 
@@ -200,6 +216,8 @@ void setup()
   uc->subscribe<Bit_1_0<ID_LED1>>(onLed1_Received);
   uc->subscribe<Bit_1_0<ID_OUTPUT0>>(onOutput0_Received);
   uc->subscribe<Bit_1_0<ID_OUTPUT1>>(onOutput1_Received);
+  uc->subscribe<Integer16_1_0<ID_SERVO0>>(onServo0_Received);
+  uc->subscribe<Integer16_1_0<ID_SERVO1>>(onServo1_Received);
   uc->subscribe<Integer8_1_0<ID_LIGHT_MODE>>(onLightMode_Received);
 
   /* Init Neopixel */
@@ -355,6 +373,20 @@ void onOutput1_Received(CanardTransfer const & transfer, ArduinoUAVCAN & /* uavc
 
   if(uavcan_output1.data.value) digitalWrite(OUTPUT1_PIN, HIGH);
   else digitalWrite(OUTPUT1_PIN, LOW);
+}
+
+void onServo0_Received(CanardTransfer const & transfer, ArduinoUAVCAN & /* uavcan */)
+{
+  Integer16_1_0<ID_SERVO0> const uavcan_servo0 = Integer16_1_0<ID_SERVO0>::deserialize(transfer);
+
+  servo0.writeMicroseconds(uavcan_servo0.data.value);
+}
+
+void onServo1_Received(CanardTransfer const & transfer, ArduinoUAVCAN & /* uavcan */)
+{
+  Integer16_1_0<ID_SERVO1> const uavcan_servo1 = Integer16_1_0<ID_SERVO1>::deserialize(transfer);
+
+  servo1.writeMicroseconds(uavcan_servo1.data.value);
 }
 
 void onLightMode_Received(CanardTransfer const & transfer, ArduinoUAVCAN & /* uavcan */)
