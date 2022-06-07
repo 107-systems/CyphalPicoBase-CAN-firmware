@@ -41,6 +41,7 @@ jobs:
             - name: 107-Arduino-MCP2515
             - name: 107-Arduino-UAVCAN
             - name: I2C_Eeprom
+            - source-url: https://github.com/adafruit/Adafruit_SleepyDog.git
 
           sketches-report-path: ${{ env.SKETCHES_REPORTS_PATH }}
           sketch-paths: ./
