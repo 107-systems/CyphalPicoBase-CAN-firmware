@@ -8,6 +8,12 @@
 
 Firmware for the auxiliary controller (alarm LEDs and emergency stop)
 
+## How-to-build/upload
+```bash
+arduino-cli compile -b arduino:samd:nano_33_iot -v .
+arduino-cli upload -b arduino:samd:nano_33_iot -v . -p /dev/ttyACM0
+```
+
 ## OpenCyphal Settings
 
 Specific seetings for the L3X-Z Hexapod can be found here: https://github.com/107-systems/l3xz-hw#node-ids
