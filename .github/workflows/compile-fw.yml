@@ -44,6 +44,7 @@ jobs:
             - source-url: https://github.com/adafruit/Adafruit_SleepyDog.git
             - source-url: https://github.com/adafruit/Adafruit_NeoPixel.git
             - source-url: https://github.com/adafruit/Adafruit_NeoPixel_ZeroDMA.git
+            - source-url: https://github.com/adafruit/Adafruit_ZeroDMA.git
 
           sketches-report-path: ${{ env.SKETCHES_REPORTS_PATH }}
           sketch-paths: ./
