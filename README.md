@@ -1,7 +1,6 @@
 # l3xz-fw_aux-controller
 Firmware for the auxiliary controller (alarm LEDs and emergency stop)
 
-[![Check Arduino](https://github.com/107-systems/l3xz-fw_aux-controller/actions/workflows/check-arduino.yml/badge.svg)](https://github.com/107-systems/l3xz-fw_aux-controller/actions/workflows/check-arduino.yml)
 [![Check keywords.txt](https://github.com/107-systems/l3xz-fw_aux-controller/actions/workflows/check-keywords-txt.yml/badge.svg)](https://github.com/107-systems/l3xz-fw_aux-controller/actions/workflows/check-keywords-txt.yml)
 [![General Formatting Checks](https://github.com/107-systems/l3xz-fw_aux-controller/workflows/General%20Formatting%20Checks/badge.svg)](https://github.com/107-systems/l3xz-fw_aux-controller/actions?workflow=General+Formatting+Checks)
 [![Spell Check](https://github.com/107-systems/l3xz-fw_aux-controller/workflows/Spell%20Check/badge.svg)](https://github.com/107-systems/l3xz-fw_aux-controller/actions?workflow=Spell+Check)
