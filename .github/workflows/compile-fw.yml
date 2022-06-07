@@ -42,6 +42,8 @@ jobs:
             - name: 107-Arduino-UAVCAN
             - name: I2C_Eeprom
             - source-url: https://github.com/adafruit/Adafruit_SleepyDog.git
+            - source-url: https://github.com/adafruit/Adafruit_NeoPixel
+            - source-url: https://github.com/adafruit/Adafruit_NeoPixel_ZeroDMA
 
           sketches-report-path: ${{ env.SKETCHES_REPORTS_PATH }}
           sketch-paths: ./
