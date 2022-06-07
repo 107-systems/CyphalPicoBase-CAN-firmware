@@ -3,12 +3,12 @@ name: Compile
 on:
   pull_request:
     paths:
-      - ".github/workflows/compile-examples.yml"
+      - ".github/workflows/compile-fw.yml"
 
   push:
     paths:
-      - ".github/workflows/compile-examples.yml"
-      - "./*"
+      - ".github/workflows/compile-fw.yml"
+      - "*"
 
 jobs:
   build:
@@ -41,6 +41,10 @@ jobs:
             - name: 107-Arduino-MCP2515
             - name: 107-Arduino-UAVCAN
             - name: I2C_Eeprom
+            - source-url: https://github.com/adafruit/Adafruit_SleepyDog.git
+            - source-url: https://github.com/adafruit/Adafruit_NeoPixel.git
+            - source-url: https://github.com/adafruit/Adafruit_NeoPixel_ZeroDMA.git
+            - source-url: https://github.com/adafruit/Adafruit_ZeroDMA.git
 
           sketches-report-path: ${{ env.SKETCHES_REPORTS_PATH }}
           sketch-paths: ./

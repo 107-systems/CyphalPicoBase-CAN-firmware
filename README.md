@@ -1,25 +1,32 @@
-# l3xz-fw_aux-controller
-Firmware for the auxiliary controller (alarm LEDs and emergency stop)
+<a href="https://107-systems.org/"><img align="right" src="https://raw.githubusercontent.com/107-systems/.github/main/logo/107-systems.png" width="15%"></a>
+:floppy_disk: Firmware for L3X-Z auxiliary controller
+=====================================================
 
-[![Check Arduino](https://github.com/107-systems/l3xz-fw_aux-controller/actions/workflows/check-arduino.yml/badge.svg)](https://github.com/107-systems/l3xz-fw_aux-controller/actions/workflows/check-arduino.yml)
-[![Check keywords.txt](https://github.com/107-systems/l3xz-fw_aux-controller/actions/workflows/check-keywords-txt.yml/badge.svg)](https://github.com/107-systems/l3xz-fw_aux-controller/actions/workflows/check-keywords-txt.yml)
 [![General Formatting Checks](https://github.com/107-systems/l3xz-fw_aux-controller/workflows/General%20Formatting%20Checks/badge.svg)](https://github.com/107-systems/l3xz-fw_aux-controller/actions?workflow=General+Formatting+Checks)
 [![Spell Check](https://github.com/107-systems/l3xz-fw_aux-controller/workflows/Spell%20Check/badge.svg)](https://github.com/107-systems/l3xz-fw_aux-controller/actions?workflow=Spell+Check)
 [![Compile Examples](https://github.com/107-systems/l3xz-fw_aux-controller/workflows/Compile/badge.svg)](https://github.com/107-systems/l3xz-fw_aux-controller/actions?workflow=Compile)
 
-## uavcan settings
+Firmware for the auxiliary controller controlling alarm/status LEDs and emergency stop.
 
-specific seetings for the L3X-Z Hexapod can be found here: https://github.com/107-systems/l3xz-hw#node-ids
+## How-to-build/upload
+```bash
+arduino-cli compile -b arduino:samd:nano_33_iot -v .
+arduino-cli upload -b arduino:samd:nano_33_iot -v . -p /dev/ttyACM0
+```
+
+## OpenCyphal Settings
+
+Specific seetings for the L3X-Z Hexapod can be found here: https://github.com/107-systems/l3xz-hw#node-ids
 
 ### Node-ID
 
-every leg controller needs to have its own Node-ID. The Node-ID is stored in the eeprom. If no eeprom is found, the Node-ID is 101.
+Every leg controller needs to have its own Node-ID. The Node-ID is stored in the eeprom. If no eeprom is found, the Node-ID is 101.
 
 ### Subject-ID
 
-some Subject-IDs are the same as with the leg controller. The host can differentiate between them by their Node-IDs.
+Some Subject-IDs are the same as with the leg controller. The host can differentiate between them by their Node-IDs.
 
-| **Subject-ID** | **direction** | **name**          | **type**    |
+| **Subject-ID** | **Direction** | **Name**          | **Type**    |
 |:--------------:|:-------------:|:-----------------:|:-----------:|
 | heartbeat      | pub           | heartbeat         | heartbeat   |
 | 1001           | pub           | input-voltage     | Real32      |
@@ -40,6 +47,6 @@ some Subject-IDs are the same as with the leg controller. The host can different
 | 100       | amber running light |
 | other     | all LEDs off        |
 
-## related repositories
-* https://github.com/107-systems/107-Arduino-MCP2515
-* https://github.com/107-systems/107-Arduino-UAVCAN
+## Related Repositories
+* [107-Arduino-MCP2515](https://github.com/107-systems/107-Arduino-MCP2515)
+* [107-Arduino-UAVCAN](https://github.com/107-systems/107-Arduino-UAVCAN)
