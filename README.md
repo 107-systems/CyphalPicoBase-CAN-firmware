@@ -6,7 +6,7 @@
 [![Spell Check](https://github.com/107-systems/l3xz-fw_aux-controller/workflows/Spell%20Check/badge.svg)](https://github.com/107-systems/l3xz-fw_aux-controller/actions?workflow=Spell+Check)
 [![Compile Examples](https://github.com/107-systems/l3xz-fw_aux-controller/workflows/Compile/badge.svg)](https://github.com/107-systems/l3xz-fw_aux-controller/actions?workflow=Compile)
 
-Firmware for the auxiliary controller (alarm LEDs and emergency stop)
+Firmware for the auxiliary controller controlling alarm/status LEDs and emergency stop.
 
 ## How-to-build/upload
 ```bash
