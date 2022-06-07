@@ -3,12 +3,12 @@ name: Compile
 on:
   pull_request:
     paths:
-      - ".github/workflows/compile-examples.yml"
+      - ".github/workflows/compile-fw.yml"
 
   push:
     paths:
-      - ".github/workflows/compile-examples.yml"
-      - "./*"
+      - ".github/workflows/compile-fw.yml"
+      - "*"
 
 jobs:
   build:
