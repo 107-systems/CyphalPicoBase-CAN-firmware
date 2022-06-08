@@ -4,11 +4,12 @@ on:
   pull_request:
     paths:
       - ".github/workflows/compile-fw.yml"
+      - "l3xz-fw_aux-controller.ino"
 
   push:
     paths:
       - ".github/workflows/compile-fw.yml"
-      - "*"
+      - "l3xz-fw_aux-controller.ino"
 
 jobs:
   build:
