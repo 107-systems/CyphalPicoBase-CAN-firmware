@@ -23,9 +23,9 @@ jobs:
 
       matrix:
         board:
-          - fqbn: arduino:samd:nano_33_iot
+          - fqbn: rp2040:rp2040:rpipico
             platforms: |
-              - name: arduino:samd
+              - name: rp2040:rp2040
 
     steps:
       - name: Checkout
