@@ -25,6 +25,7 @@ jobs:
         board:
           - fqbn: rp2040:rp2040:rpipico
             platforms: |
+              - source-url: https://github.com/earlephilhower/arduino-pico.git
               - name: rp2040:rp2040
 
     steps:
