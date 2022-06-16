@@ -52,7 +52,7 @@ some Subject-IDs are the same as with the leg controller. The host can different
 
 ## pin usage
 
-### Raspberry Pi Pico 
+### Raspberry Pi Pico
 
 | **Pin** | **Pin Name** | **Signal**    | **Description**                  |
 |:-------:|:------------:|:-------------:|:--------------------------------:|
