@@ -10,8 +10,8 @@ Firmware for the auxiliary controller controlling alarm/status LEDs and emergenc
 
 ## How-to-build/upload
 ```bash
-arduino-cli compile -b arduino:samd:nano_33_iot -v .
-arduino-cli upload -b arduino:samd:nano_33_iot -v . -p /dev/ttyACM0
+arduino-cli compile -b rp2040:rp2040:rpipico -v .
+arduino-cli upload -b rp2040:rp2040:rpipico -v . -p /dev/ttyACM0
 ```
 
 ## OpenCyphal Settings
