@@ -29,8 +29,8 @@
 #include <Wire.h>
 #include <Servo.h>
 
-#include <ArduinoUAVCAN.h>
-#include <ArduinoMCP2515.h>
+#include <107-Arduino-Cyphal.h>
+#include <107-Arduino-MCP2515.h>
 #include <I2C_eeprom.h>
 //#include <Adafruit_SleepyDog.h>
 //#include <Adafruit_NeoPixel_ZeroDMA.h>
