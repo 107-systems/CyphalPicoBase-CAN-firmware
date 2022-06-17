@@ -75,6 +75,8 @@ using namespace uavcan::primitive::scalar;
 static int const MKRCAN_MCP2515_CS_PIN  = 17;
 static int const MKRCAN_MCP2515_INT_PIN = 20;
 
+static CanardNodeID const AUX_CONTROLLER_NODE_ID = 99;
+
 static CanardPortID const ID_INPUT_VOLTAGE        = 1001U;
 static CanardPortID const ID_LED1                 = 1005U;
 static CanardPortID const ID_INTERNAL_TEMPERATURE = 1010U;
@@ -100,6 +102,7 @@ static int8_t const LIGHT_MODE_AMBER = 3;
  * FUNCTION DECLARATION
  **************************************************************************************/
 
+void onReceiveBufferFull(CanardFrame const & frame);
 void onLed1_Received (CanardRxTransfer const &, Node &);
 void onOutput0_Received (CanardRxTransfer const &, Node &);
 void onOutput1_Received (CanardRxTransfer const &, Node &);
@@ -110,8 +113,6 @@ void onLightMode_Received(CanardRxTransfer const &, Node &);
 /**************************************************************************************
  * GLOBAL VARIABLES
  **************************************************************************************/
-
-static Node * node_hdl_ptr = nullptr;
 
 ArduinoMCP2515 mcp2515([]()
                        {
@@ -127,8 +128,10 @@ ArduinoMCP2515 mcp2515([]()
                        },
                        [](uint8_t const d) { return SPI.transfer(d); },
                        micros,
-                       [](CanardFrame const & f) { node_hdl_ptr->onCanFrameReceived(f, micros()); },
+                       onReceiveBufferFull,
                        nullptr);
+
+Node node_hdl([](CanardFrame const & frame) -> bool { return mcp2515.transmit(frame); }, AUX_CONTROLLER_NODE_ID);
 
 Heartbeat_1_0<> hb;
 Bit_1_0<ID_INPUT0> uavcan_input0;
@@ -198,9 +201,6 @@ void setup()
   servo0.writeMicroseconds(1500);
   servo1.writeMicroseconds(1500);
 
-  /* create UAVCAN class */
-  node_hdl_ptr = new Node(99, [](CanardFrame const & frame) -> bool { return mcp2515.transmit(frame); });
-
   /* Setup SPI access */
   SPI.begin();
   pinMode(MKRCAN_MCP2515_CS_PIN, OUTPUT);
@@ -224,12 +224,12 @@ void setup()
   hb.data.vendor_specific_status_code = 0;
 
   /* Subscribe to the reception of Bit message. */
-  node_hdl_ptr->subscribe<Bit_1_0<ID_LED1>>(onLed1_Received);
-  node_hdl_ptr->subscribe<Bit_1_0<ID_OUTPUT0>>(onOutput0_Received);
-  node_hdl_ptr->subscribe<Bit_1_0<ID_OUTPUT1>>(onOutput1_Received);
-  node_hdl_ptr->subscribe<Integer16_1_0<ID_SERVO0>>(onServo0_Received);
-  node_hdl_ptr->subscribe<Integer16_1_0<ID_SERVO1>>(onServo1_Received);
-  node_hdl_ptr->subscribe<Integer8_1_0<ID_LIGHT_MODE>>(onLightMode_Received);
+  node_hdl.subscribe<Bit_1_0<ID_LED1>>(onLed1_Received);
+  node_hdl.subscribe<Bit_1_0<ID_OUTPUT0>>(onOutput0_Received);
+  node_hdl.subscribe<Bit_1_0<ID_OUTPUT1>>(onOutput1_Received);
+  node_hdl.subscribe<Integer16_1_0<ID_SERVO0>>(onServo0_Received);
+  node_hdl.subscribe<Integer16_1_0<ID_SERVO1>>(onServo1_Received);
+  node_hdl.subscribe<Integer8_1_0<ID_LIGHT_MODE>>(onLightMode_Received);
 
   /* Init Neopixel */
 //  if(! pixels.begin()) {
@@ -302,7 +302,7 @@ void loop()
 
   /* Publish the heartbeat once/second */
   if(now - prev_hearbeat > 1000) {
-    node_hdl_ptr->publish(hb);
+    node_hdl.publish(hb);
     prev_hearbeat = now;
   }
   if((now - prev_battery_voltage) > (3*1000))
@@ -312,7 +312,7 @@ void loop()
     Serial.println(analog);
     Real32_1_0<ID_INPUT_VOLTAGE> uavcan_input_voltage;
     uavcan_input_voltage.data.value = analog;
-    node_hdl_ptr->publish(uavcan_input_voltage);
+    node_hdl.publish(uavcan_input_voltage);
     prev_battery_voltage = now;
   }
   if((now - prev_internal_temperature) > (10*1000))
@@ -322,7 +322,7 @@ void loop()
     Serial.println(temperature);
     Real32_1_0<ID_INTERNAL_TEMPERATURE> uavcan_internal_temperature;
     uavcan_internal_temperature.data.value = temperature;
-    node_hdl_ptr->publish(uavcan_internal_temperature);
+    node_hdl.publish(uavcan_internal_temperature);
     prev_internal_temperature = now;
   }
 
@@ -331,47 +331,47 @@ void loop()
   {
     Bit_1_0<ID_INPUT0> uavcan_input0;
     uavcan_input0.data.value = digitalRead(INPUT0_PIN);
-    node_hdl_ptr->publish(uavcan_input0);
+    node_hdl.publish(uavcan_input0);
     prev_input0 = now;
   }
   if((now - prev_input1) > 500)
   {
     Bit_1_0<ID_INPUT1> uavcan_input1;
     uavcan_input1.data.value = digitalRead(INPUT1_PIN);
-    node_hdl_ptr->publish(uavcan_input1);
+    node_hdl.publish(uavcan_input1);
     prev_input1 = now;
   }
   if((now - prev_input2) > 500)
   {
     Bit_1_0<ID_INPUT2> uavcan_input2;
     uavcan_input2.data.value = digitalRead(INPUT2_PIN);
-    node_hdl_ptr->publish(uavcan_input2);
+    node_hdl.publish(uavcan_input2);
     prev_input2 = now;
   }
   if((now - prev_input3) > 500)
   {
     Bit_1_0<ID_INPUT3> uavcan_input3;
     uavcan_input3.data.value = digitalRead(INPUT3_PIN);
-    node_hdl_ptr->publish(uavcan_input3);
+    node_hdl.publish(uavcan_input3);
     prev_input3 = now;
   }
   if((now - prev_analog_input0) > 500)
   {
     Integer16_1_0<ID_ANALOG_INPUT0> uavcan_analog_input0;
     uavcan_analog_input0.data.value = analogRead(ANALOG_INPUT0_PIN);
-    node_hdl_ptr->publish(uavcan_analog_input0);
+    node_hdl.publish(uavcan_analog_input0);
     prev_analog_input0 = now;
   }
   if((now - prev_analog_input1) > 500)
   {
     Integer16_1_0<ID_ANALOG_INPUT1> uavcan_analog_input1;
     uavcan_analog_input1.data.value = analogRead(ANALOG_INPUT1_PIN);
-    node_hdl_ptr->publish(uavcan_analog_input1);
+    node_hdl.publish(uavcan_analog_input1);
     prev_analog_input1 = now;
   }
 
   /* Transmit all enqeued CAN frames */
-  while(node_hdl_ptr->transmitCanFrame()) { }
+  while(node_hdl.transmitCanFrame()) { }
 
   /* Feed the watchdog to keep it from biting. */
 //  Watchdog.reset();
@@ -380,6 +380,11 @@ void loop()
 /**************************************************************************************
  * FUNCTION DEFINITION
  **************************************************************************************/
+
+void onReceiveBufferFull(CanardFrame const & frame)
+{
+  node_hdl.onCanFrameReceived(frame, micros());
+}
 
 void onLed1_Received(CanardRxTransfer const & transfer, Node & /* node_hdl */)
 {
