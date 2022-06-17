@@ -29,8 +29,8 @@
 #include <Wire.h>
 #include <Servo.h>
 
-#include <ArduinoUAVCAN.h>
-#include <ArduinoMCP2515.h>
+#include <107-Arduino-Cyphal.h>
+#include <107-Arduino-MCP2515.h>
 #include <I2C_eeprom.h>
 //#include <Adafruit_SleepyDog.h>
 //#include <Adafruit_NeoPixel_ZeroDMA.h>
@@ -100,18 +100,18 @@ static int8_t const LIGHT_MODE_AMBER = 3;
  * FUNCTION DECLARATION
  **************************************************************************************/
 
-void onLed1_Received (CanardTransfer const &, ArduinoUAVCAN &);
-void onOutput0_Received (CanardTransfer const &, ArduinoUAVCAN &);
-void onOutput1_Received (CanardTransfer const &, ArduinoUAVCAN &);
-void onServo0_Received (CanardTransfer const &, ArduinoUAVCAN &);
-void onServo1_Received (CanardTransfer const &, ArduinoUAVCAN &);
-void onLightMode_Received(CanardTransfer const &, ArduinoUAVCAN &);
+void onLed1_Received (CanardRxTransfer const &, Node &);
+void onOutput0_Received (CanardRxTransfer const &, Node &);
+void onOutput1_Received (CanardRxTransfer const &, Node &);
+void onServo0_Received (CanardRxTransfer const &, Node &);
+void onServo1_Received (CanardRxTransfer const &, Node &);
+void onLightMode_Received(CanardRxTransfer const &, Node &);
 
 /**************************************************************************************
  * GLOBAL VARIABLES
  **************************************************************************************/
 
-static ArduinoUAVCAN * uc = nullptr;
+static Node * node_hdl_ptr = nullptr;
 
 ArduinoMCP2515 mcp2515([]()
                        {
@@ -127,7 +127,7 @@ ArduinoMCP2515 mcp2515([]()
                        },
                        [](uint8_t const d) { return SPI.transfer(d); },
                        micros,
-                       [](CanardFrame const & f) { uc->onCanFrameReceived(f); },
+                       [](CanardFrame const & f) { node_hdl_ptr->onCanFrameReceived(f, micros()); },
                        nullptr);
 
 Heartbeat_1_0<> hb;
@@ -199,7 +199,7 @@ void setup()
   servo1.writeMicroseconds(1500);
 
   /* create UAVCAN class */
-  uc = new ArduinoUAVCAN(99, [](CanardFrame const & frame) -> bool { return mcp2515.transmit(frame); });
+  node_hdl_ptr = new Node(99, [](CanardFrame const & frame) -> bool { return mcp2515.transmit(frame); });
 
   /* Setup SPI access */
   SPI.begin();
@@ -224,12 +224,12 @@ void setup()
   hb.data.vendor_specific_status_code = 0;
 
   /* Subscribe to the reception of Bit message. */
-  uc->subscribe<Bit_1_0<ID_LED1>>(onLed1_Received);
-  uc->subscribe<Bit_1_0<ID_OUTPUT0>>(onOutput0_Received);
-  uc->subscribe<Bit_1_0<ID_OUTPUT1>>(onOutput1_Received);
-  uc->subscribe<Integer16_1_0<ID_SERVO0>>(onServo0_Received);
-  uc->subscribe<Integer16_1_0<ID_SERVO1>>(onServo1_Received);
-  uc->subscribe<Integer8_1_0<ID_LIGHT_MODE>>(onLightMode_Received);
+  node_hdl_ptr->subscribe<Bit_1_0<ID_LED1>>(onLed1_Received);
+  node_hdl_ptr->subscribe<Bit_1_0<ID_OUTPUT0>>(onOutput0_Received);
+  node_hdl_ptr->subscribe<Bit_1_0<ID_OUTPUT1>>(onOutput1_Received);
+  node_hdl_ptr->subscribe<Integer16_1_0<ID_SERVO0>>(onServo0_Received);
+  node_hdl_ptr->subscribe<Integer16_1_0<ID_SERVO1>>(onServo1_Received);
+  node_hdl_ptr->subscribe<Integer8_1_0<ID_LIGHT_MODE>>(onLightMode_Received);
 
   /* Init Neopixel */
 //  if(! pixels.begin()) {
@@ -302,7 +302,7 @@ void loop()
 
   /* Publish the heartbeat once/second */
   if(now - prev_hearbeat > 1000) {
-    uc->publish(hb);
+    node_hdl_ptr->publish(hb);
     prev_hearbeat = now;
   }
   if((now - prev_battery_voltage) > (3*1000))
@@ -312,7 +312,7 @@ void loop()
     Serial.println(analog);
     Real32_1_0<ID_INPUT_VOLTAGE> uavcan_input_voltage;
     uavcan_input_voltage.data.value = analog;
-    uc->publish(uavcan_input_voltage);
+    node_hdl_ptr->publish(uavcan_input_voltage);
     prev_battery_voltage = now;
   }
   if((now - prev_internal_temperature) > (10*1000))
@@ -322,7 +322,7 @@ void loop()
     Serial.println(temperature);
     Real32_1_0<ID_INTERNAL_TEMPERATURE> uavcan_internal_temperature;
     uavcan_internal_temperature.data.value = temperature;
-    uc->publish(uavcan_internal_temperature);
+    node_hdl_ptr->publish(uavcan_internal_temperature);
     prev_internal_temperature = now;
   }
 
@@ -331,47 +331,47 @@ void loop()
   {
     Bit_1_0<ID_INPUT0> uavcan_input0;
     uavcan_input0.data.value = digitalRead(INPUT0_PIN);
-    uc->publish(uavcan_input0);
+    node_hdl_ptr->publish(uavcan_input0);
     prev_input0 = now;
   }
   if((now - prev_input1) > 500)
   {
     Bit_1_0<ID_INPUT1> uavcan_input1;
     uavcan_input1.data.value = digitalRead(INPUT1_PIN);
-    uc->publish(uavcan_input1);
+    node_hdl_ptr->publish(uavcan_input1);
     prev_input1 = now;
   }
   if((now - prev_input2) > 500)
   {
     Bit_1_0<ID_INPUT2> uavcan_input2;
     uavcan_input2.data.value = digitalRead(INPUT2_PIN);
-    uc->publish(uavcan_input2);
+    node_hdl_ptr->publish(uavcan_input2);
     prev_input2 = now;
   }
   if((now - prev_input3) > 500)
   {
     Bit_1_0<ID_INPUT3> uavcan_input3;
     uavcan_input3.data.value = digitalRead(INPUT3_PIN);
-    uc->publish(uavcan_input3);
+    node_hdl_ptr->publish(uavcan_input3);
     prev_input3 = now;
   }
   if((now - prev_analog_input0) > 500)
   {
     Integer16_1_0<ID_ANALOG_INPUT0> uavcan_analog_input0;
     uavcan_analog_input0.data.value = analogRead(ANALOG_INPUT0_PIN);
-    uc->publish(uavcan_analog_input0);
+    node_hdl_ptr->publish(uavcan_analog_input0);
     prev_analog_input0 = now;
   }
   if((now - prev_analog_input1) > 500)
   {
     Integer16_1_0<ID_ANALOG_INPUT1> uavcan_analog_input1;
     uavcan_analog_input1.data.value = analogRead(ANALOG_INPUT1_PIN);
-    uc->publish(uavcan_analog_input1);
+    node_hdl_ptr->publish(uavcan_analog_input1);
     prev_analog_input1 = now;
   }
 
   /* Transmit all enqeued CAN frames */
-  while(uc->transmitCanFrame()) { }
+  while(node_hdl_ptr->transmitCanFrame()) { }
 
   /* Feed the watchdog to keep it from biting. */
 //  Watchdog.reset();
@@ -381,7 +381,7 @@ void loop()
  * FUNCTION DEFINITION
  **************************************************************************************/
 
-void onLed1_Received(CanardTransfer const & transfer, ArduinoUAVCAN & /* uavcan */)
+void onLed1_Received(CanardRxTransfer const & transfer, Node & /* node_hdl */)
 {
   Bit_1_0<ID_LED1> const uavcan_led1 = Bit_1_0<ID_LED1>::deserialize(transfer);
 
@@ -397,7 +397,7 @@ void onLed1_Received(CanardTransfer const & transfer, ArduinoUAVCAN & /* uavcan 
   }
 }
 
-void onOutput0_Received(CanardTransfer const & transfer, ArduinoUAVCAN & /* uavcan */)
+void onOutput0_Received(CanardRxTransfer const & transfer, Node & /* node_hdl */)
 {
   Bit_1_0<ID_OUTPUT0> const uavcan_output0 = Bit_1_0<ID_OUTPUT0>::deserialize(transfer);
 
@@ -405,7 +405,7 @@ void onOutput0_Received(CanardTransfer const & transfer, ArduinoUAVCAN & /* uavc
   else digitalWrite(OUTPUT0_PIN, LOW);
 }
 
-void onOutput1_Received(CanardTransfer const & transfer, ArduinoUAVCAN & /* uavcan */)
+void onOutput1_Received(CanardRxTransfer const & transfer, Node & /* node_hdl */)
 {
   Bit_1_0<ID_OUTPUT1> const uavcan_output1 = Bit_1_0<ID_OUTPUT1>::deserialize(transfer);
 
@@ -413,21 +413,21 @@ void onOutput1_Received(CanardTransfer const & transfer, ArduinoUAVCAN & /* uavc
   else digitalWrite(OUTPUT1_PIN, LOW);
 }
 
-void onServo0_Received(CanardTransfer const & transfer, ArduinoUAVCAN & /* uavcan */)
+void onServo0_Received(CanardRxTransfer const & transfer, Node & /* node_hdl */)
 {
   Integer16_1_0<ID_SERVO0> const uavcan_servo0 = Integer16_1_0<ID_SERVO0>::deserialize(transfer);
 
   servo0.writeMicroseconds(uavcan_servo0.data.value);
 }
 
-void onServo1_Received(CanardTransfer const & transfer, ArduinoUAVCAN & /* uavcan */)
+void onServo1_Received(CanardRxTransfer const & transfer, Node & /* node_hdl */)
 {
   Integer16_1_0<ID_SERVO1> const uavcan_servo1 = Integer16_1_0<ID_SERVO1>::deserialize(transfer);
 
   servo1.writeMicroseconds(uavcan_servo1.data.value);
 }
 
-void onLightMode_Received(CanardTransfer const & transfer, ArduinoUAVCAN & /* uavcan */)
+void onLightMode_Received(CanardRxTransfer const & transfer, Node & /* node_hdl */)
 {
   uavcan_light_mode = Integer8_1_0<ID_LIGHT_MODE>::deserialize(transfer);
 }

@@ -42,7 +42,7 @@ jobs:
           libraries: |
             - source-path: ./
             - name: 107-Arduino-MCP2515
-            - name: 107-Arduino-UAVCAN
+            - source-url: https://github.com/107-systems/107-Arduino-Cyphal.git
             - name: I2C_Eeprom
             - source-url: https://github.com/adafruit/Adafruit_SleepyDog.git
             - source-url: https://github.com/adafruit/Adafruit_NeoPixel.git
