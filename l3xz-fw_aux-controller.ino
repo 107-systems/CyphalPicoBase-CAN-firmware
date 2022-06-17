@@ -100,18 +100,18 @@ static int8_t const LIGHT_MODE_AMBER = 3;
  * FUNCTION DECLARATION
  **************************************************************************************/
 
-void onLed1_Received (CanardTransfer const &, ArduinoUAVCAN &);
-void onOutput0_Received (CanardTransfer const &, ArduinoUAVCAN &);
-void onOutput1_Received (CanardTransfer const &, ArduinoUAVCAN &);
-void onServo0_Received (CanardTransfer const &, ArduinoUAVCAN &);
-void onServo1_Received (CanardTransfer const &, ArduinoUAVCAN &);
-void onLightMode_Received(CanardTransfer const &, ArduinoUAVCAN &);
+void onLed1_Received (CanardRxTransfer const &, Node &);
+void onOutput0_Received (CanardRxTransfer const &, Node &);
+void onOutput1_Received (CanardRxTransfer const &, Node &);
+void onServo0_Received (CanardRxTransfer const &, Node &);
+void onServo1_Received (CanardRxTransfer const &, Node &);
+void onLightMode_Received(CanardRxTransfer const &, Node &);
 
 /**************************************************************************************
  * GLOBAL VARIABLES
  **************************************************************************************/
 
-static ArduinoUAVCAN * uc = nullptr;
+static Node * uc = nullptr;
 
 ArduinoMCP2515 mcp2515([]()
                        {
@@ -127,7 +127,7 @@ ArduinoMCP2515 mcp2515([]()
                        },
                        [](uint8_t const d) { return SPI.transfer(d); },
                        micros,
-                       [](CanardFrame const & f) { uc->onCanFrameReceived(f); },
+                       [](CanardFrame const & f) { uc->onCanFrameReceived(f, micros()); },
                        nullptr);
 
 Heartbeat_1_0<> hb;
@@ -199,7 +199,7 @@ void setup()
   servo1.writeMicroseconds(1500);
 
   /* create UAVCAN class */
-  uc = new ArduinoUAVCAN(99, [](CanardFrame const & frame) -> bool { return mcp2515.transmit(frame); });
+  uc = new Node(99, [](CanardFrame const & frame) -> bool { return mcp2515.transmit(frame); });
 
   /* Setup SPI access */
   SPI.begin();
@@ -381,7 +381,7 @@ void loop()
  * FUNCTION DEFINITION
  **************************************************************************************/
 
-void onLed1_Received(CanardTransfer const & transfer, ArduinoUAVCAN & /* uavcan */)
+void onLed1_Received(CanardRxTransfer const & transfer, Node & /* node_hdl */)
 {
   Bit_1_0<ID_LED1> const uavcan_led1 = Bit_1_0<ID_LED1>::deserialize(transfer);
 
@@ -397,7 +397,7 @@ void onLed1_Received(CanardTransfer const & transfer, ArduinoUAVCAN & /* uavcan 
   }
 }
 
-void onOutput0_Received(CanardTransfer const & transfer, ArduinoUAVCAN & /* uavcan */)
+void onOutput0_Received(CanardRxTransfer const & transfer, Node & /* node_hdl */)
 {
   Bit_1_0<ID_OUTPUT0> const uavcan_output0 = Bit_1_0<ID_OUTPUT0>::deserialize(transfer);
 
@@ -405,7 +405,7 @@ void onOutput0_Received(CanardTransfer const & transfer, ArduinoUAVCAN & /* uavc
   else digitalWrite(OUTPUT0_PIN, LOW);
 }
 
-void onOutput1_Received(CanardTransfer const & transfer, ArduinoUAVCAN & /* uavcan */)
+void onOutput1_Received(CanardRxTransfer const & transfer, Node & /* node_hdl */)
 {
   Bit_1_0<ID_OUTPUT1> const uavcan_output1 = Bit_1_0<ID_OUTPUT1>::deserialize(transfer);
 
@@ -413,21 +413,21 @@ void onOutput1_Received(CanardTransfer const & transfer, ArduinoUAVCAN & /* uavc
   else digitalWrite(OUTPUT1_PIN, LOW);
 }
 
-void onServo0_Received(CanardTransfer const & transfer, ArduinoUAVCAN & /* uavcan */)
+void onServo0_Received(CanardRxTransfer const & transfer, Node & /* node_hdl */)
 {
   Integer16_1_0<ID_SERVO0> const uavcan_servo0 = Integer16_1_0<ID_SERVO0>::deserialize(transfer);
 
   servo0.writeMicroseconds(uavcan_servo0.data.value);
 }
 
-void onServo1_Received(CanardTransfer const & transfer, ArduinoUAVCAN & /* uavcan */)
+void onServo1_Received(CanardRxTransfer const & transfer, Node & /* node_hdl */)
 {
   Integer16_1_0<ID_SERVO1> const uavcan_servo1 = Integer16_1_0<ID_SERVO1>::deserialize(transfer);
 
   servo1.writeMicroseconds(uavcan_servo1.data.value);
 }
 
-void onLightMode_Received(CanardTransfer const & transfer, ArduinoUAVCAN & /* uavcan */)
+void onLightMode_Received(CanardRxTransfer const & transfer, Node & /* node_hdl */)
 {
   uavcan_light_mode = Integer8_1_0<ID_LIGHT_MODE>::deserialize(transfer);
 }
