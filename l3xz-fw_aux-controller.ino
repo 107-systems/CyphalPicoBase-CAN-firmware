@@ -33,7 +33,7 @@
 #include <107-Arduino-MCP2515.h>
 #include <I2C_eeprom.h>
 //#include <Adafruit_SleepyDog.h>
-//#include <Adafruit_NeoPixel_ZeroDMA.h>
+#include <Adafruit_NeoPixel.h>
 
 /**************************************************************************************
  * DEFINES
@@ -54,12 +54,10 @@
 #define ANALOG_INPUT1_PIN 28
 
 // Which pin on the Arduino is connected to the NeoPixels?
-//#define NEOPIXELPIN        12 // Adafruit Feather M0
-//#define NEOPIXELPIN        A2 // Arduino Nano 33 IoT
-#define NEOPIXELPIN        12 // Raspberry Pi Pico
+#define NEOPIXELPIN        13 // Raspberry Pi Pico
 
 // How many NeoPixels are attached to the Arduino?
-#define NUMPIXELS 4 // Popular NeoPixel ring size
+#define NUMPIXELS 8 // Popular NeoPixel ring size
 
 /**************************************************************************************
  * NAMESPACE
@@ -146,27 +144,27 @@ Integer8_1_0<ID_LIGHT_MODE> uavcan_light_mode;
 Servo servo0;
 Servo servo1;
 
-//Adafruit_NeoPixel_ZeroDMA pixels(NUMPIXELS, NEOPIXELPIN, NEO_GRB);
+Adafruit_NeoPixel pixels(NUMPIXELS, NEOPIXELPIN, NEO_GRB);
 
 void light_off()
 {
-//  pixels.clear();
-//  pixels.show();
+  pixels.clear();
+  pixels.show();
 }
 void light_green()
 {
-//  pixels.fill(pixels.Color(0, 55, 0));
-//  pixels.show();
+  pixels.fill(pixels.Color(0, 55, 0));
+  pixels.show();
 }
 void light_red()
 {
-//  pixels.fill(pixels.Color(55, 0, 0));
-//  pixels.show();
+  pixels.fill(pixels.Color(55, 0, 0));
+  pixels.show();
 }
 void light_amber()
 {
-//  pixels.fill(pixels.Color(55, 40, 0));
-//  pixels.show();
+  pixels.fill(pixels.Color(55, 40, 0));
+  pixels.show();
 }
 
 /**************************************************************************************
@@ -232,11 +230,14 @@ void setup()
   node_hdl.subscribe<Integer8_1_0<ID_LIGHT_MODE>>(onLightMode_Received);
 
   /* Init Neopixel */
-//  if(! pixels.begin()) {
-//    Serial.println("ERROR: Init NeoPixel...");
-//    while(1);
-//  }
+  pixels.begin();
 
+  light_red();
+  delay(100);
+  light_amber();
+  delay(100);
+  light_green();
+  delay(100);
   light_off();
 }
 
