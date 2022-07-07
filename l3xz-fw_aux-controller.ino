@@ -92,9 +92,21 @@ static CanardPortID const ID_LIGHT_MODE           = 2010U;
 
 static SPISettings  const MCP2515x_SPI_SETTING{1000000, MSBFIRST, SPI_MODE0};
 
-static int8_t const LIGHT_MODE_RED   = 1;
-static int8_t const LIGHT_MODE_GREEN = 2;
-static int8_t const LIGHT_MODE_AMBER = 3;
+static int8_t const LIGHT_MODE_RED         =   1;
+static int8_t const LIGHT_MODE_GREEN       =   2;
+static int8_t const LIGHT_MODE_BLUE        =   3;
+static int8_t const LIGHT_MODE_WHITE       =   4;
+static int8_t const LIGHT_MODE_AMBER       =   5;
+static int8_t const LIGHT_MODE_BLINK_RED   =  11;
+static int8_t const LIGHT_MODE_BLINK_GREEN =  12;
+static int8_t const LIGHT_MODE_BLINK_BLUE  =  13;
+static int8_t const LIGHT_MODE_BLINK_WHITE =  14;
+static int8_t const LIGHT_MODE_BLINK_AMBER =  15;
+static int8_t const LIGHT_MODE_RUN_RED     = 101;
+static int8_t const LIGHT_MODE_RUN_GREEN   = 102;
+static int8_t const LIGHT_MODE_RUN_BLUE    = 103;
+static int8_t const LIGHT_MODE_RUN_WHITE   = 104;
+static int8_t const LIGHT_MODE_RUN_AMBER   = 105;
 
 /**************************************************************************************
  * FUNCTION DECLARATION
@@ -161,6 +173,16 @@ void light_red()
   pixels.fill(pixels.Color(55, 0, 0));
   pixels.show();
 }
+void light_blue()
+{
+  pixels.fill(pixels.Color(0, 0, 55));
+  pixels.show();
+}
+void light_white()
+{
+  pixels.fill(pixels.Color(55, 55, 55));
+  pixels.show();
+}
 void light_amber()
 {
   pixels.fill(pixels.Color(55, 40, 0));
@@ -214,7 +236,7 @@ void setup()
   mcp2515.setNormalMode();
 
   /* Configure initial heartbeat */
-  uavcan_light_mode.data.value = LIGHT_MODE_GREEN;
+  uavcan_light_mode.data.value = LIGHT_MODE_RUN_BLUE;
 
   hb.data.uptime = 0;
   hb = Heartbeat_1_0<>::Health::NOMINAL;
@@ -237,6 +259,10 @@ void setup()
   light_amber();
   delay(100);
   light_green();
+  delay(100);
+  light_blue();
+  delay(100);
+  light_white();
   delay(100);
   light_off();
 }
@@ -281,12 +307,77 @@ void loop()
   {
     static bool is_light_on = false;
     is_light_on = !is_light_on;
+    static int running_light_counter = 0;
+    running_light_counter ++;
+    if(running_light_counter>=8) running_light_counter=0;
 
-    if (is_light_on)
+    if (uavcan_light_mode.data.value == LIGHT_MODE_RED)
+      light_red();
+    else if (uavcan_light_mode.data.value == LIGHT_MODE_GREEN)
+      light_green();
+    else if (uavcan_light_mode.data.value == LIGHT_MODE_BLUE)
+      light_blue();
+    else if (uavcan_light_mode.data.value == LIGHT_MODE_WHITE)
+      light_white();
+    else if (uavcan_light_mode.data.value == LIGHT_MODE_AMBER)
+      light_amber();
+    else if (LIGHT_MODE_RUN_RED||LIGHT_MODE_RUN_GREEN||LIGHT_MODE_RUN_BLUE||LIGHT_MODE_RUN_WHITE||LIGHT_MODE_RUN_AMBER)
     {
-      if (uavcan_light_mode.data.value == LIGHT_MODE_GREEN)
+      if (uavcan_light_mode.data.value == LIGHT_MODE_RUN_RED)
+      {
+        pixels.setPixelColor(running_light_counter, pixels.Color(55, 0, 0));
+        pixels.setPixelColor((running_light_counter+7)%8, pixels.Color(27, 0, 0));
+        pixels.setPixelColor((running_light_counter+6)%8, pixels.Color(14, 0, 0));
+        pixels.setPixelColor((running_light_counter+5)%8, pixels.Color(7, 0, 0));
+        pixels.setPixelColor((running_light_counter+4)%8, pixels.Color(0, 0, 0));
+        pixels.show();
+      }
+      else if (uavcan_light_mode.data.value == LIGHT_MODE_RUN_GREEN)
+      {
+        pixels.setPixelColor(running_light_counter, pixels.Color(0, 55, 0));
+        pixels.setPixelColor((running_light_counter+7)%8, pixels.Color(0, 27, 0));
+        pixels.setPixelColor((running_light_counter+6)%8, pixels.Color(0, 14, 0));
+        pixels.setPixelColor((running_light_counter+5)%8, pixels.Color(0, 7, 0));
+        pixels.setPixelColor((running_light_counter+4)%8, pixels.Color(0, 0, 0));
+        pixels.show();
+      }
+      else if (uavcan_light_mode.data.value == LIGHT_MODE_RUN_BLUE)
+      {
+        pixels.setPixelColor(running_light_counter, pixels.Color(0, 0, 55));
+        pixels.setPixelColor((running_light_counter+7)%8, pixels.Color(0, 0, 27));
+        pixels.setPixelColor((running_light_counter+6)%8, pixels.Color(0, 0, 14));
+        pixels.setPixelColor((running_light_counter+5)%8, pixels.Color(0, 0, 7));
+        pixels.setPixelColor((running_light_counter+4)%8, pixels.Color(0, 0, 0));
+        pixels.show();
+      }
+      else if (uavcan_light_mode.data.value == LIGHT_MODE_RUN_WHITE)
+      {
+        pixels.setPixelColor(running_light_counter, pixels.Color(55, 55, 55));
+        pixels.setPixelColor((running_light_counter+7)%8, pixels.Color(27, 27, 27));
+        pixels.setPixelColor((running_light_counter+6)%8, pixels.Color(14, 14, 14));
+        pixels.setPixelColor((running_light_counter+5)%8, pixels.Color(7, 7, 7));
+        pixels.setPixelColor((running_light_counter+4)%8, pixels.Color(0, 0, 0));
+        pixels.show();
+      }
+      else if (uavcan_light_mode.data.value == LIGHT_MODE_RUN_AMBER)
+      {
+        pixels.setPixelColor(running_light_counter, pixels.Color(55, 40, 0));
+        pixels.setPixelColor((running_light_counter+7)%8, pixels.Color(27, 20, 0));
+        pixels.setPixelColor((running_light_counter+6)%8, pixels.Color(14, 10, 0));
+        pixels.setPixelColor((running_light_counter+5)%8, pixels.Color(7, 5, 0));
+        pixels.setPixelColor((running_light_counter+4)%8, pixels.Color(0, 0, 0));
+        pixels.show();
+      }
+    }
+    else if (is_light_on&&(LIGHT_MODE_BLINK_RED||LIGHT_MODE_BLINK_GREEN||LIGHT_MODE_BLINK_BLUE||LIGHT_MODE_BLINK_WHITE||LIGHT_MODE_BLINK_AMBER))
+    {
+      if (uavcan_light_mode.data.value == LIGHT_MODE_BLINK_GREEN)
         light_green();
-      else if (uavcan_light_mode.data.value == LIGHT_MODE_AMBER)
+      else if (uavcan_light_mode.data.value == LIGHT_MODE_BLINK_BLUE)
+        light_blue();
+      else if (uavcan_light_mode.data.value == LIGHT_MODE_BLINK_WHITE)
+        light_white();
+      else if (uavcan_light_mode.data.value == LIGHT_MODE_BLINK_AMBER)
         light_amber();
       else
         light_red();
