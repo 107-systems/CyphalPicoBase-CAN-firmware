@@ -54,7 +54,16 @@ Some Subject-IDs are the same as with the leg controller. The host can different
 | 3         | blue static         |
 | 4         | white static        |
 | 5         | amber static        |
-| 100       | amber running light |
+| 11        | red blinking        |
+| 12        | green blinking      |
+| 13        | blue blinking       |
+| 14        | white blinking      |
+| 15        | amber blinking      |
+| 101       | red running light   |
+| 102       | green running light |
+| 103       | blue running light  |
+| 104       | white running light |
+| 105       | amber running light |
 | other     | all LEDs off        |
 
 ## pin usage
