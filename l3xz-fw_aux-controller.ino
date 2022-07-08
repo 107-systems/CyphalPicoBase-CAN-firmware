@@ -108,6 +108,24 @@ static int8_t const LIGHT_MODE_RUN_BLUE    = 103;
 static int8_t const LIGHT_MODE_RUN_WHITE   = 104;
 static int8_t const LIGHT_MODE_RUN_AMBER   = 105;
 
+static const uavcan_node_GetInfo_Response_1_0 GET_INFO_DATA = {
+    /// uavcan.node.Version.1.0 protocol_version
+    {1, 0},
+    /// uavcan.node.Version.1.0 hardware_version
+    {1, 0},
+    /// uavcan.node.Version.1.0 software_version
+    {0, 1},
+    /// saturated uint64 software_vcs_revision_id
+    NULL,
+    /// saturated uint8[16] unique_id
+    {0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77,
+     0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff},
+    /// saturated uint8[<=50] name
+    {
+        "107-systems.l3xz-fw_aux-controller",
+        strlen("107-systems.l3xz-fw_aux-controller")},
+};
+
 /**************************************************************************************
  * FUNCTION DECLARATION
  **************************************************************************************/
@@ -119,6 +137,7 @@ void onOutput1_Received (CanardRxTransfer const &, Node &);
 void onServo0_Received (CanardRxTransfer const &, Node &);
 void onServo1_Received (CanardRxTransfer const &, Node &);
 void onLightMode_Received(CanardRxTransfer const &, Node &);
+void onGetInfo_1_0_Request_Received(CanardRxTransfer const &, Node &);
 
 /**************************************************************************************
  * GLOBAL VARIABLES
@@ -243,6 +262,8 @@ void setup()
   hb = Heartbeat_1_0<>::Mode::INITIALIZATION;
   hb.data.vendor_specific_status_code = 0;
 
+  /* Subscribe to the GetInfo request */
+  node_hdl.subscribe<GetInfo_1_0::Request<>>(onGetInfo_1_0_Request_Received);
   /* Subscribe to the reception of Bit message. */
   node_hdl.subscribe<Bit_1_0<ID_LED1>>(onLed1_Received);
   node_hdl.subscribe<Bit_1_0<ID_OUTPUT0>>(onOutput0_Received);
@@ -527,4 +548,12 @@ void onServo1_Received(CanardRxTransfer const & transfer, Node & /* node_hdl */)
 void onLightMode_Received(CanardRxTransfer const & transfer, Node & /* node_hdl */)
 {
   uavcan_light_mode = Integer8_1_0<ID_LIGHT_MODE>::deserialize(transfer);
+}
+
+void onGetInfo_1_0_Request_Received(CanardRxTransfer const &transfer, Node & node_hdl)
+{
+  GetInfo_1_0::Response<> rsp = GetInfo_1_0::Response<>();
+  rsp.data = GET_INFO_DATA;
+  Serial.println("onGetInfo_1_0_Request_Received");
+  node_hdl.respond(rsp, transfer.metadata.remote_node_id, transfer.metadata.transfer_id);
 }
