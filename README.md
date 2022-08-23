@@ -8,6 +8,10 @@
 
 Firmware for the auxiliary controller controlling alarm/status LEDs and emergency stop.
 
+<p align="center">
+  <a href="https://github.com/107-systems/l3xz"><img src="https://raw.githubusercontent.com/107-systems/.github/main/logo/l3xz-logo-memento-mori-github.png" width="30%"></a>
+</p>
+
 ## How-to-build/upload
 ```bash
 arduino-cli compile -b rp2040:rp2040:rpipico -v .
