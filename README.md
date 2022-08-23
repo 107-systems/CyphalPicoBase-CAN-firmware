@@ -20,7 +20,7 @@ arduino-cli upload -b rp2040:rp2040:rpipico -v . -p /dev/ttyACM0
 
 ## OpenCyphal Settings
 
-Specific seetings for the L3X-Z Hexapod can be found here: https://github.com/107-systems/l3xz-hw#node-ids
+Specific settings for the L3X-Z Hexapod can be found here: https://github.com/107-systems/l3xz-hw#node-ids .
 
 ### Node-ID
 
