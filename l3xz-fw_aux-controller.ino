@@ -593,7 +593,8 @@ void onList_1_0_Request_Received(CanardRxTransfer const &transfer, Node & node_h
   snprintf(msg, sizeof(msg), "onList_1_0_Request_Received: count %d", count);
   Serial.println(msg);
 
-  node_hdl.respond(rsp, transfer.metadata.remote_node_id, transfer.metadata.transfer_id);
+  if (!node_hdl.respond(rsp, transfer.metadata.remote_node_id, transfer.metadata.transfer_id))
+    Serial.println("respond() failed");
 
   /* Reset counter after the last request,
    * otherwise we risk an array overflow.
