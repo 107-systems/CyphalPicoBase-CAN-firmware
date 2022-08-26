@@ -147,6 +147,7 @@ static const uavcan_register_List_Response_1_0 REGISTER_LIST_ARRAY[] =
   register_list3,
   register_list_last
 };
+static size_t const REGISTER_LIST_ARRAY_SIZE = sizeof(REGISTER_LIST_ARRAY) / sizeof(REGISTER_LIST_ARRAY[0]);
 
 /**************************************************************************************
  * FUNCTION DECLARATION
@@ -581,6 +582,7 @@ void onGetInfo_1_0_Request_Received(CanardRxTransfer const &transfer, Node & nod
   Serial.println("onGetInfo_1_0_Request_Received");
   node_hdl.respond(rsp, transfer.metadata.remote_node_id, transfer.metadata.transfer_id);
 }
+
 void onList_1_0_Request_Received(CanardRxTransfer const &transfer, Node & node_hdl)
 {
   static int count = 0;
@@ -592,5 +594,12 @@ void onList_1_0_Request_Received(CanardRxTransfer const &transfer, Node & node_h
   Serial.println(msg);
 
   node_hdl.respond(rsp, transfer.metadata.remote_node_id, transfer.metadata.transfer_id);
-  count++;
+
+  /* Reset counter after the last request,
+   * otherwise we risk an array overflow.
+   */
+  if (count < (REGISTER_LIST_ARRAY_SIZE - 1))
+    count++;
+  else
+    count = 0;
 }
