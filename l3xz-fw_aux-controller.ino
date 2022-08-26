@@ -136,6 +136,9 @@ static const uavcan_register_List_Response_1_0 register_list2 = {
 static const uavcan_register_List_Response_1_0 register_list3 = {
     {  "uavcan.pub.inputvoltage.id", strlen("uavcan.pub.inputvoltage.id")  },
 };
+static const uavcan_register_List_Response_1_0 register_list_last = {
+    {  "", 0  },
+};
 
 /**************************************************************************************
  * FUNCTION DECLARATION
@@ -573,12 +576,11 @@ void onGetInfo_1_0_Request_Received(CanardRxTransfer const &transfer, Node & nod
 void onList_1_0_Request_Received(CanardRxTransfer const &transfer, Node & node_hdl)
 {
   static int count=0;
-//  List_1_0::Response<> rsp = List_1_0::Response<>(REGISTER_LIST);
   List_1_0::Response<> rsp = List_1_0::Response<>();
   if(count==0) rsp.data = register_list1;
   else if(count==1) rsp.data = register_list2;
   else if(count==2) rsp.data = register_list3;
-//  else rsp.data=NULL;
+  else rsp.data = register_list_last;
   Serial.println("onList_1_0_Request_Received");
   node_hdl.respond(rsp, transfer.metadata.remote_node_id, transfer.metadata.transfer_id);
   count++;
