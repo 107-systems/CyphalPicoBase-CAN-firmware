@@ -264,6 +264,7 @@ void setup()
   /* Initialize MCP2515 */
   mcp2515.begin();
   mcp2515.setBitRate(CanBitRate::BR_1000kBPS_16MHZ);
+//  mcp2515.setBitRate(CanBitRate::BR_250kBPS_16MHZ);
   mcp2515.setNormalMode();
 
   /* Configure initial heartbeat */
@@ -574,12 +575,22 @@ void onList_1_0_Request_Received(CanardRxTransfer const &transfer, Node & node_h
 {
   static int count=0;
 //  List_1_0::Response<> rsp = List_1_0::Response<>(REGISTER_LIST);
-  List_1_0::Response<> rsp = List_1_0::Response<>();
-  if(count==0) rsp.data = register_list1;
-  else if(count==1) rsp.data = register_list2;
-  else if(count==2) rsp.data = register_list3;
+//  List_1_0::Response<> rsp = List_1_0::Response<>();
+//  if(count==0) rsp.data = register_list1;
+//  else if(count==1) rsp.data = register_list2;
+//  else if(count==2) rsp.data = register_list3;
 //  else rsp.data=NULL;
-  Serial.println("onList_1_0_Request_Received");
-  node_hdl.respond(rsp, transfer.metadata.remote_node_id, transfer.metadata.transfer_id);
+//  node_hdl.respond(rsp, transfer.metadata.remote_node_id, transfer.metadata.transfer_id);
+  List_1_0::Response<> rsp1 = List_1_0::Response<>();
+  rsp1.data = register_list1;
+  node_hdl.respond(rsp1, transfer.metadata.remote_node_id, transfer.metadata.transfer_id);
+  List_1_0::Response<> rsp2 = List_1_0::Response<>();
+  rsp2.data = register_list2;
+  node_hdl.respond(rsp2, transfer.metadata.remote_node_id, transfer.metadata.transfer_id);
+  List_1_0::Response<> rsp3 = List_1_0::Response<>();
+  rsp3.data = register_list3;
+  node_hdl.respond(rsp3, transfer.metadata.remote_node_id, transfer.metadata.transfer_id);
+  Serial.print("onList_1_0_Request_Received: ");
+  Serial.println(count);
   count++;
 }
