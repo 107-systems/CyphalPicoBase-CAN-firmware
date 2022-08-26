@@ -8,6 +8,10 @@
 
 Firmware for the auxiliary controller controlling alarm/status LEDs and emergency stop.
 
+<p align="center">
+  <a href="https://github.com/107-systems/l3xz"><img src="https://raw.githubusercontent.com/107-systems/.github/main/logo/l3xz-logo-memento-mori-github.png" width="40%"></a>
+</p>
+
 ## How-to-build/upload
 ```bash
 arduino-cli compile -b rp2040:rp2040:rpipico -v .
@@ -16,7 +20,7 @@ arduino-cli upload -b rp2040:rp2040:rpipico -v . -p /dev/ttyACM0
 
 ## OpenCyphal Settings
 
-Specific seetings for the L3X-Z Hexapod can be found here: https://github.com/107-systems/l3xz-hw#node-ids
+Specific settings for the L3X-Z Hexapod can be found here: https://github.com/107-systems/l3xz-hw#node-ids .
 
 ### Node-ID
 

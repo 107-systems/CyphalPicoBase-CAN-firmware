@@ -136,6 +136,18 @@ static const uavcan_register_List_Response_1_0 register_list2 = {
 static const uavcan_register_List_Response_1_0 register_list3 = {
     {  "uavcan.pub.inputvoltage.id", strlen("uavcan.pub.inputvoltage.id")  },
 };
+static const uavcan_register_List_Response_1_0 register_list_last = {
+    {  "", 0  },
+};
+
+static const uavcan_register_List_Response_1_0 REGISTER_LIST_ARRAY[] =
+{
+  register_list1,
+  register_list2,
+  register_list3,
+  register_list_last
+};
+static size_t const REGISTER_LIST_ARRAY_SIZE = sizeof(REGISTER_LIST_ARRAY) / sizeof(REGISTER_LIST_ARRAY[0]);
 
 /**************************************************************************************
  * FUNCTION DECLARATION
@@ -571,26 +583,25 @@ void onGetInfo_1_0_Request_Received(CanardRxTransfer const &transfer, Node & nod
   Serial.println("onGetInfo_1_0_Request_Received");
   node_hdl.respond(rsp, transfer.metadata.remote_node_id, transfer.metadata.transfer_id);
 }
+
 void onList_1_0_Request_Received(CanardRxTransfer const &transfer, Node & node_hdl)
 {
-  static int count=0;
-//  List_1_0::Response<> rsp = List_1_0::Response<>(REGISTER_LIST);
-//  List_1_0::Response<> rsp = List_1_0::Response<>();
-//  if(count==0) rsp.data = register_list1;
-//  else if(count==1) rsp.data = register_list2;
-//  else if(count==2) rsp.data = register_list3;
-//  else rsp.data=NULL;
-//  node_hdl.respond(rsp, transfer.metadata.remote_node_id, transfer.metadata.transfer_id);
-  List_1_0::Response<> rsp1 = List_1_0::Response<>();
-  rsp1.data = register_list1;
-  node_hdl.respond(rsp1, transfer.metadata.remote_node_id, transfer.metadata.transfer_id);
-  List_1_0::Response<> rsp2 = List_1_0::Response<>();
-  rsp2.data = register_list2;
-  node_hdl.respond(rsp2, transfer.metadata.remote_node_id, transfer.metadata.transfer_id);
-  List_1_0::Response<> rsp3 = List_1_0::Response<>();
-  rsp3.data = register_list3;
-  node_hdl.respond(rsp3, transfer.metadata.remote_node_id, transfer.metadata.transfer_id);
-  Serial.print("onList_1_0_Request_Received: ");
-  Serial.println(count);
-  count++;
+  static int count = 0;
+  List_1_0::Response<> rsp = List_1_0::Response<>();
+  rsp.data = REGISTER_LIST_ARRAY[count];
+
+  char msg[64] = {0};
+  snprintf(msg, sizeof(msg), "onList_1_0_Request_Received: count %d", count);
+  Serial.println(msg);
+
+  if (!node_hdl.respond(rsp, transfer.metadata.remote_node_id, transfer.metadata.transfer_id))
+    Serial.println("respond() failed");
+
+  /* Reset counter after the last request,
+   * otherwise we risk an array overflow.
+   */
+  if (count < (REGISTER_LIST_ARRAY_SIZE - 1))
+    count++;
+  else
+    count = 0;
 }
