@@ -160,8 +160,11 @@ void onOutput1_Received (CanardRxTransfer const &, Node &);
 void onServo0_Received (CanardRxTransfer const &, Node &);
 void onServo1_Received (CanardRxTransfer const &, Node &);
 void onLightMode_Received(CanardRxTransfer const &, Node &);
+
+/* Cyphal Service Requests */
 void onList_1_0_Request_Received(CanardRxTransfer const &, Node &);
 void onGetInfo_1_0_Request_Received(CanardRxTransfer const &, Node &);
+void onAccess_1_0_Request_Received(CanardRxTransfer const &, Node &);
 
 /**************************************************************************************
  * GLOBAL VARIABLES
@@ -290,6 +293,7 @@ void setup()
   /* Subscribe to the GetInfo request */
   node_hdl.subscribe<List_1_0::Request<>>(onList_1_0_Request_Received);
   node_hdl.subscribe<GetInfo_1_0::Request<>>(onGetInfo_1_0_Request_Received);
+  node_hdl.subscribe<Access_1_0::Request<>>(onAccess_1_0_Request_Received);
   /* Subscribe to the reception of Bit message. */
   node_hdl.subscribe<Bit_1_0<ID_LED1>>(onLed1_Received);
   node_hdl.subscribe<Bit_1_0<ID_OUTPUT0>>(onOutput0_Received);
@@ -608,4 +612,27 @@ void onList_1_0_Request_Received(CanardRxTransfer const &transfer, Node & node_h
     count++;
   else
     count = 0;
+}
+void onAccess_1_0_Request_Received(CanardRxTransfer const & transfer, Node & node_hdl)
+{
+  Access_1_0::Request<> const req = Access_1_0::Request<>::deserialize(transfer);
+  const char * reg_name = reinterpret_cast<const char *>(req.data.name.name.elements);
+
+  char msg[64] = {0};
+  snprintf(msg, sizeof(msg), "onAccess_1_0_Request_Received: reg: %s", reg_name);
+  Serial.println(msg);
+
+  if (!strncmp(reg_name, reinterpret_cast<const char *>(register_list1.name.name.elements), register_list1.name.name.count))
+  {
+    Access_1_0::Response<> rsp;
+
+    rsp.data.timestamp.microsecond = micros();
+    rsp.data._mutable = false;
+    rsp.data.persistent = true;
+    rsp.data.value.natural8.value.elements[0] = AUX_CONTROLLER_NODE_ID;
+    rsp.data.value.natural8.value.count = 1;
+    uavcan_register_Value_1_0_select_natural8_(&rsp.data.value);
+
+    node_hdl.respond(rsp, transfer.metadata.remote_node_id, transfer.metadata.transfer_id);
+  }
 }
