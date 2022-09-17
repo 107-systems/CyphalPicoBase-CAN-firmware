@@ -275,8 +275,8 @@ void setup()
 
   /* Initialize MCP2515 */
   mcp2515.begin();
-  mcp2515.setBitRate(CanBitRate::BR_1000kBPS_16MHZ);
-//  mcp2515.setBitRate(CanBitRate::BR_250kBPS_16MHZ);
+//  mcp2515.setBitRate(CanBitRate::BR_1000kBPS_16MHZ);
+  mcp2515.setBitRate(CanBitRate::BR_250kBPS_16MHZ);
   mcp2515.setNormalMode();
 
   /* Configure initial heartbeat */
@@ -316,6 +316,10 @@ void setup()
 
 void loop()
 {
+  /* Process all pending OpenCyphal actions.
+   */
+  node_hdl.spinSome();
+
   /* Publish all the gathered data, although at various
    * different intervals.
    */
@@ -510,7 +514,7 @@ void loop()
   }
 
   /* Transmit all enqeued CAN frames */
-  while(node_hdl.transmitCanFrame()) { }
+//  while(node_hdl.transmitCanFrame()) { }
 
   /* Feed the watchdog to keep it from biting. */
 //  Watchdog.reset();
