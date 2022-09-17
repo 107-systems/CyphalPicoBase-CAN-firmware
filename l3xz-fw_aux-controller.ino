@@ -136,6 +136,12 @@ static const uavcan_register_List_Response_1_0 register_list2 = {
 static const uavcan_register_List_Response_1_0 register_list3 = {
     {  "uavcan.pub.inputvoltage.id", strlen("uavcan.pub.inputvoltage.id")  },
 };
+static const uavcan_register_List_Response_1_0 register_list4 = {
+    {  "uavcan.pub.internaltemperature.id", strlen("uavcan.pub.internaltemperature.id")  },
+};
+static const uavcan_register_List_Response_1_0 register_list5 = {
+    {  "uavcan.pub.input0.id", strlen("uavcan.pub.input0.id")  },
+};
 static const uavcan_register_List_Response_1_0 register_list_last = {
     {  "", 0  },
 };
@@ -145,6 +151,8 @@ static const uavcan_register_List_Response_1_0 REGISTER_LIST_ARRAY[] =
   register_list1,
   register_list2,
   register_list3,
+  register_list4,
+  register_list5,
   register_list_last
 };
 static size_t const REGISTER_LIST_ARRAY_SIZE = sizeof(REGISTER_LIST_ARRAY) / sizeof(REGISTER_LIST_ARRAY[0]);
@@ -632,6 +640,77 @@ void onAccess_1_0_Request_Received(CanardRxTransfer const & transfer, Node & nod
     rsp.data.value.natural8.value.elements[0] = AUX_CONTROLLER_NODE_ID;
     rsp.data.value.natural8.value.count = 1;
     uavcan_register_Value_1_0_select_natural8_(&rsp.data.value);
+
+    node_hdl.respond(rsp, transfer.metadata.remote_node_id, transfer.metadata.transfer_id);
+  }
+  else if (!strncmp(reg_name, reinterpret_cast<const char *>(register_list2.name.name.elements), register_list2.name.name.count))
+  {
+    Access_1_0::Response<> rsp;
+
+    rsp.data.timestamp.microsecond = micros();
+    rsp.data._mutable = false;
+    rsp.data.persistent = true;
+    rsp.data.value._string.value.elements[0] = 'L';
+    rsp.data.value._string.value.elements[1] = '3';
+    rsp.data.value._string.value.elements[2] = 'X';
+    rsp.data.value._string.value.elements[3] = '-';
+    rsp.data.value._string.value.elements[4] = 'Z';
+    rsp.data.value._string.value.elements[5] = ' ';
+    rsp.data.value._string.value.elements[6] = 'A';
+    rsp.data.value._string.value.elements[7] = 'U';
+    rsp.data.value._string.value.elements[8] = 'X';
+    rsp.data.value._string.value.elements[9] = '_';
+    rsp.data.value._string.value.elements[10] = 'C';
+    rsp.data.value._string.value.elements[11] = 'O';
+    rsp.data.value._string.value.elements[12] = 'N';
+    rsp.data.value._string.value.elements[13] = 'T';
+    rsp.data.value._string.value.elements[14] = 'R';
+    rsp.data.value._string.value.elements[15] = 'O';
+    rsp.data.value._string.value.elements[16] = 'L';
+    rsp.data.value._string.value.elements[17] = 'L';
+    rsp.data.value._string.value.elements[18] = 'E';
+    rsp.data.value._string.value.elements[19] = 'R';
+    rsp.data.value._string.value.count = strlen("L3X-Z AUX_CONTROLLER");
+    uavcan_register_Value_1_0_select_string_(&rsp.data.value);
+
+    node_hdl.respond(rsp, transfer.metadata.remote_node_id, transfer.metadata.transfer_id);
+  }
+  else if (!strncmp(reg_name, reinterpret_cast<const char *>(register_list3.name.name.elements), register_list3.name.name.count))
+  {
+    Access_1_0::Response<> rsp;
+
+    rsp.data.timestamp.microsecond = micros();
+    rsp.data._mutable = false;
+    rsp.data.persistent = true;
+    rsp.data.value.natural16.value.elements[0] = ID_INPUT_VOLTAGE;
+    rsp.data.value.natural16.value.count = 1;
+    uavcan_register_Value_1_0_select_natural16_(&rsp.data.value);
+
+    node_hdl.respond(rsp, transfer.metadata.remote_node_id, transfer.metadata.transfer_id);
+  }
+  else if (!strncmp(reg_name, reinterpret_cast<const char *>(register_list4.name.name.elements), register_list4.name.name.count))
+  {
+    Access_1_0::Response<> rsp;
+
+    rsp.data.timestamp.microsecond = micros();
+    rsp.data._mutable = false;
+    rsp.data.persistent = true;
+    rsp.data.value.natural16.value.elements[0] = ID_INTERNAL_TEMPERATURE;
+    rsp.data.value.natural16.value.count = 1;
+    uavcan_register_Value_1_0_select_natural16_(&rsp.data.value);
+
+    node_hdl.respond(rsp, transfer.metadata.remote_node_id, transfer.metadata.transfer_id);
+  }
+  else if (!strncmp(reg_name, reinterpret_cast<const char *>(register_list5.name.name.elements), register_list5.name.name.count))
+  {
+    Access_1_0::Response<> rsp;
+
+    rsp.data.timestamp.microsecond = micros();
+    rsp.data._mutable = false;
+    rsp.data.persistent = true;
+    rsp.data.value.natural16.value.elements[0] = ID_INPUT0;
+    rsp.data.value.natural16.value.count = 1;
+    uavcan_register_Value_1_0_select_natural16_(&rsp.data.value);
 
     node_hdl.respond(rsp, transfer.metadata.remote_node_id, transfer.metadata.transfer_id);
   }
