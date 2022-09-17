@@ -77,6 +77,7 @@ static int const MKRCAN_MCP2515_INT_PIN = 20;
 static CanardNodeID const AUX_CONTROLLER_NODE_ID = 99;
 
 static CanardPortID const ID_INPUT_VOLTAGE        = 1001U;
+static CanardPortID ID_INPUT_VOLTAGE_X        = 1001U;
 static CanardPortID const ID_LED1                 = 1005U;
 static CanardPortID const ID_INTERNAL_TEMPERATURE = 1010U;
 static CanardPortID const ID_INPUT0               = 2000U;
@@ -627,7 +628,7 @@ void onAccess_1_0_Request_Received(CanardRxTransfer const & transfer, Node & nod
   const char * reg_name = reinterpret_cast<const char *>(req.data.name.name.elements);
 
   char msg[64] = {0};
-  snprintf(msg, sizeof(msg), "onAccess_1_0_Request_Received: reg: %s", reg_name);
+  snprintf(msg, sizeof(msg), "onAccess_1_0_Request_Received: (%i) reg: %s", req.data.value._tag_, reg_name);
   Serial.println(msg);
 
   if (!strncmp(reg_name, reinterpret_cast<const char *>(register_list1.name.name.elements), register_list1.name.name.count))
@@ -677,12 +678,17 @@ void onAccess_1_0_Request_Received(CanardRxTransfer const & transfer, Node & nod
   }
   else if (!strncmp(reg_name, reinterpret_cast<const char *>(register_list3.name.name.elements), register_list3.name.name.count))
   {
+    if(uavcan_register_Value_1_0_is_natural16_(&req.data.value))
+    {
+      Serial.println("write value!");
+      ID_INPUT_VOLTAGE_X=req.data.value.natural16.value.elements[0];
+    }
     Access_1_0::Response<> rsp;
 
     rsp.data.timestamp.microsecond = micros();
-    rsp.data._mutable = false;
+    rsp.data._mutable = true;
     rsp.data.persistent = true;
-    rsp.data.value.natural16.value.elements[0] = ID_INPUT_VOLTAGE;
+    rsp.data.value.natural16.value.elements[0] = ID_INPUT_VOLTAGE_X;
     rsp.data.value.natural16.value.count = 1;
     uavcan_register_Value_1_0_select_natural16_(&rsp.data.value);
 
