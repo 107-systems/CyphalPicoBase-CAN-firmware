@@ -110,54 +110,6 @@ static int8_t const LIGHT_MODE_RUN_BLUE    = 103;
 static int8_t const LIGHT_MODE_RUN_WHITE   = 104;
 static int8_t const LIGHT_MODE_RUN_AMBER   = 105;
 
-static const uavcan_node_GetInfo_Response_1_0 GET_INFO_DATA = {
-    /// uavcan.node.Version.1.0 protocol_version
-    {1, 0},
-    /// uavcan.node.Version.1.0 hardware_version
-    {1, 0},
-    /// uavcan.node.Version.1.0 software_version
-    {0, 1},
-    /// saturated uint64 software_vcs_revision_id
-    NULL,
-    /// saturated uint8[16] unique_id
-    {0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77,
-     0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff},
-    /// saturated uint8[<=50] name
-    {
-        "107-systems.l3xz-fw_aux-controller",
-        strlen("107-systems.l3xz-fw_aux-controller")},
-};
-
-static const uavcan_register_List_Response_1_0 register_list1 = {
-    {  "uavcan.node.id", strlen("uavcan.node.id")  },
-};
-static const uavcan_register_List_Response_1_0 register_list2 = {
-    {  "uavcan.node.description", strlen("uavcan.node.description")  },
-};
-static const uavcan_register_List_Response_1_0 register_list3 = {
-    {  "uavcan.pub.inputvoltage.id", strlen("uavcan.pub.inputvoltage.id")  },
-};
-static const uavcan_register_List_Response_1_0 register_list4 = {
-    {  "uavcan.pub.internaltemperature.id", strlen("uavcan.pub.internaltemperature.id")  },
-};
-static const uavcan_register_List_Response_1_0 register_list5 = {
-    {  "uavcan.pub.input0.id", strlen("uavcan.pub.input0.id")  },
-};
-static const uavcan_register_List_Response_1_0 register_list_last = {
-    {  "", 0  },
-};
-
-static const uavcan_register_List_Response_1_0 REGISTER_LIST_ARRAY[] =
-{
-  register_list1,
-  register_list2,
-  register_list3,
-  register_list4,
-  register_list5,
-  register_list_last
-};
-static size_t const REGISTER_LIST_ARRAY_SIZE = sizeof(REGISTER_LIST_ARRAY) / sizeof(REGISTER_LIST_ARRAY[0]);
-
 /**************************************************************************************
  * FUNCTION DECLARATION
  **************************************************************************************/
@@ -197,6 +149,36 @@ ArduinoMCP2515 mcp2515([]()
                        nullptr);
 
 Node node_hdl([](CanardFrame const & frame) -> bool { return mcp2515.transmit(frame); }, AUX_CONTROLLER_NODE_ID);
+
+static const uavcan_node_GetInfo_Response_1_0 GET_INFO_DATA = {
+    /// uavcan.node.Version.1.0 protocol_version
+    {1, 0},
+    /// uavcan.node.Version.1.0 hardware_version
+    {1, 0},
+    /// uavcan.node.Version.1.0 software_version
+    {0, 1},
+    /// saturated uint64 software_vcs_revision_id
+    NULL,
+    /// saturated uint8[16] unique_id
+    {0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77,
+     0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff},
+    /// saturated uint8[<=50] name
+    {
+        "107-systems.l3xz-fw_aux-controller",
+        strlen("107-systems.l3xz-fw_aux-controller")},
+};
+
+/* REGISTER ***************************************************************************/
+
+static RegisterNatural8  reg_rw_uavcan_node_id         ("uavcan.node.id",          Register::Access::ReadWrite, AUX_CONTROLLER_NODE_ID, [&node_hdl](RegisterNatural8 const & reg) { node_hdl.setNodeId(reg.get()); });
+static RegisterString    reg_ro_uavcan_node_description("uavcan.node.description", Register::Access::ReadWrite, "L3X-Z AUX_CONTROLLER", nullptr);
+static RegisterNatural16 reg_ro_uavcan_pub_inputvoltage_id ("uavcan.pub.inputvoltage.id",  Register::Access::ReadOnly,  ID_INPUT_VOLTAGE_X, nullptr);
+static RegisterNatural16 reg_ro_uavcan_pub_internaltemperature_id ("uavcan.pub.internaltemperature.id",  Register::Access::ReadOnly,  ID_INTERNAL_TEMPERATURE, nullptr);
+static RegisterNatural16 reg_ro_uavcan_pub_input0_id ("uavcan.pub.input0.id",  Register::Access::ReadOnly,  ID_INPUT0, nullptr);
+static RegisterNatural16 reg_ro_uavcan_pub_input1_id ("uavcan.pub.input1.id",  Register::Access::ReadOnly,  ID_INPUT1, nullptr);
+static RegisterNatural16 reg_ro_uavcan_pub_input2_id ("uavcan.pub.input2.id",  Register::Access::ReadOnly,  ID_INPUT2, nullptr);
+static RegisterNatural16 reg_ro_uavcan_pub_input3_id ("uavcan.pub.input3.id",  Register::Access::ReadOnly,  ID_INPUT3, nullptr);
+static RegisterList      reg_list;
 
 Heartbeat_1_0<> hb;
 Bit_1_0<ID_INPUT0> uavcan_input0;
@@ -300,9 +282,16 @@ void setup()
   hb.data.vendor_specific_status_code = 0;
 
   /* Subscribe to the GetInfo request */
-  node_hdl.subscribe<List_1_0::Request<>>(onList_1_0_Request_Received);
   node_hdl.subscribe<GetInfo_1_0::Request<>>(onGetInfo_1_0_Request_Received);
-  node_hdl.subscribe<Access_1_0::Request<>>(onAccess_1_0_Request_Received);
+  reg_list.subscribe(node_hdl);
+  reg_list.add(reg_rw_uavcan_node_id);
+  reg_list.add(reg_ro_uavcan_node_description);
+  reg_list.add(reg_ro_uavcan_pub_inputvoltage_id);
+  reg_list.add(reg_ro_uavcan_pub_internaltemperature_id);
+  reg_list.add(reg_ro_uavcan_pub_input0_id);
+  reg_list.add(reg_ro_uavcan_pub_input1_id);
+  reg_list.add(reg_ro_uavcan_pub_input2_id);
+  reg_list.add(reg_ro_uavcan_pub_input3_id);
   /* Subscribe to the reception of Bit message. */
   node_hdl.subscribe<Bit_1_0<ID_LED1>>(onLed1_Received);
   node_hdl.subscribe<Bit_1_0<ID_OUTPUT0>>(onOutput0_Received);
@@ -600,7 +589,7 @@ void onGetInfo_1_0_Request_Received(CanardRxTransfer const &transfer, Node & nod
   Serial.println("onGetInfo_1_0_Request_Received");
   node_hdl.respond(rsp, transfer.metadata.remote_node_id, transfer.metadata.transfer_id);
 }
-
+/*
 void onList_1_0_Request_Received(CanardRxTransfer const &transfer, Node & node_hdl)
 {
   static int count = 0;
@@ -614,9 +603,8 @@ void onList_1_0_Request_Received(CanardRxTransfer const &transfer, Node & node_h
   if (!node_hdl.respond(rsp, transfer.metadata.remote_node_id, transfer.metadata.transfer_id))
     Serial.println("respond() failed");
 
-  /* Reset counter after the last request,
-   * otherwise we risk an array overflow.
-   */
+  // Reset counter after the last request,
+  // otherwise we risk an array overflow.
   if (count < (REGISTER_LIST_ARRAY_SIZE - 1))
     count++;
   else
@@ -676,48 +664,4 @@ void onAccess_1_0_Request_Received(CanardRxTransfer const & transfer, Node & nod
 
     node_hdl.respond(rsp, transfer.metadata.remote_node_id, transfer.metadata.transfer_id);
   }
-  else if (!strncmp(reg_name, reinterpret_cast<const char *>(register_list3.name.name.elements), register_list3.name.name.count))
-  {
-    if(uavcan_register_Value_1_0_is_natural16_(&req.data.value))
-    {
-      Serial.println("write value!");
-      ID_INPUT_VOLTAGE_X=req.data.value.natural16.value.elements[0];
-    }
-    Access_1_0::Response<> rsp;
-
-    rsp.data.timestamp.microsecond = micros();
-    rsp.data._mutable = true;
-    rsp.data.persistent = true;
-    rsp.data.value.natural16.value.elements[0] = ID_INPUT_VOLTAGE_X;
-    rsp.data.value.natural16.value.count = 1;
-    uavcan_register_Value_1_0_select_natural16_(&rsp.data.value);
-
-    node_hdl.respond(rsp, transfer.metadata.remote_node_id, transfer.metadata.transfer_id);
-  }
-  else if (!strncmp(reg_name, reinterpret_cast<const char *>(register_list4.name.name.elements), register_list4.name.name.count))
-  {
-    Access_1_0::Response<> rsp;
-
-    rsp.data.timestamp.microsecond = micros();
-    rsp.data._mutable = false;
-    rsp.data.persistent = true;
-    rsp.data.value.natural16.value.elements[0] = ID_INTERNAL_TEMPERATURE;
-    rsp.data.value.natural16.value.count = 1;
-    uavcan_register_Value_1_0_select_natural16_(&rsp.data.value);
-
-    node_hdl.respond(rsp, transfer.metadata.remote_node_id, transfer.metadata.transfer_id);
-  }
-  else if (!strncmp(reg_name, reinterpret_cast<const char *>(register_list5.name.name.elements), register_list5.name.name.count))
-  {
-    Access_1_0::Response<> rsp;
-
-    rsp.data.timestamp.microsecond = micros();
-    rsp.data._mutable = false;
-    rsp.data.persistent = true;
-    rsp.data.value.natural16.value.elements[0] = ID_INPUT0;
-    rsp.data.value.natural16.value.count = 1;
-    uavcan_register_Value_1_0_select_natural16_(&rsp.data.value);
-
-    node_hdl.respond(rsp, transfer.metadata.remote_node_id, transfer.metadata.transfer_id);
-  }
-}
+}*/
