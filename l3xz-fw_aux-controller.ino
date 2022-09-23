@@ -168,38 +168,55 @@ static const uavcan_node_GetInfo_Response_1_0 GET_INFO_DATA = {
         strlen("107-systems.l3xz-fw_aux-controller")},
 };
 
+static uint16_t updateinterval_inputvoltage=3*1000;
+static uint16_t updateinterval_internaltemperature=10*1000;
+static uint16_t updateinterval_input0=500;
+static uint16_t updateinterval_input1=500;
+static uint16_t updateinterval_input2=500;
+static uint16_t updateinterval_input3=500;
+static uint16_t updateinterval_analoginput0=500;
+static uint16_t updateinterval_analoginput1=500;
+
 /* REGISTER ***************************************************************************/
 
-static RegisterNatural8  reg_rw_uavcan_node_id                     ("uavcan.node.id",                      Register::Access::ReadWrite, AUX_CONTROLLER_NODE_ID,                  [&node_hdl](RegisterNatural8 const & reg) { node_hdl.setNodeId(reg.get()); });
-static RegisterString    reg_ro_uavcan_node_description            ("uavcan.node.description",             Register::Access::ReadWrite, "L3X-Z AUX_CONTROLLER",                  nullptr);
-static RegisterNatural16 reg_ro_uavcan_pub_inputvoltage_id         ("uavcan.pub.inputvoltage.id",          Register::Access::ReadOnly,  ID_INPUT_VOLTAGE_X,                      nullptr);
-static RegisterString    reg_ro_uavcan_pub_inputvoltage_type       ("uavcan.pub.inputvoltage.type",        Register::Access::ReadOnly,  "uavcan.primitive.scalar.Real32.1.0",    nullptr);
-static RegisterNatural16 reg_ro_uavcan_pub_internaltemperature_id  ("uavcan.pub.internaltemperature.id",   Register::Access::ReadOnly,  ID_INTERNAL_TEMPERATURE,                 nullptr);
-static RegisterString    reg_ro_uavcan_pub_internaltemperature_type("uavcan.pub.internaltemperature.type", Register::Access::ReadOnly,  "uavcan.primitive.scalar.Real32.1.0",    nullptr);
-static RegisterNatural16 reg_ro_uavcan_pub_input0_id               ("uavcan.pub.input0.id",                Register::Access::ReadOnly,  ID_INPUT0,                               nullptr);
-static RegisterString    reg_ro_uavcan_pub_input0_type             ("uavcan.pub.input0.type",              Register::Access::ReadOnly,  "uavcan.primitive.scalar.Bit.1.0",       nullptr);
-static RegisterNatural16 reg_ro_uavcan_pub_input1_id               ("uavcan.pub.input1.id",                Register::Access::ReadOnly,  ID_INPUT1,                               nullptr);
-static RegisterString    reg_ro_uavcan_pub_input1_type             ("uavcan.pub.input1.type",              Register::Access::ReadOnly,  "uavcan.primitive.scalar.Bit.1.0",       nullptr);
-static RegisterNatural16 reg_ro_uavcan_pub_input2_id               ("uavcan.pub.input2.id",                Register::Access::ReadOnly,  ID_INPUT2,                               nullptr);
-static RegisterString    reg_ro_uavcan_pub_input2_type             ("uavcan.pub.input2.type",              Register::Access::ReadOnly,  "uavcan.primitive.scalar.Bit.1.0",       nullptr);
-static RegisterNatural16 reg_ro_uavcan_pub_input3_id               ("uavcan.pub.input3.id",                Register::Access::ReadOnly,  ID_INPUT3,                               nullptr);
-static RegisterString    reg_ro_uavcan_pub_input3_type             ("uavcan.pub.input3.type",              Register::Access::ReadOnly,  "uavcan.primitive.scalar.Bit.1.0",       nullptr);
-static RegisterNatural16 reg_ro_uavcan_pub_analoginput0_id         ("uavcan.pub.analoginput0.id",          Register::Access::ReadOnly,  ID_ANALOG_INPUT0,                        nullptr);
-static RegisterString    reg_ro_uavcan_pub_analoginput0_type       ("uavcan.pub.analoginput0.type",        Register::Access::ReadOnly,  "uavcan.primitive.scalar.Integer16.1.0", nullptr);
-static RegisterNatural16 reg_ro_uavcan_pub_analoginput1_id         ("uavcan.pub.analoginput1.id",          Register::Access::ReadOnly,  ID_ANALOG_INPUT1,                        nullptr);
-static RegisterString    reg_ro_uavcan_pub_analoginput1_type       ("uavcan.pub.analoginput1.type",        Register::Access::ReadOnly,  "uavcan.primitive.scalar.Integer16.1.0", nullptr);
-static RegisterNatural16 reg_ro_uavcan_sub_led1_id                 ("uavcan.sub.led1.id",                  Register::Access::ReadOnly,  ID_LED1,                                 nullptr);
-static RegisterString    reg_ro_uavcan_sub_led1_type               ("uavcan.sub.led1.type",                Register::Access::ReadOnly,  "uavcan.primitive.scalar.Bit.1.0",       nullptr);
-static RegisterNatural16 reg_ro_uavcan_sub_output0_id              ("uavcan.sub.output0.id",               Register::Access::ReadOnly,  ID_OUTPUT0,                              nullptr);
-static RegisterString    reg_ro_uavcan_sub_output0_type            ("uavcan.sub.output0.type",             Register::Access::ReadOnly,  "uavcan.primitive.scalar.Bit.1.0",       nullptr);
-static RegisterNatural16 reg_ro_uavcan_sub_output1_id              ("uavcan.sub.output1.id",               Register::Access::ReadOnly,  ID_OUTPUT1,                              nullptr);
-static RegisterString    reg_ro_uavcan_sub_output1_type            ("uavcan.sub.output1.type",             Register::Access::ReadOnly,  "uavcan.primitive.scalar.Bit.1.0",       nullptr);
-static RegisterNatural16 reg_ro_uavcan_sub_servo0_id               ("uavcan.sub.servo0.id",                Register::Access::ReadOnly,  ID_SERVO0,                               nullptr);
-static RegisterString    reg_ro_uavcan_sub_servo0_type             ("uavcan.sub.servo0.type",              Register::Access::ReadOnly,  "uavcan.primitive.scalar.Integer16.1.0", nullptr);
-static RegisterNatural16 reg_ro_uavcan_sub_servo1_id               ("uavcan.sub.servo1.id",                Register::Access::ReadOnly,  ID_SERVO1,                               nullptr);
-static RegisterString    reg_ro_uavcan_sub_servo1_type             ("uavcan.sub.servo1.type",              Register::Access::ReadOnly,  "uavcan.primitive.scalar.Integer16.1.0", nullptr);
-static RegisterNatural16 reg_ro_uavcan_sub_lightmode_id            ("uavcan.sub.lightmode.id",             Register::Access::ReadOnly,  ID_LIGHT_MODE,                           nullptr);
-static RegisterString    reg_ro_uavcan_sub_lightmode_type          ("uavcan.sub.lightmode.type",           Register::Access::ReadOnly,  "uavcan.primitive.scalar.Integer8.1.0",  nullptr);
+static RegisterNatural8  reg_rw_uavcan_node_id                        ("uavcan.node.id",                         Register::Access::ReadWrite, AUX_CONTROLLER_NODE_ID,                  [&node_hdl](RegisterNatural8 const & reg) { node_hdl.setNodeId(reg.get()); });
+static RegisterString    reg_ro_uavcan_node_description               ("uavcan.node.description",                Register::Access::ReadWrite, "L3X-Z AUX_CONTROLLER",                  nullptr);
+static RegisterNatural16 reg_ro_uavcan_pub_inputvoltage_id            ("uavcan.pub.inputvoltage.id",             Register::Access::ReadOnly,  ID_INPUT_VOLTAGE_X,                      nullptr);
+static RegisterString    reg_ro_uavcan_pub_inputvoltage_type          ("uavcan.pub.inputvoltage.type",           Register::Access::ReadOnly,  "uavcan.primitive.scalar.Real32.1.0",    nullptr);
+static RegisterNatural16 reg_ro_uavcan_pub_internaltemperature_id     ("uavcan.pub.internaltemperature.id",      Register::Access::ReadOnly,  ID_INTERNAL_TEMPERATURE,                 nullptr);
+static RegisterString    reg_ro_uavcan_pub_internaltemperature_type   ("uavcan.pub.internaltemperature.type",    Register::Access::ReadOnly,  "uavcan.primitive.scalar.Real32.1.0",    nullptr);
+static RegisterNatural16 reg_ro_uavcan_pub_input0_id                  ("uavcan.pub.input0.id",                   Register::Access::ReadOnly,  ID_INPUT0,                               nullptr);
+static RegisterString    reg_ro_uavcan_pub_input0_type                ("uavcan.pub.input0.type",                 Register::Access::ReadOnly,  "uavcan.primitive.scalar.Bit.1.0",       nullptr);
+static RegisterNatural16 reg_ro_uavcan_pub_input1_id                  ("uavcan.pub.input1.id",                   Register::Access::ReadOnly,  ID_INPUT1,                               nullptr);
+static RegisterString    reg_ro_uavcan_pub_input1_type                ("uavcan.pub.input1.type",                 Register::Access::ReadOnly,  "uavcan.primitive.scalar.Bit.1.0",       nullptr);
+static RegisterNatural16 reg_ro_uavcan_pub_input2_id                  ("uavcan.pub.input2.id",                   Register::Access::ReadOnly,  ID_INPUT2,                               nullptr);
+static RegisterString    reg_ro_uavcan_pub_input2_type                ("uavcan.pub.input2.type",                 Register::Access::ReadOnly,  "uavcan.primitive.scalar.Bit.1.0",       nullptr);
+static RegisterNatural16 reg_ro_uavcan_pub_input3_id                  ("uavcan.pub.input3.id",                   Register::Access::ReadOnly,  ID_INPUT3,                               nullptr);
+static RegisterString    reg_ro_uavcan_pub_input3_type                ("uavcan.pub.input3.type",                 Register::Access::ReadOnly,  "uavcan.primitive.scalar.Bit.1.0",       nullptr);
+static RegisterNatural16 reg_ro_uavcan_pub_analoginput0_id            ("uavcan.pub.analoginput0.id",             Register::Access::ReadOnly,  ID_ANALOG_INPUT0,                        nullptr);
+static RegisterString    reg_ro_uavcan_pub_analoginput0_type          ("uavcan.pub.analoginput0.type",           Register::Access::ReadOnly,  "uavcan.primitive.scalar.Integer16.1.0", nullptr);
+static RegisterNatural16 reg_ro_uavcan_pub_analoginput1_id            ("uavcan.pub.analoginput1.id",             Register::Access::ReadOnly,  ID_ANALOG_INPUT1,                        nullptr);
+static RegisterString    reg_ro_uavcan_pub_analoginput1_type          ("uavcan.pub.analoginput1.type",           Register::Access::ReadOnly,  "uavcan.primitive.scalar.Integer16.1.0", nullptr);
+static RegisterNatural16 reg_ro_uavcan_sub_led1_id                    ("uavcan.sub.led1.id",                     Register::Access::ReadOnly,  ID_LED1,                                 nullptr);
+static RegisterString    reg_ro_uavcan_sub_led1_type                  ("uavcan.sub.led1.type",                   Register::Access::ReadOnly,  "uavcan.primitive.scalar.Bit.1.0",       nullptr);
+static RegisterNatural16 reg_ro_uavcan_sub_output0_id                 ("uavcan.sub.output0.id",                  Register::Access::ReadOnly,  ID_OUTPUT0,                              nullptr);
+static RegisterString    reg_ro_uavcan_sub_output0_type               ("uavcan.sub.output0.type",                Register::Access::ReadOnly,  "uavcan.primitive.scalar.Bit.1.0",       nullptr);
+static RegisterNatural16 reg_ro_uavcan_sub_output1_id                 ("uavcan.sub.output1.id",                  Register::Access::ReadOnly,  ID_OUTPUT1,                              nullptr);
+static RegisterString    reg_ro_uavcan_sub_output1_type               ("uavcan.sub.output1.type",                Register::Access::ReadOnly,  "uavcan.primitive.scalar.Bit.1.0",       nullptr);
+static RegisterNatural16 reg_ro_uavcan_sub_servo0_id                  ("uavcan.sub.servo0.id",                   Register::Access::ReadOnly,  ID_SERVO0,                               nullptr);
+static RegisterString    reg_ro_uavcan_sub_servo0_type                ("uavcan.sub.servo0.type",                 Register::Access::ReadOnly,  "uavcan.primitive.scalar.Integer16.1.0", nullptr);
+static RegisterNatural16 reg_ro_uavcan_sub_servo1_id                  ("uavcan.sub.servo1.id",                   Register::Access::ReadOnly,  ID_SERVO1,                               nullptr);
+static RegisterString    reg_ro_uavcan_sub_servo1_type                ("uavcan.sub.servo1.type",                 Register::Access::ReadOnly,  "uavcan.primitive.scalar.Integer16.1.0", nullptr);
+static RegisterNatural16 reg_ro_uavcan_sub_lightmode_id               ("uavcan.sub.lightmode.id",                Register::Access::ReadOnly,  ID_LIGHT_MODE,                           nullptr);
+static RegisterString    reg_ro_uavcan_sub_lightmode_type             ("uavcan.sub.lightmode.type",              Register::Access::ReadOnly,  "uavcan.primitive.scalar.Integer8.1.0",  nullptr);
+static RegisterNatural16 reg_rw_aux_updateinterval_inputvoltage       ("aux.updateinterval.inputvoltage",        Register::Access::ReadWrite, updateinterval_inputvoltage,             [&node_hdl](RegisterNatural16 const & reg) { updateinterval_inputvoltage=reg.get(); });
+static RegisterNatural16 reg_rw_aux_updateinterval_internaltemperature("aux.updateinterval.internaltemperature", Register::Access::ReadWrite, updateinterval_internaltemperature,      [&node_hdl](RegisterNatural16 const & reg) { updateinterval_internaltemperature=reg.get(); });
+static RegisterNatural16 reg_rw_aux_updateinterval_input0             ("aux.updateinterval.input0",              Register::Access::ReadWrite, updateinterval_input0,                   [&node_hdl](RegisterNatural16 const & reg) { updateinterval_input0=reg.get(); });
+static RegisterNatural16 reg_rw_aux_updateinterval_input1             ("aux.updateinterval.input1",              Register::Access::ReadWrite, updateinterval_input1,                   [&node_hdl](RegisterNatural16 const & reg) { updateinterval_input1=reg.get(); });
+static RegisterNatural16 reg_rw_aux_updateinterval_input2             ("aux.updateinterval.input2",              Register::Access::ReadWrite, updateinterval_input2,                   [&node_hdl](RegisterNatural16 const & reg) { updateinterval_input2=reg.get(); });
+static RegisterNatural16 reg_rw_aux_updateinterval_input3             ("aux.updateinterval.input3",              Register::Access::ReadWrite, updateinterval_input3,                   [&node_hdl](RegisterNatural16 const & reg) { updateinterval_input3=reg.get(); });
+static RegisterNatural16 reg_rw_aux_updateinterval_analoginput0       ("aux.updateinterval.analoginput0",        Register::Access::ReadWrite, updateinterval_analoginput0,             [&node_hdl](RegisterNatural16 const & reg) { updateinterval_analoginput0=reg.get(); });
+static RegisterNatural16 reg_rw_aux_updateinterval_analoginput1       ("aux.updateinterval.analoginput1",        Register::Access::ReadWrite, updateinterval_analoginput1,             [&node_hdl](RegisterNatural16 const & reg) { updateinterval_analoginput1=reg.get(); });
 static RegisterList      reg_list;
 
 Heartbeat_1_0<> hb;
@@ -494,7 +511,7 @@ void loop()
     node_hdl.publish(hb);
     prev_hearbeat = now;
   }
-  if((now - prev_battery_voltage) > (3*1000))
+  if((now - prev_battery_voltage) > (updateinterval_inputvoltage))
   {
     float const analog = analogRead(ANALOG_PIN)*3.3*11.0/1023.0;
     Serial.print("Analog Pin: ");
@@ -504,7 +521,7 @@ void loop()
     node_hdl.publish(uavcan_input_voltage);
     prev_battery_voltage = now;
   }
-  if((now - prev_internal_temperature) > (10*1000))
+  if((now - prev_internal_temperature) > (updateinterval_internaltemperature))
   {
     float const temperature = analogReadTemp();
     Serial.print("Temperature: ");
@@ -516,42 +533,42 @@ void loop()
   }
 
   /* Handling of inputs */
-  if((now - prev_input0) > 500)
+  if((now - prev_input0) > updateinterval_input0)
   {
     Bit_1_0<ID_INPUT0> uavcan_input0;
     uavcan_input0.data.value = digitalRead(INPUT0_PIN);
     node_hdl.publish(uavcan_input0);
     prev_input0 = now;
   }
-  if((now - prev_input1) > 500)
+  if((now - prev_input1) > updateinterval_input1)
   {
     Bit_1_0<ID_INPUT1> uavcan_input1;
     uavcan_input1.data.value = digitalRead(INPUT1_PIN);
     node_hdl.publish(uavcan_input1);
     prev_input1 = now;
   }
-  if((now - prev_input2) > 500)
+  if((now - prev_input2) > updateinterval_input2)
   {
     Bit_1_0<ID_INPUT2> uavcan_input2;
     uavcan_input2.data.value = digitalRead(INPUT2_PIN);
     node_hdl.publish(uavcan_input2);
     prev_input2 = now;
   }
-  if((now - prev_input3) > 500)
+  if((now - prev_input3) > updateinterval_input3)
   {
     Bit_1_0<ID_INPUT3> uavcan_input3;
     uavcan_input3.data.value = digitalRead(INPUT3_PIN);
     node_hdl.publish(uavcan_input3);
     prev_input3 = now;
   }
-  if((now - prev_analog_input0) > 500)
+  if((now - prev_analog_input0) > updateinterval_analoginput0)
   {
     Integer16_1_0<ID_ANALOG_INPUT0> uavcan_analog_input0;
     uavcan_analog_input0.data.value = analogRead(ANALOG_INPUT0_PIN);
     node_hdl.publish(uavcan_analog_input0);
     prev_analog_input0 = now;
   }
-  if((now - prev_analog_input1) > 500)
+  if((now - prev_analog_input1) > updateinterval_analoginput1)
   {
     Integer16_1_0<ID_ANALOG_INPUT1> uavcan_analog_input1;
     uavcan_analog_input1.data.value = analogRead(ANALOG_INPUT1_PIN);
