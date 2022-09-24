@@ -587,9 +587,6 @@ void loop()
     prev_analog_input1 = now;
   }
 
-  /* Transmit all enqeued CAN frames */
-//  while(node_hdl.transmitCanFrame()) { }
-
   /* Feed the watchdog to keep it from biting. */
 //  Watchdog.reset();
 }
@@ -661,79 +658,3 @@ void onGetInfo_1_0_Request_Received(CanardRxTransfer const &transfer, Node & nod
   Serial.println("onGetInfo_1_0_Request_Received");
   node_hdl.respond(rsp, transfer.metadata.remote_node_id, transfer.metadata.transfer_id);
 }
-/*
-void onList_1_0_Request_Received(CanardRxTransfer const &transfer, Node & node_hdl)
-{
-  static int count = 0;
-  List_1_0::Response<> rsp = List_1_0::Response<>();
-  rsp.data = REGISTER_LIST_ARRAY[count];
-
-  char msg[64] = {0};
-  snprintf(msg, sizeof(msg), "onList_1_0_Request_Received: count %d", count);
-  Serial.println(msg);
-
-  if (!node_hdl.respond(rsp, transfer.metadata.remote_node_id, transfer.metadata.transfer_id))
-    Serial.println("respond() failed");
-
-  // Reset counter after the last request,
-  // otherwise we risk an array overflow.
-  if (count < (REGISTER_LIST_ARRAY_SIZE - 1))
-    count++;
-  else
-    count = 0;
-}
-void onAccess_1_0_Request_Received(CanardRxTransfer const & transfer, Node & node_hdl)
-{
-  Access_1_0::Request<> const req = Access_1_0::Request<>::deserialize(transfer);
-  const char * reg_name = reinterpret_cast<const char *>(req.data.name.name.elements);
-
-  char msg[64] = {0};
-  snprintf(msg, sizeof(msg), "onAccess_1_0_Request_Received: (%i) reg: %s", req.data.value._tag_, reg_name);
-  Serial.println(msg);
-
-  if (!strncmp(reg_name, reinterpret_cast<const char *>(register_list1.name.name.elements), register_list1.name.name.count))
-  {
-    Access_1_0::Response<> rsp;
-
-    rsp.data.timestamp.microsecond = micros();
-    rsp.data._mutable = false;
-    rsp.data.persistent = true;
-    rsp.data.value.natural8.value.elements[0] = AUX_CONTROLLER_NODE_ID;
-    rsp.data.value.natural8.value.count = 1;
-    uavcan_register_Value_1_0_select_natural8_(&rsp.data.value);
-
-    node_hdl.respond(rsp, transfer.metadata.remote_node_id, transfer.metadata.transfer_id);
-  }
-  else if (!strncmp(reg_name, reinterpret_cast<const char *>(register_list2.name.name.elements), register_list2.name.name.count))
-  {
-    Access_1_0::Response<> rsp;
-
-    rsp.data.timestamp.microsecond = micros();
-    rsp.data._mutable = false;
-    rsp.data.persistent = true;
-    rsp.data.value._string.value.elements[0] = 'L';
-    rsp.data.value._string.value.elements[1] = '3';
-    rsp.data.value._string.value.elements[2] = 'X';
-    rsp.data.value._string.value.elements[3] = '-';
-    rsp.data.value._string.value.elements[4] = 'Z';
-    rsp.data.value._string.value.elements[5] = ' ';
-    rsp.data.value._string.value.elements[6] = 'A';
-    rsp.data.value._string.value.elements[7] = 'U';
-    rsp.data.value._string.value.elements[8] = 'X';
-    rsp.data.value._string.value.elements[9] = '_';
-    rsp.data.value._string.value.elements[10] = 'C';
-    rsp.data.value._string.value.elements[11] = 'O';
-    rsp.data.value._string.value.elements[12] = 'N';
-    rsp.data.value._string.value.elements[13] = 'T';
-    rsp.data.value._string.value.elements[14] = 'R';
-    rsp.data.value._string.value.elements[15] = 'O';
-    rsp.data.value._string.value.elements[16] = 'L';
-    rsp.data.value._string.value.elements[17] = 'L';
-    rsp.data.value._string.value.elements[18] = 'E';
-    rsp.data.value._string.value.elements[19] = 'R';
-    rsp.data.value._string.value.count = strlen("L3X-Z AUX_CONTROLLER");
-    uavcan_register_Value_1_0_select_string_(&rsp.data.value);
-
-    node_hdl.respond(rsp, transfer.metadata.remote_node_id, transfer.metadata.transfer_id);
-  }
-}*/
