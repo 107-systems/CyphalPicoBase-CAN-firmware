@@ -176,6 +176,7 @@ static uint16_t updateinterval_input2=500;
 static uint16_t updateinterval_input3=500;
 static uint16_t updateinterval_analoginput0=500;
 static uint16_t updateinterval_analoginput1=500;
+static uint16_t updateinterval_light=250;
 
 /* REGISTER ***************************************************************************/
 
@@ -217,6 +218,7 @@ static RegisterNatural16 reg_rw_aux_updateinterval_input2             ("aux.upda
 static RegisterNatural16 reg_rw_aux_updateinterval_input3             ("aux.updateinterval.input3",              Register::Access::ReadWrite, updateinterval_input3,                   [&node_hdl](RegisterNatural16 const & reg) { updateinterval_input3=reg.get(); if(updateinterval_input3<100) updateinterval_input3=100; });
 static RegisterNatural16 reg_rw_aux_updateinterval_analoginput0       ("aux.updateinterval.analoginput0",        Register::Access::ReadWrite, updateinterval_analoginput0,             [&node_hdl](RegisterNatural16 const & reg) { updateinterval_analoginput0=reg.get(); if(updateinterval_analoginput0<100) updateinterval_analoginput0=100; });
 static RegisterNatural16 reg_rw_aux_updateinterval_analoginput1       ("aux.updateinterval.analoginput1",        Register::Access::ReadWrite, updateinterval_analoginput1,             [&node_hdl](RegisterNatural16 const & reg) { updateinterval_analoginput1=reg.get(); if(updateinterval_analoginput1<100) updateinterval_analoginput1=100; });
+static RegisterNatural16 reg_rw_aux_updateinterval_light              ("aux.updateinterval.light",               Register::Access::ReadWrite, updateinterval_light,                    [&node_hdl](RegisterNatural16 const & reg) { updateinterval_light=reg.get(); if(updateinterval_light<100) updateinterval_light=100; });
 static RegisterList      reg_list;
 
 Heartbeat_1_0<> hb;
@@ -361,6 +363,7 @@ void setup()
   reg_list.add(reg_rw_aux_updateinterval_input3);
   reg_list.add(reg_rw_aux_updateinterval_analoginput0);
   reg_list.add(reg_rw_aux_updateinterval_analoginput1);
+  reg_list.add(reg_rw_aux_updateinterval_light);
   /* Subscribe to the reception of Bit message. */
   node_hdl.subscribe<Bit_1_0<ID_LED1>>(onLed1_Received);
   node_hdl.subscribe<Bit_1_0<ID_OUTPUT0>>(onOutput0_Received);
@@ -425,7 +428,7 @@ void loop()
   }
 
   /* light mode for neopixels */
-  if((now - prev_led) > 250)
+  if((now - prev_led) > updateinterval_light)
   {
     static bool is_light_on = false;
     is_light_on = !is_light_on;
