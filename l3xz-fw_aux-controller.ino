@@ -443,7 +443,7 @@ void loop()
       light_white();
     else if (uavcan_light_mode.data.value == LIGHT_MODE_AMBER)
       light_amber();
-    else if (LIGHT_MODE_RUN_RED||LIGHT_MODE_RUN_GREEN||LIGHT_MODE_RUN_BLUE||LIGHT_MODE_RUN_WHITE||LIGHT_MODE_RUN_AMBER)
+    else if (uavcan_light_mode.data.value == LIGHT_MODE_RUN_RED||uavcan_light_mode.data.value == LIGHT_MODE_RUN_GREEN||uavcan_light_mode.data.value == LIGHT_MODE_RUN_BLUE||uavcan_light_mode.data.value == LIGHT_MODE_RUN_WHITE||uavcan_light_mode.data.value == LIGHT_MODE_RUN_AMBER)
     {
       if (uavcan_light_mode.data.value == LIGHT_MODE_RUN_RED)
       {
@@ -491,7 +491,7 @@ void loop()
         pixels.show();
       }
     }
-    else if (is_light_on&&(LIGHT_MODE_BLINK_RED||LIGHT_MODE_BLINK_GREEN||LIGHT_MODE_BLINK_BLUE||LIGHT_MODE_BLINK_WHITE||LIGHT_MODE_BLINK_AMBER))
+    else if (is_light_on&&(uavcan_light_mode.data.value == LIGHT_MODE_BLINK_RED||uavcan_light_mode.data.value == LIGHT_MODE_BLINK_GREEN||uavcan_light_mode.data.value == LIGHT_MODE_BLINK_BLUE||uavcan_light_mode.data.value == LIGHT_MODE_BLINK_WHITE||uavcan_light_mode.data.value == LIGHT_MODE_BLINK_AMBER))
     {
       if (uavcan_light_mode.data.value == LIGHT_MODE_BLINK_GREEN)
         light_green();
