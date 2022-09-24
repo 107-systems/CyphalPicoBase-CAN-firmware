@@ -209,14 +209,14 @@ static RegisterNatural16 reg_ro_uavcan_sub_servo1_id                  ("uavcan.s
 static RegisterString    reg_ro_uavcan_sub_servo1_type                ("uavcan.sub.servo1.type",                 Register::Access::ReadOnly,  "uavcan.primitive.scalar.Integer16.1.0", nullptr);
 static RegisterNatural16 reg_ro_uavcan_sub_lightmode_id               ("uavcan.sub.lightmode.id",                Register::Access::ReadOnly,  ID_LIGHT_MODE,                           nullptr);
 static RegisterString    reg_ro_uavcan_sub_lightmode_type             ("uavcan.sub.lightmode.type",              Register::Access::ReadOnly,  "uavcan.primitive.scalar.Integer8.1.0",  nullptr);
-static RegisterNatural16 reg_rw_aux_updateinterval_inputvoltage       ("aux.updateinterval.inputvoltage",        Register::Access::ReadWrite, updateinterval_inputvoltage,             [&node_hdl](RegisterNatural16 const & reg) { updateinterval_inputvoltage=reg.get(); });
-static RegisterNatural16 reg_rw_aux_updateinterval_internaltemperature("aux.updateinterval.internaltemperature", Register::Access::ReadWrite, updateinterval_internaltemperature,      [&node_hdl](RegisterNatural16 const & reg) { updateinterval_internaltemperature=reg.get(); });
-static RegisterNatural16 reg_rw_aux_updateinterval_input0             ("aux.updateinterval.input0",              Register::Access::ReadWrite, updateinterval_input0,                   [&node_hdl](RegisterNatural16 const & reg) { updateinterval_input0=reg.get(); });
-static RegisterNatural16 reg_rw_aux_updateinterval_input1             ("aux.updateinterval.input1",              Register::Access::ReadWrite, updateinterval_input1,                   [&node_hdl](RegisterNatural16 const & reg) { updateinterval_input1=reg.get(); });
-static RegisterNatural16 reg_rw_aux_updateinterval_input2             ("aux.updateinterval.input2",              Register::Access::ReadWrite, updateinterval_input2,                   [&node_hdl](RegisterNatural16 const & reg) { updateinterval_input2=reg.get(); });
-static RegisterNatural16 reg_rw_aux_updateinterval_input3             ("aux.updateinterval.input3",              Register::Access::ReadWrite, updateinterval_input3,                   [&node_hdl](RegisterNatural16 const & reg) { updateinterval_input3=reg.get(); });
-static RegisterNatural16 reg_rw_aux_updateinterval_analoginput0       ("aux.updateinterval.analoginput0",        Register::Access::ReadWrite, updateinterval_analoginput0,             [&node_hdl](RegisterNatural16 const & reg) { updateinterval_analoginput0=reg.get(); });
-static RegisterNatural16 reg_rw_aux_updateinterval_analoginput1       ("aux.updateinterval.analoginput1",        Register::Access::ReadWrite, updateinterval_analoginput1,             [&node_hdl](RegisterNatural16 const & reg) { updateinterval_analoginput1=reg.get(); });
+static RegisterNatural16 reg_rw_aux_updateinterval_inputvoltage       ("aux.updateinterval.inputvoltage",        Register::Access::ReadWrite, updateinterval_inputvoltage,             [&node_hdl](RegisterNatural16 const & reg) { updateinterval_inputvoltage=reg.get(); if(updateinterval_inputvoltage<100) updateinterval_inputvoltage=100; });
+static RegisterNatural16 reg_rw_aux_updateinterval_internaltemperature("aux.updateinterval.internaltemperature", Register::Access::ReadWrite, updateinterval_internaltemperature,      [&node_hdl](RegisterNatural16 const & reg) { updateinterval_internaltemperature=reg.get(); if(updateinterval_internaltemperature<100) updateinterval_internaltemperature=100; });
+static RegisterNatural16 reg_rw_aux_updateinterval_input0             ("aux.updateinterval.input0",              Register::Access::ReadWrite, updateinterval_input0,                   [&node_hdl](RegisterNatural16 const & reg) { updateinterval_input0=reg.get(); if(updateinterval_input0<100) updateinterval_input0=100; });
+static RegisterNatural16 reg_rw_aux_updateinterval_input1             ("aux.updateinterval.input1",              Register::Access::ReadWrite, updateinterval_input1,                   [&node_hdl](RegisterNatural16 const & reg) { updateinterval_input1=reg.get(); if(updateinterval_input1<100) updateinterval_input1=100; });
+static RegisterNatural16 reg_rw_aux_updateinterval_input2             ("aux.updateinterval.input2",              Register::Access::ReadWrite, updateinterval_input2,                   [&node_hdl](RegisterNatural16 const & reg) { updateinterval_input2=reg.get(); if(updateinterval_input2<100) updateinterval_input2=100; });
+static RegisterNatural16 reg_rw_aux_updateinterval_input3             ("aux.updateinterval.input3",              Register::Access::ReadWrite, updateinterval_input3,                   [&node_hdl](RegisterNatural16 const & reg) { updateinterval_input3=reg.get(); if(updateinterval_input3<100) updateinterval_input3=100; });
+static RegisterNatural16 reg_rw_aux_updateinterval_analoginput0       ("aux.updateinterval.analoginput0",        Register::Access::ReadWrite, updateinterval_analoginput0,             [&node_hdl](RegisterNatural16 const & reg) { updateinterval_analoginput0=reg.get(); if(updateinterval_analoginput0<100) updateinterval_analoginput0=100; });
+static RegisterNatural16 reg_rw_aux_updateinterval_analoginput1       ("aux.updateinterval.analoginput1",        Register::Access::ReadWrite, updateinterval_analoginput1,             [&node_hdl](RegisterNatural16 const & reg) { updateinterval_analoginput1=reg.get(); if(updateinterval_analoginput1<100) updateinterval_analoginput1=100; });
 static RegisterList      reg_list;
 
 Heartbeat_1_0<> hb;
@@ -353,6 +353,14 @@ void setup()
   reg_list.add(reg_ro_uavcan_sub_servo0_type);
   reg_list.add(reg_ro_uavcan_sub_servo1_type);
   reg_list.add(reg_ro_uavcan_sub_lightmode_type);
+  reg_list.add(reg_rw_aux_updateinterval_inputvoltage);
+  reg_list.add(reg_rw_aux_updateinterval_internaltemperature);
+  reg_list.add(reg_rw_aux_updateinterval_input0);
+  reg_list.add(reg_rw_aux_updateinterval_input1);
+  reg_list.add(reg_rw_aux_updateinterval_input2);
+  reg_list.add(reg_rw_aux_updateinterval_input3);
+  reg_list.add(reg_rw_aux_updateinterval_analoginput0);
+  reg_list.add(reg_rw_aux_updateinterval_analoginput1);
   /* Subscribe to the reception of Bit message. */
   node_hdl.subscribe<Bit_1_0<ID_LED1>>(onLed1_Received);
   node_hdl.subscribe<Bit_1_0<ID_OUTPUT0>>(onOutput0_Received);
