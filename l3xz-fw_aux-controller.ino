@@ -81,7 +81,6 @@ static int const MKRCAN_MCP2515_INT_PIN = 20;
 static CanardNodeID const AUX_CONTROLLER_NODE_ID = 99;
 
 static CanardPortID const ID_INPUT_VOLTAGE        = 1001U;
-static CanardPortID ID_INPUT_VOLTAGE_X        = 1001U;
 static CanardPortID const ID_LED1                 = 1005U;
 static CanardPortID const ID_INTERNAL_TEMPERATURE = 1010U;
 static CanardPortID const ID_INPUT0               = 2000U;
@@ -186,7 +185,7 @@ static uint16_t updateinterval_light=250;
 
 static RegisterNatural8  reg_rw_uavcan_node_id                        ("uavcan.node.id",                         Register::Access::ReadWrite, Register::Persistent::No, AUX_CONTROLLER_NODE_ID, [&node_hdl](uint8_t const & val) { node_hdl.setNodeId(val); });
 static RegisterString    reg_ro_uavcan_node_description               ("uavcan.node.description",                Register::Access::ReadWrite, Register::Persistent::No, "L3X-Z AUX_CONTROLLER");
-static RegisterNatural16 reg_ro_uavcan_pub_inputvoltage_id            ("uavcan.pub.inputvoltage.id",             Register::Access::ReadOnly,  Register::Persistent::No, ID_INPUT_VOLTAGE_X);
+static RegisterNatural16 reg_ro_uavcan_pub_inputvoltage_id            ("uavcan.pub.inputvoltage.id",             Register::Access::ReadOnly,  Register::Persistent::No, ID_INPUT_VOLTAGE);
 static RegisterString    reg_ro_uavcan_pub_inputvoltage_type          ("uavcan.pub.inputvoltage.type",           Register::Access::ReadOnly,  Register::Persistent::No, "uavcan.primitive.scalar.Real32.1.0");
 static RegisterNatural16 reg_ro_uavcan_pub_internaltemperature_id     ("uavcan.pub.internaltemperature.id",      Register::Access::ReadOnly,  Register::Persistent::No, ID_INTERNAL_TEMPERATURE);
 static RegisterString    reg_ro_uavcan_pub_internaltemperature_type   ("uavcan.pub.internaltemperature.type",    Register::Access::ReadOnly,  Register::Persistent::No, "uavcan.primitive.scalar.Real32.1.0");
