@@ -47,7 +47,6 @@ Some Subject-IDs are the same as with the leg controller. The host can different
 | 2008           | pub           | ANALOG INPUT 0       | Integer16   |
 | 2009           | pub           | ANALOG INPUT 1       | Integer16   |
 | 2010           | sub           | light mode           | Integer8    |
-| 1100           | sub           | update_interval      | Integer16   |
 
 ### light mode
 

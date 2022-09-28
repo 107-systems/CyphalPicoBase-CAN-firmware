@@ -35,6 +35,10 @@
 //#include <Adafruit_SleepyDog.h>
 #include <Adafruit_NeoPixel.h>
 
+#undef max
+#undef min
+#include <algorithm>
+
 /**************************************************************************************
  * DEFINES
  **************************************************************************************/
@@ -64,6 +68,7 @@
  **************************************************************************************/
 
 using namespace uavcan::node;
+using namespace uavcan::_register;
 using namespace uavcan::primitive::scalar;
 
 /**************************************************************************************
@@ -108,24 +113,6 @@ static int8_t const LIGHT_MODE_RUN_BLUE    = 103;
 static int8_t const LIGHT_MODE_RUN_WHITE   = 104;
 static int8_t const LIGHT_MODE_RUN_AMBER   = 105;
 
-static const uavcan_node_GetInfo_Response_1_0 GET_INFO_DATA = {
-    /// uavcan.node.Version.1.0 protocol_version
-    {1, 0},
-    /// uavcan.node.Version.1.0 hardware_version
-    {1, 0},
-    /// uavcan.node.Version.1.0 software_version
-    {0, 1},
-    /// saturated uint64 software_vcs_revision_id
-    NULL,
-    /// saturated uint8[16] unique_id
-    {0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77,
-     0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff},
-    /// saturated uint8[<=50] name
-    {
-        "107-systems.l3xz-fw_aux-controller",
-        strlen("107-systems.l3xz-fw_aux-controller")},
-};
-
 /**************************************************************************************
  * FUNCTION DECLARATION
  **************************************************************************************/
@@ -137,7 +124,11 @@ void onOutput1_Received (CanardRxTransfer const &, Node &);
 void onServo0_Received (CanardRxTransfer const &, Node &);
 void onServo1_Received (CanardRxTransfer const &, Node &);
 void onLightMode_Received(CanardRxTransfer const &, Node &);
+
+/* Cyphal Service Requests */
+void onList_1_0_Request_Received(CanardRxTransfer const &, Node &);
 void onGetInfo_1_0_Request_Received(CanardRxTransfer const &, Node &);
+void onAccess_1_0_Request_Received(CanardRxTransfer const &, Node &);
 
 /**************************************************************************************
  * GLOBAL VARIABLES
@@ -161,6 +152,77 @@ ArduinoMCP2515 mcp2515([]()
                        nullptr);
 
 Node node_hdl([](CanardFrame const & frame) -> bool { return mcp2515.transmit(frame); }, AUX_CONTROLLER_NODE_ID);
+
+static const uavcan_node_GetInfo_Response_1_0 GET_INFO_DATA = {
+    /// uavcan.node.Version.1.0 protocol_version
+    {1, 0},
+    /// uavcan.node.Version.1.0 hardware_version
+    {1, 0},
+    /// uavcan.node.Version.1.0 software_version
+    {0, 1},
+    /// saturated uint64 software_vcs_revision_id
+    NULL,
+    /// saturated uint8[16] unique_id
+    {0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77,
+     0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff},
+    /// saturated uint8[<=50] name
+    {
+        "107-systems.l3xz-fw_aux-controller",
+        strlen("107-systems.l3xz-fw_aux-controller")},
+};
+
+static uint16_t updateinterval_inputvoltage=3*1000;
+static uint16_t updateinterval_internaltemperature=10*1000;
+static uint16_t updateinterval_input0=500;
+static uint16_t updateinterval_input1=500;
+static uint16_t updateinterval_input2=500;
+static uint16_t updateinterval_input3=500;
+static uint16_t updateinterval_analoginput0=500;
+static uint16_t updateinterval_analoginput1=500;
+static uint16_t updateinterval_light=250;
+
+/* REGISTER ***************************************************************************/
+
+static RegisterNatural8  reg_rw_uavcan_node_id                        ("uavcan.node.id",                         Register::Access::ReadWrite, Register::Persistent::No, AUX_CONTROLLER_NODE_ID, [&node_hdl](uint8_t const & val) { node_hdl.setNodeId(val); });
+static RegisterString    reg_ro_uavcan_node_description               ("uavcan.node.description",                Register::Access::ReadWrite, Register::Persistent::No, "L3X-Z AUX_CONTROLLER");
+static RegisterNatural16 reg_ro_uavcan_pub_inputvoltage_id            ("uavcan.pub.inputvoltage.id",             Register::Access::ReadOnly,  Register::Persistent::No, ID_INPUT_VOLTAGE);
+static RegisterString    reg_ro_uavcan_pub_inputvoltage_type          ("uavcan.pub.inputvoltage.type",           Register::Access::ReadOnly,  Register::Persistent::No, "uavcan.primitive.scalar.Real32.1.0");
+static RegisterNatural16 reg_ro_uavcan_pub_internaltemperature_id     ("uavcan.pub.internaltemperature.id",      Register::Access::ReadOnly,  Register::Persistent::No, ID_INTERNAL_TEMPERATURE);
+static RegisterString    reg_ro_uavcan_pub_internaltemperature_type   ("uavcan.pub.internaltemperature.type",    Register::Access::ReadOnly,  Register::Persistent::No, "uavcan.primitive.scalar.Real32.1.0");
+static RegisterNatural16 reg_ro_uavcan_pub_input0_id                  ("uavcan.pub.input0.id",                   Register::Access::ReadOnly,  Register::Persistent::No, ID_INPUT0);
+static RegisterString    reg_ro_uavcan_pub_input0_type                ("uavcan.pub.input0.type",                 Register::Access::ReadOnly,  Register::Persistent::No, "uavcan.primitive.scalar.Bit.1.0");
+static RegisterNatural16 reg_ro_uavcan_pub_input1_id                  ("uavcan.pub.input1.id",                   Register::Access::ReadOnly,  Register::Persistent::No, ID_INPUT1);
+static RegisterString    reg_ro_uavcan_pub_input1_type                ("uavcan.pub.input1.type",                 Register::Access::ReadOnly,  Register::Persistent::No, "uavcan.primitive.scalar.Bit.1.0");
+static RegisterNatural16 reg_ro_uavcan_pub_input2_id                  ("uavcan.pub.input2.id",                   Register::Access::ReadOnly,  Register::Persistent::No, ID_INPUT2);
+static RegisterString    reg_ro_uavcan_pub_input2_type                ("uavcan.pub.input2.type",                 Register::Access::ReadOnly,  Register::Persistent::No, "uavcan.primitive.scalar.Bit.1.0");
+static RegisterNatural16 reg_ro_uavcan_pub_input3_id                  ("uavcan.pub.input3.id",                   Register::Access::ReadOnly,  Register::Persistent::No, ID_INPUT3);
+static RegisterString    reg_ro_uavcan_pub_input3_type                ("uavcan.pub.input3.type",                 Register::Access::ReadOnly,  Register::Persistent::No, "uavcan.primitive.scalar.Bit.1.0");
+static RegisterNatural16 reg_ro_uavcan_pub_analoginput0_id            ("uavcan.pub.analoginput0.id",             Register::Access::ReadOnly,  Register::Persistent::No, ID_ANALOG_INPUT0);
+static RegisterString    reg_ro_uavcan_pub_analoginput0_type          ("uavcan.pub.analoginput0.type",           Register::Access::ReadOnly,  Register::Persistent::No, "uavcan.primitive.scalar.Integer16.1.0");
+static RegisterNatural16 reg_ro_uavcan_pub_analoginput1_id            ("uavcan.pub.analoginput1.id",             Register::Access::ReadOnly,  Register::Persistent::No, ID_ANALOG_INPUT1);
+static RegisterString    reg_ro_uavcan_pub_analoginput1_type          ("uavcan.pub.analoginput1.type",           Register::Access::ReadOnly,  Register::Persistent::No, "uavcan.primitive.scalar.Integer16.1.0");
+static RegisterNatural16 reg_ro_uavcan_sub_led1_id                    ("uavcan.sub.led1.id",                     Register::Access::ReadOnly,  Register::Persistent::No, ID_LED1);
+static RegisterString    reg_ro_uavcan_sub_led1_type                  ("uavcan.sub.led1.type",                   Register::Access::ReadOnly,  Register::Persistent::No, "uavcan.primitive.scalar.Bit.1.0");
+static RegisterNatural16 reg_ro_uavcan_sub_output0_id                 ("uavcan.sub.output0.id",                  Register::Access::ReadOnly,  Register::Persistent::No, ID_OUTPUT0);
+static RegisterString    reg_ro_uavcan_sub_output0_type               ("uavcan.sub.output0.type",                Register::Access::ReadOnly,  Register::Persistent::No, "uavcan.primitive.scalar.Bit.1.0");
+static RegisterNatural16 reg_ro_uavcan_sub_output1_id                 ("uavcan.sub.output1.id",                  Register::Access::ReadOnly,  Register::Persistent::No, ID_OUTPUT1);
+static RegisterString    reg_ro_uavcan_sub_output1_type               ("uavcan.sub.output1.type",                Register::Access::ReadOnly,  Register::Persistent::No, "uavcan.primitive.scalar.Bit.1.0");
+static RegisterNatural16 reg_ro_uavcan_sub_servo0_id                  ("uavcan.sub.servo0.id",                   Register::Access::ReadOnly,  Register::Persistent::No, ID_SERVO0);
+static RegisterString    reg_ro_uavcan_sub_servo0_type                ("uavcan.sub.servo0.type",                 Register::Access::ReadOnly,  Register::Persistent::No, "uavcan.primitive.scalar.Integer16.1.0");
+static RegisterNatural16 reg_ro_uavcan_sub_servo1_id                  ("uavcan.sub.servo1.id",                   Register::Access::ReadOnly,  Register::Persistent::No, ID_SERVO1);
+static RegisterString    reg_ro_uavcan_sub_servo1_type                ("uavcan.sub.servo1.type",                 Register::Access::ReadOnly,  Register::Persistent::No, "uavcan.primitive.scalar.Integer16.1.0");
+static RegisterNatural16 reg_ro_uavcan_sub_lightmode_id               ("uavcan.sub.lightmode.id",                Register::Access::ReadOnly,  Register::Persistent::No, ID_LIGHT_MODE);
+static RegisterString    reg_ro_uavcan_sub_lightmode_type             ("uavcan.sub.lightmode.type",              Register::Access::ReadOnly,  Register::Persistent::No, "uavcan.primitive.scalar.Integer8.1.0");
+static RegisterNatural16 reg_rw_aux_updateinterval_inputvoltage       ("aux.updateinterval.inputvoltage",        Register::Access::ReadWrite, Register::Persistent::No, updateinterval_inputvoltage,        nullptr, nullptr , [](uint16_t const & val) { return std::min(val, static_cast<uint16_t>(100)); });
+static RegisterNatural16 reg_rw_aux_updateinterval_internaltemperature("aux.updateinterval.internaltemperature", Register::Access::ReadWrite, Register::Persistent::No, updateinterval_internaltemperature, nullptr, nullptr , [](uint16_t const & val) { return std::min(val, static_cast<uint16_t>(100)); });
+static RegisterNatural16 reg_rw_aux_updateinterval_input0             ("aux.updateinterval.input0",              Register::Access::ReadWrite, Register::Persistent::No, updateinterval_input0,              nullptr, nullptr , [](uint16_t const & val) { return std::min(val, static_cast<uint16_t>(100)); });
+static RegisterNatural16 reg_rw_aux_updateinterval_input1             ("aux.updateinterval.input1",              Register::Access::ReadWrite, Register::Persistent::No, updateinterval_input1,              nullptr, nullptr , [](uint16_t const & val) { return std::min(val, static_cast<uint16_t>(100)); });
+static RegisterNatural16 reg_rw_aux_updateinterval_input2             ("aux.updateinterval.input2",              Register::Access::ReadWrite, Register::Persistent::No, updateinterval_input2,              nullptr, nullptr , [](uint16_t const & val) { return std::min(val, static_cast<uint16_t>(100)); });
+static RegisterNatural16 reg_rw_aux_updateinterval_input3             ("aux.updateinterval.input3",              Register::Access::ReadWrite, Register::Persistent::No, updateinterval_input3,              nullptr, nullptr , [](uint16_t const & val) { return std::min(val, static_cast<uint16_t>(100)); });
+static RegisterNatural16 reg_rw_aux_updateinterval_analoginput0       ("aux.updateinterval.analoginput0",        Register::Access::ReadWrite, Register::Persistent::No, updateinterval_analoginput0,        nullptr, nullptr , [](uint16_t const & val) { return std::min(val, static_cast<uint16_t>(100)); });
+static RegisterNatural16 reg_rw_aux_updateinterval_analoginput1       ("aux.updateinterval.analoginput1",        Register::Access::ReadWrite, Register::Persistent::No, updateinterval_analoginput1,        nullptr, nullptr , [](uint16_t const & val) { return std::min(val, static_cast<uint16_t>(100)); });
+static RegisterNatural16 reg_rw_aux_updateinterval_light              ("aux.updateinterval.light",               Register::Access::ReadWrite, Register::Persistent::No, updateinterval_light,               nullptr, nullptr , [](uint16_t const & val) { return std::min(val, static_cast<uint16_t>(100)); });
+static RegisterList      reg_list;
 
 Heartbeat_1_0<> hb;
 Bit_1_0<ID_INPUT0> uavcan_input0;
@@ -247,11 +309,12 @@ void setup()
 
   /* Attach interrupt handler to register MCP2515 signaled by taking INT low */
   pinMode(MKRCAN_MCP2515_INT_PIN, INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(MKRCAN_MCP2515_INT_PIN), []() { mcp2515.onExternalEventHandler(); }, FALLING);
+  attachInterrupt(digitalPinToInterrupt(MKRCAN_MCP2515_INT_PIN), []() { mcp2515.onExternalEventHandler(); }, LOW);
 
   /* Initialize MCP2515 */
   mcp2515.begin();
-  mcp2515.setBitRate(CanBitRate::BR_1000kBPS_16MHZ);
+//  mcp2515.setBitRate(CanBitRate::BR_1000kBPS_16MHZ);
+  mcp2515.setBitRate(CanBitRate::BR_250kBPS_16MHZ);
   mcp2515.setNormalMode();
 
   /* Configure initial heartbeat */
@@ -264,6 +327,46 @@ void setup()
 
   /* Subscribe to the GetInfo request */
   node_hdl.subscribe<GetInfo_1_0::Request<>>(onGetInfo_1_0_Request_Received);
+  reg_list.subscribe(node_hdl);
+  reg_list.add(reg_rw_uavcan_node_id);
+  reg_list.add(reg_ro_uavcan_node_description);
+  reg_list.add(reg_ro_uavcan_pub_inputvoltage_id);
+  reg_list.add(reg_ro_uavcan_pub_internaltemperature_id);
+  reg_list.add(reg_ro_uavcan_pub_input0_id);
+  reg_list.add(reg_ro_uavcan_pub_input1_id);
+  reg_list.add(reg_ro_uavcan_pub_input2_id);
+  reg_list.add(reg_ro_uavcan_pub_input3_id);
+  reg_list.add(reg_ro_uavcan_pub_analoginput0_id);
+  reg_list.add(reg_ro_uavcan_pub_analoginput1_id);
+  reg_list.add(reg_ro_uavcan_sub_led1_id);
+  reg_list.add(reg_ro_uavcan_sub_output0_id);
+  reg_list.add(reg_ro_uavcan_sub_output1_id);
+  reg_list.add(reg_ro_uavcan_sub_servo0_id);
+  reg_list.add(reg_ro_uavcan_sub_servo1_id);
+  reg_list.add(reg_ro_uavcan_sub_lightmode_id);
+  reg_list.add(reg_ro_uavcan_pub_inputvoltage_type);
+  reg_list.add(reg_ro_uavcan_pub_internaltemperature_type);
+  reg_list.add(reg_ro_uavcan_pub_input0_type);
+  reg_list.add(reg_ro_uavcan_pub_input1_type);
+  reg_list.add(reg_ro_uavcan_pub_input2_type);
+  reg_list.add(reg_ro_uavcan_pub_input3_type);
+  reg_list.add(reg_ro_uavcan_pub_analoginput0_type);
+  reg_list.add(reg_ro_uavcan_pub_analoginput1_type);
+  reg_list.add(reg_ro_uavcan_sub_led1_type);
+  reg_list.add(reg_ro_uavcan_sub_output0_type);
+  reg_list.add(reg_ro_uavcan_sub_output1_type);
+  reg_list.add(reg_ro_uavcan_sub_servo0_type);
+  reg_list.add(reg_ro_uavcan_sub_servo1_type);
+  reg_list.add(reg_ro_uavcan_sub_lightmode_type);
+  reg_list.add(reg_rw_aux_updateinterval_inputvoltage);
+  reg_list.add(reg_rw_aux_updateinterval_internaltemperature);
+  reg_list.add(reg_rw_aux_updateinterval_input0);
+  reg_list.add(reg_rw_aux_updateinterval_input1);
+  reg_list.add(reg_rw_aux_updateinterval_input2);
+  reg_list.add(reg_rw_aux_updateinterval_input3);
+  reg_list.add(reg_rw_aux_updateinterval_analoginput0);
+  reg_list.add(reg_rw_aux_updateinterval_analoginput1);
+  reg_list.add(reg_rw_aux_updateinterval_light);
   /* Subscribe to the reception of Bit message. */
   node_hdl.subscribe<Bit_1_0<ID_LED1>>(onLed1_Received);
   node_hdl.subscribe<Bit_1_0<ID_OUTPUT0>>(onOutput0_Received);
@@ -290,6 +393,10 @@ void setup()
 
 void loop()
 {
+  /* Process all pending OpenCyphal actions.
+   */
+  node_hdl.spinSome();
+
   /* Publish all the gathered data, although at various
    * different intervals.
    */
@@ -324,7 +431,7 @@ void loop()
   }
 
   /* light mode for neopixels */
-  if((now - prev_led) > 250)
+  if((now - prev_led) > updateinterval_light)
   {
     static bool is_light_on = false;
     is_light_on = !is_light_on;
@@ -342,7 +449,7 @@ void loop()
       light_white();
     else if (uavcan_light_mode.data.value == LIGHT_MODE_AMBER)
       light_amber();
-    else if (LIGHT_MODE_RUN_RED||LIGHT_MODE_RUN_GREEN||LIGHT_MODE_RUN_BLUE||LIGHT_MODE_RUN_WHITE||LIGHT_MODE_RUN_AMBER)
+    else if (uavcan_light_mode.data.value == LIGHT_MODE_RUN_RED||uavcan_light_mode.data.value == LIGHT_MODE_RUN_GREEN||uavcan_light_mode.data.value == LIGHT_MODE_RUN_BLUE||uavcan_light_mode.data.value == LIGHT_MODE_RUN_WHITE||uavcan_light_mode.data.value == LIGHT_MODE_RUN_AMBER)
     {
       if (uavcan_light_mode.data.value == LIGHT_MODE_RUN_RED)
       {
@@ -390,7 +497,7 @@ void loop()
         pixels.show();
       }
     }
-    else if (is_light_on&&(LIGHT_MODE_BLINK_RED||LIGHT_MODE_BLINK_GREEN||LIGHT_MODE_BLINK_BLUE||LIGHT_MODE_BLINK_WHITE||LIGHT_MODE_BLINK_AMBER))
+    else if (is_light_on&&(uavcan_light_mode.data.value == LIGHT_MODE_BLINK_RED||uavcan_light_mode.data.value == LIGHT_MODE_BLINK_GREEN||uavcan_light_mode.data.value == LIGHT_MODE_BLINK_BLUE||uavcan_light_mode.data.value == LIGHT_MODE_BLINK_WHITE||uavcan_light_mode.data.value == LIGHT_MODE_BLINK_AMBER))
     {
       if (uavcan_light_mode.data.value == LIGHT_MODE_BLINK_GREEN)
         light_green();
@@ -418,7 +525,7 @@ void loop()
     node_hdl.publish(hb);
     prev_hearbeat = now;
   }
-  if((now - prev_battery_voltage) > (3*1000))
+  if((now - prev_battery_voltage) > (updateinterval_inputvoltage))
   {
     float const analog = analogRead(ANALOG_PIN)*3.3*11.0/1023.0;
     Serial.print("Analog Pin: ");
@@ -428,7 +535,7 @@ void loop()
     node_hdl.publish(uavcan_input_voltage);
     prev_battery_voltage = now;
   }
-  if((now - prev_internal_temperature) > (10*1000))
+  if((now - prev_internal_temperature) > (updateinterval_internaltemperature))
   {
     float const temperature = analogReadTemp();
     Serial.print("Temperature: ");
@@ -440,51 +547,48 @@ void loop()
   }
 
   /* Handling of inputs */
-  if((now - prev_input0) > 500)
+  if((now - prev_input0) > updateinterval_input0)
   {
     Bit_1_0<ID_INPUT0> uavcan_input0;
     uavcan_input0.data.value = digitalRead(INPUT0_PIN);
     node_hdl.publish(uavcan_input0);
     prev_input0 = now;
   }
-  if((now - prev_input1) > 500)
+  if((now - prev_input1) > updateinterval_input1)
   {
     Bit_1_0<ID_INPUT1> uavcan_input1;
     uavcan_input1.data.value = digitalRead(INPUT1_PIN);
     node_hdl.publish(uavcan_input1);
     prev_input1 = now;
   }
-  if((now - prev_input2) > 500)
+  if((now - prev_input2) > updateinterval_input2)
   {
     Bit_1_0<ID_INPUT2> uavcan_input2;
     uavcan_input2.data.value = digitalRead(INPUT2_PIN);
     node_hdl.publish(uavcan_input2);
     prev_input2 = now;
   }
-  if((now - prev_input3) > 500)
+  if((now - prev_input3) > updateinterval_input3)
   {
     Bit_1_0<ID_INPUT3> uavcan_input3;
     uavcan_input3.data.value = digitalRead(INPUT3_PIN);
     node_hdl.publish(uavcan_input3);
     prev_input3 = now;
   }
-  if((now - prev_analog_input0) > 500)
+  if((now - prev_analog_input0) > updateinterval_analoginput0)
   {
     Integer16_1_0<ID_ANALOG_INPUT0> uavcan_analog_input0;
     uavcan_analog_input0.data.value = analogRead(ANALOG_INPUT0_PIN);
     node_hdl.publish(uavcan_analog_input0);
     prev_analog_input0 = now;
   }
-  if((now - prev_analog_input1) > 500)
+  if((now - prev_analog_input1) > updateinterval_analoginput1)
   {
     Integer16_1_0<ID_ANALOG_INPUT1> uavcan_analog_input1;
     uavcan_analog_input1.data.value = analogRead(ANALOG_INPUT1_PIN);
     node_hdl.publish(uavcan_analog_input1);
     prev_analog_input1 = now;
   }
-
-  /* Transmit all enqeued CAN frames */
-  while(node_hdl.transmitCanFrame()) { }
 
   /* Feed the watchdog to keep it from biting. */
 //  Watchdog.reset();
