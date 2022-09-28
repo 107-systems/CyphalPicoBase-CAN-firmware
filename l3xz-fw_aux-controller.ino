@@ -129,6 +129,7 @@ void onLightMode_Received(CanardRxTransfer const &, Node &);
 void onList_1_0_Request_Received(CanardRxTransfer const &, Node &);
 void onGetInfo_1_0_Request_Received(CanardRxTransfer const &, Node &);
 void onAccess_1_0_Request_Received(CanardRxTransfer const &, Node &);
+void onExecuteCommand_1_0_Request_Received(CanardRxTransfer const &, Node &);
 
 /**************************************************************************************
  * GLOBAL VARIABLES
@@ -374,6 +375,8 @@ void setup()
   node_hdl.subscribe<Integer16_1_0<ID_SERVO0>>(onServo0_Received);
   node_hdl.subscribe<Integer16_1_0<ID_SERVO1>>(onServo1_Received);
   node_hdl.subscribe<Integer8_1_0<ID_LIGHT_MODE>>(onLightMode_Received);
+  /* Subscribe to incoming service requests */
+  node_hdl.subscribe<ExecuteCommand_1_0::Request<>>(onExecuteCommand_1_0_Request_Received);
 
   /* Init Neopixel */
   pixels.begin();
@@ -660,4 +663,59 @@ void onGetInfo_1_0_Request_Received(CanardRxTransfer const &transfer, Node & nod
   rsp.data = GET_INFO_DATA;
   Serial.println("onGetInfo_1_0_Request_Received");
   node_hdl.respond(rsp, transfer.metadata.remote_node_id, transfer.metadata.transfer_id);
+}
+
+void onExecuteCommand_1_0_Request_Received(CanardRxTransfer const & transfer, Node & node_hdl)
+{
+  ExecuteCommand_1_0::Request<> req = ExecuteCommand_1_0::Request<>::deserialize(transfer);
+
+  if (req.data.command == uavcan_node_ExecuteCommand_Request_1_1_COMMAND_RESTART && transfer.metadata.remote_node_id == node_hdl.getNodeId())
+  {
+    /* Send the response. */
+    ExecuteCommand_1_0::Response<> rsp;
+    rsp = ExecuteCommand_1_0::Response<>::Status::SUCCESS;
+    node_hdl.respond(rsp, transfer.metadata.remote_node_id, transfer.metadata.transfer_id);
+  }
+  else if (req.data.command == uavcan_node_ExecuteCommand_Request_1_1_COMMAND_POWER_OFF && transfer.metadata.remote_node_id == node_hdl.getNodeId())
+  {
+    /* Send the response. */
+    ExecuteCommand_1_0::Response<> rsp;
+    rsp = ExecuteCommand_1_0::Response<>::Status::SUCCESS;
+    node_hdl.respond(rsp, transfer.metadata.remote_node_id, transfer.metadata.transfer_id);
+  }
+  else if (req.data.command == uavcan_node_ExecuteCommand_Request_1_1_COMMAND_BEGIN_SOFTWARE_UPDATE && transfer.metadata.remote_node_id == node_hdl.getNodeId())
+  {
+    /* Send the response. */
+    ExecuteCommand_1_0::Response<> rsp;
+    rsp = ExecuteCommand_1_0::Response<>::Status::SUCCESS;
+    node_hdl.respond(rsp, transfer.metadata.remote_node_id, transfer.metadata.transfer_id);
+  }
+  else if (req.data.command == uavcan_node_ExecuteCommand_Request_1_1_COMMAND_FACTORY_RESET && transfer.metadata.remote_node_id == node_hdl.getNodeId())
+  {
+    /* Send the response. */
+    ExecuteCommand_1_0::Response<> rsp;
+    rsp = ExecuteCommand_1_0::Response<>::Status::SUCCESS;
+    node_hdl.respond(rsp, transfer.metadata.remote_node_id, transfer.metadata.transfer_id);
+  }
+  else if (req.data.command == uavcan_node_ExecuteCommand_Request_1_1_COMMAND_EMERGENCY_STOP && transfer.metadata.remote_node_id == node_hdl.getNodeId())
+  {
+    /* Send the response. */
+    ExecuteCommand_1_0::Response<> rsp;
+    rsp = ExecuteCommand_1_0::Response<>::Status::FAILURE;
+    node_hdl.respond(rsp, transfer.metadata.remote_node_id, transfer.metadata.transfer_id);
+  }
+  else if (req.data.command == uavcan_node_ExecuteCommand_Request_1_1_COMMAND_STORE_PERSISTENT_STATES && transfer.metadata.remote_node_id == node_hdl.getNodeId())
+  {
+    /* Send the response. */
+    ExecuteCommand_1_0::Response<> rsp;
+    rsp = ExecuteCommand_1_0::Response<>::Status::FAILURE;
+    node_hdl.respond(rsp, transfer.metadata.remote_node_id, transfer.metadata.transfer_id);
+  }
+  else
+  {
+    /* Send the response. */
+    ExecuteCommand_1_0::Response<> rsp;
+    rsp = ExecuteCommand_1_0::Response<>::Status::BAD_COMMAND;
+    node_hdl.respond(rsp, transfer.metadata.remote_node_id, transfer.metadata.transfer_id);
+  }
 }
