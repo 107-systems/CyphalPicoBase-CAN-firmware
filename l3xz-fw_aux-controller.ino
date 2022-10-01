@@ -25,6 +25,7 @@
 /**************************************************************************************
  * INCLUDE
  **************************************************************************************/
+#include "pico/stdlib.h"
 #include <SPI.h>
 #include <Wire.h>
 #include <Servo.h>
@@ -129,6 +130,7 @@ void onLightMode_Received(CanardRxTransfer const &, Node &);
 void onList_1_0_Request_Received(CanardRxTransfer const &, Node &);
 void onGetInfo_1_0_Request_Received(CanardRxTransfer const &, Node &);
 void onAccess_1_0_Request_Received(CanardRxTransfer const &, Node &);
+void onExecuteCommand_1_1_Request_Received(CanardRxTransfer const &, Node &);
 
 /**************************************************************************************
  * GLOBAL VARIABLES
@@ -374,6 +376,8 @@ void setup()
   node_hdl.subscribe<Integer16_1_0<ID_SERVO0>>(onServo0_Received);
   node_hdl.subscribe<Integer16_1_0<ID_SERVO1>>(onServo1_Received);
   node_hdl.subscribe<Integer8_1_0<ID_LIGHT_MODE>>(onLightMode_Received);
+  /* Subscribe to incoming service requests */
+  node_hdl.subscribe<ExecuteCommand_1_1::Request<>>(onExecuteCommand_1_1_Request_Received);
 
   /* Init Neopixel */
   pixels.begin();
@@ -660,4 +664,83 @@ void onGetInfo_1_0_Request_Received(CanardRxTransfer const &transfer, Node & nod
   rsp.data = GET_INFO_DATA;
   Serial.println("onGetInfo_1_0_Request_Received");
   node_hdl.respond(rsp, transfer.metadata.remote_node_id, transfer.metadata.transfer_id);
+}
+
+void onExecuteCommand_1_1_Request_Received(CanardRxTransfer const & transfer, Node & node_hdl)
+{
+  ExecuteCommand_1_1::Request<> req = ExecuteCommand_1_1::Request<>::deserialize(transfer);
+
+  Serial.print("onExecuteCommand_1_1_Request_Received: ");
+  Serial.println(req.data.command);
+
+  if (req.data.command == uavcan_node_ExecuteCommand_Request_1_1_COMMAND_RESTART)
+  {
+    /* Send the response. */
+    ExecuteCommand_1_1::Response<> rsp;
+    rsp = ExecuteCommand_1_1::Response<>::Status::SUCCESS;
+    node_hdl.respond(rsp, transfer.metadata.remote_node_id, transfer.metadata.transfer_id);
+
+    watchdog_reboot(0,0,1000);
+  }
+  else if (req.data.command == uavcan_node_ExecuteCommand_Request_1_1_COMMAND_POWER_OFF)
+  {
+    /* Send the response. */
+    ExecuteCommand_1_1::Response<> rsp;
+    rsp = ExecuteCommand_1_1::Response<>::Status::SUCCESS;
+    node_hdl.respond(rsp, transfer.metadata.remote_node_id, transfer.metadata.transfer_id);
+
+    digitalWrite(LED2_PIN, HIGH);
+    digitalWrite(LED3_PIN, HIGH);
+    light_off();
+    while(1); /* loop forever */
+  }
+  else if (req.data.command == uavcan_node_ExecuteCommand_Request_1_1_COMMAND_BEGIN_SOFTWARE_UPDATE)
+  {
+    /* Send the response. */
+    ExecuteCommand_1_1::Response<> rsp;
+    rsp = ExecuteCommand_1_1::Response<>::Status::BAD_COMMAND;
+    node_hdl.respond(rsp, transfer.metadata.remote_node_id, transfer.metadata.transfer_id);
+    /* not implemented yet */
+  }
+  else if (req.data.command == uavcan_node_ExecuteCommand_Request_1_1_COMMAND_FACTORY_RESET)
+  {
+    /* set factory settings */
+    updateinterval_inputvoltage=3*1000;
+    updateinterval_internaltemperature=10*1000;
+    updateinterval_input0=500;
+    updateinterval_input1=500;
+    updateinterval_input2=500;
+    updateinterval_input3=500;
+    updateinterval_analoginput0=500;
+    updateinterval_analoginput1=500;
+    updateinterval_light=250;
+
+    /* Send the response. */
+    ExecuteCommand_1_1::Response<> rsp;
+    rsp = ExecuteCommand_1_1::Response<>::Status::SUCCESS;
+    node_hdl.respond(rsp, transfer.metadata.remote_node_id, transfer.metadata.transfer_id);
+  }
+  else if (req.data.command == uavcan_node_ExecuteCommand_Request_1_1_COMMAND_EMERGENCY_STOP)
+  {
+    /* Send the response. */
+    ExecuteCommand_1_1::Response<> rsp;
+    rsp = ExecuteCommand_1_1::Response<>::Status::BAD_COMMAND;
+    node_hdl.respond(rsp, transfer.metadata.remote_node_id, transfer.metadata.transfer_id);
+    /* not implemented yet */
+  }
+  else if (req.data.command == uavcan_node_ExecuteCommand_Request_1_1_COMMAND_STORE_PERSISTENT_STATES)
+  {
+    /* Send the response. */
+    ExecuteCommand_1_1::Response<> rsp;
+    rsp = ExecuteCommand_1_1::Response<>::Status::BAD_COMMAND;
+    node_hdl.respond(rsp, transfer.metadata.remote_node_id, transfer.metadata.transfer_id);
+    /* not implemented yet */
+  }
+  else
+  {
+    /* Send the response. */
+    ExecuteCommand_1_1::Response<> rsp;
+    rsp = ExecuteCommand_1_1::Response<>::Status::BAD_COMMAND;
+    node_hdl.respond(rsp, transfer.metadata.remote_node_id, transfer.metadata.transfer_id);
+  }
 }
