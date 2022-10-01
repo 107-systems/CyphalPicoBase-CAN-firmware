@@ -671,7 +671,10 @@ void onExecuteCommand_1_1_Request_Received(CanardRxTransfer const & transfer, No
 {
   ExecuteCommand_1_1::Request<> req = ExecuteCommand_1_1::Request<>::deserialize(transfer);
 
-  if (req.data.command == uavcan_node_ExecuteCommand_Request_1_1_COMMAND_RESTART && transfer.metadata.remote_node_id == node_hdl.getNodeId())
+  Serial.print("onExecuteCommand_1_1_Request_Received: ");
+  Serial.println(req.data.command);
+
+  if (req.data.command == uavcan_node_ExecuteCommand_Request_1_1_COMMAND_RESTART)
   {
     /* Send the response. */
     ExecuteCommand_1_1::Response<> rsp;
@@ -680,7 +683,7 @@ void onExecuteCommand_1_1_Request_Received(CanardRxTransfer const & transfer, No
 
     resetFunc();
   }
-  else if (req.data.command == uavcan_node_ExecuteCommand_Request_1_1_COMMAND_POWER_OFF && transfer.metadata.remote_node_id == node_hdl.getNodeId())
+  else if (req.data.command == uavcan_node_ExecuteCommand_Request_1_1_COMMAND_POWER_OFF)
   {
     /* Send the response. */
     ExecuteCommand_1_1::Response<> rsp;
@@ -692,7 +695,7 @@ void onExecuteCommand_1_1_Request_Received(CanardRxTransfer const & transfer, No
     light_off();
     while(1); /* loop forever */
   }
-  else if (req.data.command == uavcan_node_ExecuteCommand_Request_1_1_COMMAND_BEGIN_SOFTWARE_UPDATE && transfer.metadata.remote_node_id == node_hdl.getNodeId())
+  else if (req.data.command == uavcan_node_ExecuteCommand_Request_1_1_COMMAND_BEGIN_SOFTWARE_UPDATE)
   {
     /* Send the response. */
     ExecuteCommand_1_1::Response<> rsp;
@@ -700,7 +703,7 @@ void onExecuteCommand_1_1_Request_Received(CanardRxTransfer const & transfer, No
     node_hdl.respond(rsp, transfer.metadata.remote_node_id, transfer.metadata.transfer_id);
     /* not implemented yet */
   }
-  else if (req.data.command == uavcan_node_ExecuteCommand_Request_1_1_COMMAND_FACTORY_RESET && transfer.metadata.remote_node_id == node_hdl.getNodeId())
+  else if (req.data.command == uavcan_node_ExecuteCommand_Request_1_1_COMMAND_FACTORY_RESET)
   {
     /* set factory settings */
     updateinterval_inputvoltage=3*1000;
@@ -718,7 +721,7 @@ void onExecuteCommand_1_1_Request_Received(CanardRxTransfer const & transfer, No
     rsp = ExecuteCommand_1_1::Response<>::Status::SUCCESS;
     node_hdl.respond(rsp, transfer.metadata.remote_node_id, transfer.metadata.transfer_id);
   }
-  else if (req.data.command == uavcan_node_ExecuteCommand_Request_1_1_COMMAND_EMERGENCY_STOP && transfer.metadata.remote_node_id == node_hdl.getNodeId())
+  else if (req.data.command == uavcan_node_ExecuteCommand_Request_1_1_COMMAND_EMERGENCY_STOP)
   {
     /* Send the response. */
     ExecuteCommand_1_1::Response<> rsp;
@@ -726,7 +729,7 @@ void onExecuteCommand_1_1_Request_Received(CanardRxTransfer const & transfer, No
     node_hdl.respond(rsp, transfer.metadata.remote_node_id, transfer.metadata.transfer_id);
     /* not implemented yet */
   }
-  else if (req.data.command == uavcan_node_ExecuteCommand_Request_1_1_COMMAND_STORE_PERSISTENT_STATES && transfer.metadata.remote_node_id == node_hdl.getNodeId())
+  else if (req.data.command == uavcan_node_ExecuteCommand_Request_1_1_COMMAND_STORE_PERSISTENT_STATES)
   {
     /* Send the response. */
     ExecuteCommand_1_1::Response<> rsp;
