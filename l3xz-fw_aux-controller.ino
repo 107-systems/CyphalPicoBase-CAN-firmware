@@ -131,6 +131,8 @@ void onGetInfo_1_0_Request_Received(CanardRxTransfer const &, Node &);
 void onAccess_1_0_Request_Received(CanardRxTransfer const &, Node &);
 void onExecuteCommand_1_1_Request_Received(CanardRxTransfer const &, Node &);
 
+void(* resetFunc) (void) = 0;//declare reset function at address 0
+
 /**************************************************************************************
  * GLOBAL VARIABLES
  **************************************************************************************/
@@ -675,6 +677,8 @@ void onExecuteCommand_1_1_Request_Received(CanardRxTransfer const & transfer, No
     ExecuteCommand_1_1::Response<> rsp;
     rsp = ExecuteCommand_1_1::Response<>::Status::SUCCESS;
     node_hdl.respond(rsp, transfer.metadata.remote_node_id, transfer.metadata.transfer_id);
+
+    resetFunc();
   }
   else if (req.data.command == uavcan_node_ExecuteCommand_Request_1_1_COMMAND_POWER_OFF && transfer.metadata.remote_node_id == node_hdl.getNodeId())
   {
@@ -682,16 +686,33 @@ void onExecuteCommand_1_1_Request_Received(CanardRxTransfer const & transfer, No
     ExecuteCommand_1_1::Response<> rsp;
     rsp = ExecuteCommand_1_1::Response<>::Status::SUCCESS;
     node_hdl.respond(rsp, transfer.metadata.remote_node_id, transfer.metadata.transfer_id);
+
+    digitalWrite(LED2_PIN, HIGH);
+    digitalWrite(LED3_PIN, HIGH);
+    light_off();
+    while(1); /* loop forever */
   }
   else if (req.data.command == uavcan_node_ExecuteCommand_Request_1_1_COMMAND_BEGIN_SOFTWARE_UPDATE && transfer.metadata.remote_node_id == node_hdl.getNodeId())
   {
     /* Send the response. */
     ExecuteCommand_1_1::Response<> rsp;
-    rsp = ExecuteCommand_1_1::Response<>::Status::SUCCESS;
+    rsp = ExecuteCommand_1_1::Response<>::Status::BAD_COMMAND;
     node_hdl.respond(rsp, transfer.metadata.remote_node_id, transfer.metadata.transfer_id);
+    /* not implemented yet */
   }
   else if (req.data.command == uavcan_node_ExecuteCommand_Request_1_1_COMMAND_FACTORY_RESET && transfer.metadata.remote_node_id == node_hdl.getNodeId())
   {
+    /* set factory settings */
+    updateinterval_inputvoltage=3*1000;
+    updateinterval_internaltemperature=10*1000;
+    updateinterval_input0=500;
+    updateinterval_input1=500;
+    updateinterval_input2=500;
+    updateinterval_input3=500;
+    updateinterval_analoginput0=500;
+    updateinterval_analoginput1=500;
+    updateinterval_light=250;
+
     /* Send the response. */
     ExecuteCommand_1_1::Response<> rsp;
     rsp = ExecuteCommand_1_1::Response<>::Status::SUCCESS;
@@ -701,15 +722,17 @@ void onExecuteCommand_1_1_Request_Received(CanardRxTransfer const & transfer, No
   {
     /* Send the response. */
     ExecuteCommand_1_1::Response<> rsp;
-    rsp = ExecuteCommand_1_1::Response<>::Status::FAILURE;
+    rsp = ExecuteCommand_1_1::Response<>::Status::BAD_COMMAND;
     node_hdl.respond(rsp, transfer.metadata.remote_node_id, transfer.metadata.transfer_id);
+    /* not implemented yet */
   }
   else if (req.data.command == uavcan_node_ExecuteCommand_Request_1_1_COMMAND_STORE_PERSISTENT_STATES && transfer.metadata.remote_node_id == node_hdl.getNodeId())
   {
     /* Send the response. */
     ExecuteCommand_1_1::Response<> rsp;
-    rsp = ExecuteCommand_1_1::Response<>::Status::FAILURE;
+    rsp = ExecuteCommand_1_1::Response<>::Status::BAD_COMMAND;
     node_hdl.respond(rsp, transfer.metadata.remote_node_id, transfer.metadata.transfer_id);
+    /* not implemented yet */
   }
   else
   {
