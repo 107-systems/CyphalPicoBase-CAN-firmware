@@ -25,6 +25,7 @@
 /**************************************************************************************
  * INCLUDE
  **************************************************************************************/
+#include "pico/stdlib.h"
 #include <SPI.h>
 #include <Wire.h>
 #include <Servo.h>
@@ -130,8 +131,6 @@ void onList_1_0_Request_Received(CanardRxTransfer const &, Node &);
 void onGetInfo_1_0_Request_Received(CanardRxTransfer const &, Node &);
 void onAccess_1_0_Request_Received(CanardRxTransfer const &, Node &);
 void onExecuteCommand_1_1_Request_Received(CanardRxTransfer const &, Node &);
-
-void(* resetFunc) (void) = 0;//declare reset function at address 0
 
 /**************************************************************************************
  * GLOBAL VARIABLES
@@ -681,7 +680,7 @@ void onExecuteCommand_1_1_Request_Received(CanardRxTransfer const & transfer, No
     rsp = ExecuteCommand_1_1::Response<>::Status::SUCCESS;
     node_hdl.respond(rsp, transfer.metadata.remote_node_id, transfer.metadata.transfer_id);
 
-    resetFunc();
+    watchdog_reboot(0,0,1000);
   }
   else if (req.data.command == uavcan_node_ExecuteCommand_Request_1_1_COMMAND_POWER_OFF)
   {
