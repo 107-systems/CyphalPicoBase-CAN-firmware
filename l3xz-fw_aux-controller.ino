@@ -43,30 +43,6 @@
 #include <algorithm>
 
 /**************************************************************************************
- * DEFINES
- **************************************************************************************/
-
-#define INPUT0_PIN         6
-#define INPUT1_PIN         7
-#define INPUT2_PIN         8
-#define INPUT3_PIN         9
-#define OUTPUT0_PIN       10
-#define OUTPUT1_PIN       11
-#define SERVO0_PIN        14
-#define SERVO1_PIN        15
-#define LED2_PIN          21
-#define LED3_PIN          22
-#define ANALOG_PIN        26
-#define ANALOG_INPUT0_PIN 27
-#define ANALOG_INPUT1_PIN 28
-
-// Which pin on the Arduino is connected to the NeoPixels?
-#define NEOPIXELPIN        13 // Raspberry Pi Pico
-
-// How many NeoPixels are attached to the Arduino?
-#define NUMPIXELS 8 // Popular NeoPixel ring size
-
-/**************************************************************************************
  * NAMESPACE
  **************************************************************************************/
 
@@ -78,8 +54,24 @@ using namespace uavcan::primitive::scalar;
  * CONSTANTS
  **************************************************************************************/
 
-static int const MKRCAN_MCP2515_CS_PIN  = 17;
-static int const MKRCAN_MCP2515_INT_PIN = 20;
+static int const INPUT0_PIN        =  6;
+static int const INPUT1_PIN        =  7;
+static int const INPUT2_PIN        =  8;
+static int const INPUT3_PIN        =  9;
+static int const OUTPUT0_PIN       = 10;
+static int const OUTPUT1_PIN       = 11;
+static int const NEOPIXEL_PIN      = 13; /* Raspberry Pi Pico */
+static int const SERVO0_PIN        = 14;
+static int const SERVO1_PIN        = 15;
+static int const MCP2515_CS_PIN    = 17;
+static int const MCP2515_INT_PIN   = 20;
+static int const LED2_PIN          = 21;
+static int const LED3_PIN          = 22;
+static int const ANALOG_PIN        = 26;
+static int const ANALOG_INPUT0_PIN = 27;
+static int const ANALOG_INPUT1_PIN = 28;
+
+static int const NEOPIXEL_NUM_PIXELS = 8; /* Popular NeoPixel ring size */
 
 static CanardNodeID const DEFAULT_AUX_CONTROLLER_NODE_ID = 99;
 
@@ -139,11 +131,11 @@ ArduinoMCP2515 mcp2515([]()
                        {
                          noInterrupts();
                          SPI.beginTransaction(MCP2515x_SPI_SETTING);
-                         digitalWrite(MKRCAN_MCP2515_CS_PIN, LOW);
+                         digitalWrite(MCP2515_CS_PIN, LOW);
                        },
                        []()
                        {
-                         digitalWrite(MKRCAN_MCP2515_CS_PIN, HIGH);
+                         digitalWrite(MCP2515_CS_PIN, HIGH);
                          SPI.endTransaction();
                          interrupts();
                        },
@@ -238,7 +230,7 @@ Integer8_1_0<ID_LIGHT_MODE> uavcan_light_mode;
 Servo servo0;
 Servo servo1;
 
-Adafruit_NeoPixel pixels(NUMPIXELS, NEOPIXELPIN, NEO_GRB);
+Adafruit_NeoPixel pixels(NEOPIXEL_NUM_PIXELS, NEOPIXEL_PIN, NEO_GRB);
 
 void light_off()
 {
@@ -304,12 +296,12 @@ void setup()
 
   /* Setup SPI access */
   SPI.begin();
-  pinMode(MKRCAN_MCP2515_CS_PIN, OUTPUT);
-  digitalWrite(MKRCAN_MCP2515_CS_PIN, HIGH);
+  pinMode(MCP2515_CS_PIN, OUTPUT);
+  digitalWrite(MCP2515_CS_PIN, HIGH);
 
   /* Attach interrupt handler to register MCP2515 signaled by taking INT low */
-  pinMode(MKRCAN_MCP2515_INT_PIN, INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(MKRCAN_MCP2515_INT_PIN), []() { mcp2515.onExternalEventHandler(); }, LOW);
+  pinMode(MCP2515_INT_PIN, INPUT_PULLUP);
+  attachInterrupt(digitalPinToInterrupt(MCP2515_INT_PIN), []() { mcp2515.onExternalEventHandler(); }, LOW);
 
   /* Initialize MCP2515 */
   mcp2515.begin();
