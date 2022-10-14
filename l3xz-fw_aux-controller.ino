@@ -44,6 +44,7 @@
 
 #include "PortId.h"
 #include "ServoControl.h"
+#include "DigitalOutControl.h"
 
 /**************************************************************************************
  * NAMESPACE
@@ -102,8 +103,6 @@ static int8_t const LIGHT_MODE_RUN_AMBER   = 105;
 
 void onReceiveBufferFull(CanardFrame const & frame);
 void onLed1_Received (CanardRxTransfer const &, Node &);
-void onOutput0_Received (CanardRxTransfer const &, Node &);
-void onOutput1_Received (CanardRxTransfer const &, Node &);
 void onLightMode_Received(CanardRxTransfer const &, Node &);
 
 /* Cyphal Service Requests */
@@ -133,6 +132,7 @@ ArduinoMCP2515 mcp2515([]()
 Node node_hdl([](CanardFrame const & frame) -> bool { return mcp2515.transmit(frame); }, DEFAULT_AUX_CONTROLLER_NODE_ID);
 
 ServoControl servo_ctrl;
+DigitalOutControl digital_out_ctrl(OUTPUT0_PIN, OUTPUT1_PIN);
 
 static uint16_t updateinterval_inputvoltage=3*1000;
 static uint16_t updateinterval_internaltemperature=10*1000;
@@ -261,13 +261,9 @@ void setup()
   pinMode(INPUT1_PIN, INPUT_PULLUP);
   pinMode(INPUT2_PIN, INPUT_PULLUP);
   pinMode(INPUT3_PIN, INPUT_PULLUP);
-  pinMode(OUTPUT0_PIN, OUTPUT);
-  digitalWrite(OUTPUT0_PIN, LOW);
-  pinMode(OUTPUT1_PIN, OUTPUT);
-  digitalWrite(OUTPUT1_PIN, LOW);
 
-  /* Setup servo pins */
   servo_ctrl.begin(SERVO0_PIN, SERVO1_PIN);
+  digital_out_ctrl.begin();
 
   /* Setup SPI access */
   SPI.begin();
@@ -336,13 +332,11 @@ void setup()
   reg_list.add(reg_rw_aux_updateinterval_light);
   reg_list.subscribe(node_hdl);
 
-  /* Subscribe to servo messages. */
   servo_ctrl.subscribe(node_hdl);
+  digital_out_ctrl.subscribe(node_hdl);
 
   /* Subscribe to the reception of Bit message. */
   node_hdl.subscribe<Bit_1_0<ID_LED1>>(onLed1_Received);
-  node_hdl.subscribe<Bit_1_0<ID_OUTPUT0>>(onOutput0_Received);
-  node_hdl.subscribe<Bit_1_0<ID_OUTPUT1>>(onOutput1_Received);
   node_hdl.subscribe<Integer8_1_0<ID_LIGHT_MODE>>(onLightMode_Received);
   /* Subscribe to incoming service requests */
   node_hdl.subscribe<ExecuteCommand_1_1::Request<>>(onExecuteCommand_1_1_Request_Received);
@@ -586,22 +580,6 @@ void onLed1_Received(CanardRxTransfer const & transfer, Node & /* node_hdl */)
     digitalWrite(LED_BUILTIN, LOW);
     Serial.println("Received Bit1: false");
   }
-}
-
-void onOutput0_Received(CanardRxTransfer const & transfer, Node & /* node_hdl */)
-{
-  Bit_1_0<ID_OUTPUT0> const uavcan_output0 = Bit_1_0<ID_OUTPUT0>::deserialize(transfer);
-
-  if(uavcan_output0.data.value) digitalWrite(OUTPUT0_PIN, HIGH);
-  else digitalWrite(OUTPUT0_PIN, LOW);
-}
-
-void onOutput1_Received(CanardRxTransfer const & transfer, Node & /* node_hdl */)
-{
-  Bit_1_0<ID_OUTPUT1> const uavcan_output1 = Bit_1_0<ID_OUTPUT1>::deserialize(transfer);
-
-  if(uavcan_output1.data.value) digitalWrite(OUTPUT1_PIN, HIGH);
-  else digitalWrite(OUTPUT1_PIN, LOW);
 }
 
 void onLightMode_Received(CanardRxTransfer const & transfer, Node & /* node_hdl */)
