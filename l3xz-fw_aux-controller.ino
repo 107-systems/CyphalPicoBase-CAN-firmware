@@ -42,6 +42,9 @@
 #undef min
 #include <algorithm>
 
+#include "PortId.h"
+#include "ServoControl.h"
+
 /**************************************************************************************
  * NAMESPACE
  **************************************************************************************/
@@ -75,21 +78,6 @@ static int const NEOPIXEL_NUM_PIXELS = 8; /* Popular NeoPixel ring size */
 
 static CanardNodeID const DEFAULT_AUX_CONTROLLER_NODE_ID = 99;
 
-static CanardPortID const ID_INPUT_VOLTAGE        = 1001U;
-static CanardPortID const ID_LED1                 = 1005U;
-static CanardPortID const ID_INTERNAL_TEMPERATURE = 1010U;
-static CanardPortID const ID_INPUT0               = 2000U;
-static CanardPortID const ID_INPUT1               = 2001U;
-static CanardPortID const ID_INPUT2               = 2002U;
-static CanardPortID const ID_INPUT3               = 2003U;
-static CanardPortID const ID_OUTPUT0              = 2004U;
-static CanardPortID const ID_OUTPUT1              = 2005U;
-static CanardPortID const ID_SERVO0               = 2006U;
-static CanardPortID const ID_SERVO1               = 2007U;
-static CanardPortID const ID_ANALOG_INPUT0        = 2008U;
-static CanardPortID const ID_ANALOG_INPUT1        = 2009U;
-static CanardPortID const ID_LIGHT_MODE           = 2010U;
-
 static SPISettings  const MCP2515x_SPI_SETTING{1000000, MSBFIRST, SPI_MODE0};
 
 static int8_t const LIGHT_MODE_RED         =   1;
@@ -116,8 +104,6 @@ void onReceiveBufferFull(CanardFrame const & frame);
 void onLed1_Received (CanardRxTransfer const &, Node &);
 void onOutput0_Received (CanardRxTransfer const &, Node &);
 void onOutput1_Received (CanardRxTransfer const &, Node &);
-void onServo0_Received (CanardRxTransfer const &, Node &);
-void onServo1_Received (CanardRxTransfer const &, Node &);
 void onLightMode_Received(CanardRxTransfer const &, Node &);
 
 /* Cyphal Service Requests */
@@ -145,6 +131,8 @@ ArduinoMCP2515 mcp2515([]()
                        nullptr);
 
 Node node_hdl([](CanardFrame const & frame) -> bool { return mcp2515.transmit(frame); }, DEFAULT_AUX_CONTROLLER_NODE_ID);
+
+ServoControl servo_ctrl;
 
 static uint16_t updateinterval_inputvoltage=3*1000;
 static uint16_t updateinterval_internaltemperature=10*1000;
@@ -219,8 +207,6 @@ static NodeInfo node_info
 
 Heartbeat_1_0<> hb;
 Integer8_1_0<ID_LIGHT_MODE> uavcan_light_mode;
-Servo servo0;
-Servo servo1;
 
 Adafruit_NeoPixel pixels(NEOPIXEL_NUM_PIXELS, NEOPIXEL_PIN, NEO_GRB);
 
@@ -281,10 +267,7 @@ void setup()
   digitalWrite(OUTPUT1_PIN, LOW);
 
   /* Setup servo pins */
-  servo0.attach(SERVO0_PIN, 800, 2200);
-  servo1.attach(SERVO1_PIN, 800, 2200);
-  servo0.writeMicroseconds(1500);
-  servo1.writeMicroseconds(1500);
+  servo_ctrl.begin(SERVO0_PIN, SERVO1_PIN);
 
   /* Setup SPI access */
   SPI.begin();
@@ -353,12 +336,13 @@ void setup()
   reg_list.add(reg_rw_aux_updateinterval_light);
   reg_list.subscribe(node_hdl);
 
+  /* Subscribe to servo messages. */
+  servo_ctrl.subscribe(node_hdl);
+
   /* Subscribe to the reception of Bit message. */
   node_hdl.subscribe<Bit_1_0<ID_LED1>>(onLed1_Received);
   node_hdl.subscribe<Bit_1_0<ID_OUTPUT0>>(onOutput0_Received);
   node_hdl.subscribe<Bit_1_0<ID_OUTPUT1>>(onOutput1_Received);
-  node_hdl.subscribe<Integer16_1_0<ID_SERVO0>>(onServo0_Received);
-  node_hdl.subscribe<Integer16_1_0<ID_SERVO1>>(onServo1_Received);
   node_hdl.subscribe<Integer8_1_0<ID_LIGHT_MODE>>(onLightMode_Received);
   /* Subscribe to incoming service requests */
   node_hdl.subscribe<ExecuteCommand_1_1::Request<>>(onExecuteCommand_1_1_Request_Received);
@@ -618,20 +602,6 @@ void onOutput1_Received(CanardRxTransfer const & transfer, Node & /* node_hdl */
 
   if(uavcan_output1.data.value) digitalWrite(OUTPUT1_PIN, HIGH);
   else digitalWrite(OUTPUT1_PIN, LOW);
-}
-
-void onServo0_Received(CanardRxTransfer const & transfer, Node & /* node_hdl */)
-{
-  Integer16_1_0<ID_SERVO0> const uavcan_servo0 = Integer16_1_0<ID_SERVO0>::deserialize(transfer);
-
-  servo0.writeMicroseconds(uavcan_servo0.data.value);
-}
-
-void onServo1_Received(CanardRxTransfer const & transfer, Node & /* node_hdl */)
-{
-  Integer16_1_0<ID_SERVO1> const uavcan_servo1 = Integer16_1_0<ID_SERVO1>::deserialize(transfer);
-
-  servo1.writeMicroseconds(uavcan_servo1.data.value);
 }
 
 void onLightMode_Received(CanardRxTransfer const & transfer, Node & /* node_hdl */)
