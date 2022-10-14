@@ -132,7 +132,7 @@ ArduinoMCP2515 mcp2515([]()
 
 Node node_hdl([](CanardFrame const & frame) -> bool { return mcp2515.transmit(frame); }, DEFAULT_AUX_CONTROLLER_NODE_ID);
 
-ServoControl servo_ctrl;
+ServoControl servo_ctrl(SERVO0_PIN, SERVO1_PIN);
 DigitalOutControl digital_out_ctrl(OUTPUT0_PIN, OUTPUT1_PIN);
 NeoPixelControl neo_pixel_ctrl;
 
@@ -234,7 +234,7 @@ void setup()
   pinMode(INPUT2_PIN, INPUT_PULLUP);
   pinMode(INPUT3_PIN, INPUT_PULLUP);
 
-  servo_ctrl.begin(SERVO0_PIN, SERVO1_PIN);
+  servo_ctrl.begin();
   digital_out_ctrl.begin();
 
   /* Setup SPI access */
