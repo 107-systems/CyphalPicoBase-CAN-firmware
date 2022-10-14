@@ -44,6 +44,7 @@
 
 #include "include/PortId.h"
 #include "include/ServoControl.h"
+#include "include/NeoPixelControl.h"
 #include "include/DigitalOutControl.h"
 
 /**************************************************************************************
@@ -133,6 +134,8 @@ Node node_hdl([](CanardFrame const & frame) -> bool { return mcp2515.transmit(fr
 
 ServoControl servo_ctrl;
 DigitalOutControl digital_out_ctrl(OUTPUT0_PIN, OUTPUT1_PIN);
+NeoPixelControl neo_pixel_ctrl;
+
 
 static uint16_t updateinterval_inputvoltage=3*1000;
 static uint16_t updateinterval_internaltemperature=10*1000;
@@ -209,37 +212,6 @@ Heartbeat_1_0<> hb;
 Integer8_1_0<ID_LIGHT_MODE> uavcan_light_mode;
 
 Adafruit_NeoPixel pixels(NEOPIXEL_NUM_PIXELS, NEOPIXEL_PIN, NEO_GRB);
-
-void light_off()
-{
-  pixels.clear();
-  pixels.show();
-}
-void light_green()
-{
-  pixels.fill(pixels.Color(0, 55, 0));
-  pixels.show();
-}
-void light_red()
-{
-  pixels.fill(pixels.Color(55, 0, 0));
-  pixels.show();
-}
-void light_blue()
-{
-  pixels.fill(pixels.Color(0, 0, 55));
-  pixels.show();
-}
-void light_white()
-{
-  pixels.fill(pixels.Color(55, 55, 55));
-  pixels.show();
-}
-void light_amber()
-{
-  pixels.fill(pixels.Color(55, 40, 0));
-  pixels.show();
-}
 
 /**************************************************************************************
  * SETUP/LOOP
@@ -344,17 +316,17 @@ void setup()
   /* Init Neopixel */
   pixels.begin();
 
-  light_red();
+  neo_pixel_ctrl.light_red();
   delay(100);
-  light_amber();
+  neo_pixel_ctrl.light_amber();
   delay(100);
-  light_green();
+  neo_pixel_ctrl.light_green();
   delay(100);
-  light_blue();
+  neo_pixel_ctrl.light_blue();
   delay(100);
-  light_white();
+  neo_pixel_ctrl.light_white();
   delay(100);
-  light_off();
+  neo_pixel_ctrl.light_off();
 }
 
 void loop()
@@ -406,15 +378,15 @@ void loop()
     if(running_light_counter>=8) running_light_counter=0;
 
     if (uavcan_light_mode.data.value == LIGHT_MODE_RED)
-      light_red();
+      neo_pixel_ctrl.light_red();
     else if (uavcan_light_mode.data.value == LIGHT_MODE_GREEN)
-      light_green();
+      neo_pixel_ctrl.light_green();
     else if (uavcan_light_mode.data.value == LIGHT_MODE_BLUE)
-      light_blue();
+      neo_pixel_ctrl.light_blue();
     else if (uavcan_light_mode.data.value == LIGHT_MODE_WHITE)
-      light_white();
+      neo_pixel_ctrl.light_white();
     else if (uavcan_light_mode.data.value == LIGHT_MODE_AMBER)
-      light_amber();
+      neo_pixel_ctrl.light_amber();
     else if (uavcan_light_mode.data.value == LIGHT_MODE_RUN_RED||uavcan_light_mode.data.value == LIGHT_MODE_RUN_GREEN||uavcan_light_mode.data.value == LIGHT_MODE_RUN_BLUE||uavcan_light_mode.data.value == LIGHT_MODE_RUN_WHITE||uavcan_light_mode.data.value == LIGHT_MODE_RUN_AMBER)
     {
       if (uavcan_light_mode.data.value == LIGHT_MODE_RUN_RED)
@@ -466,18 +438,18 @@ void loop()
     else if (is_light_on&&(uavcan_light_mode.data.value == LIGHT_MODE_BLINK_RED||uavcan_light_mode.data.value == LIGHT_MODE_BLINK_GREEN||uavcan_light_mode.data.value == LIGHT_MODE_BLINK_BLUE||uavcan_light_mode.data.value == LIGHT_MODE_BLINK_WHITE||uavcan_light_mode.data.value == LIGHT_MODE_BLINK_AMBER))
     {
       if (uavcan_light_mode.data.value == LIGHT_MODE_BLINK_GREEN)
-        light_green();
+        neo_pixel_ctrl.light_green();
       else if (uavcan_light_mode.data.value == LIGHT_MODE_BLINK_BLUE)
-        light_blue();
+        neo_pixel_ctrl.light_blue();
       else if (uavcan_light_mode.data.value == LIGHT_MODE_BLINK_WHITE)
-        light_white();
+        neo_pixel_ctrl.light_white();
       else if (uavcan_light_mode.data.value == LIGHT_MODE_BLINK_AMBER)
-        light_amber();
+        neo_pixel_ctrl.light_amber();
       else
-        light_red();
+        neo_pixel_ctrl.light_red();
     }
     else
-      light_off();
+      neo_pixel_ctrl.light_off();
 
     prev_led = now;
   }
@@ -612,7 +584,7 @@ void onExecuteCommand_1_1_Request_Received(CanardRxTransfer const & transfer, No
 
     digitalWrite(LED2_PIN, HIGH);
     digitalWrite(LED3_PIN, HIGH);
-    light_off();
+    neo_pixel_ctrl.light_off();
     while(1); /* loop forever */
   }
   else if (req.data.command == uavcan_node_ExecuteCommand_Request_1_1_COMMAND_BEGIN_SOFTWARE_UPDATE)
