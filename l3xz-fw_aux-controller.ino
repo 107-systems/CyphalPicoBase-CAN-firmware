@@ -25,17 +25,18 @@
 /**************************************************************************************
  * INCLUDE
  **************************************************************************************/
-#include "pico/stdlib.h"
+
+#include <pico/stdlib.h>
+#include <hardware/watchdog.h>
+
 #include <SPI.h>
 #include <Wire.h>
 #include <Servo.h>
 
+#include <I2C_eeprom.h>
+#include <Adafruit_NeoPixel.h>
 #include <107-Arduino-Cyphal.h>
 #include <107-Arduino-MCP2515.h>
-#include <I2C_eeprom.h>
-//#include <Adafruit_SleepyDog.h>
-#include <Adafruit_NeoPixel.h>
-#include "NodeInfo.h"
 
 #undef max
 #undef min
@@ -80,7 +81,7 @@ using namespace uavcan::primitive::scalar;
 static int const MKRCAN_MCP2515_CS_PIN  = 17;
 static int const MKRCAN_MCP2515_INT_PIN = 20;
 
-static CanardNodeID const AUX_CONTROLLER_NODE_ID = 99;
+static CanardNodeID const DEFAULT_AUX_CONTROLLER_NODE_ID = 99;
 
 static CanardPortID const ID_INPUT_VOLTAGE        = 1001U;
 static CanardPortID const ID_LED1                 = 1005U;
@@ -128,9 +129,6 @@ void onServo1_Received (CanardRxTransfer const &, Node &);
 void onLightMode_Received(CanardRxTransfer const &, Node &);
 
 /* Cyphal Service Requests */
-void onList_1_0_Request_Received(CanardRxTransfer const &, Node &);
-void onGetInfo_1_0_Request_Received(CanardRxTransfer const &, Node &);
-void onAccess_1_0_Request_Received(CanardRxTransfer const &, Node &);
 void onExecuteCommand_1_1_Request_Received(CanardRxTransfer const &, Node &);
 
 /**************************************************************************************
@@ -154,7 +152,7 @@ ArduinoMCP2515 mcp2515([]()
                        onReceiveBufferFull,
                        nullptr);
 
-Node node_hdl([](CanardFrame const & frame) -> bool { return mcp2515.transmit(frame); }, AUX_CONTROLLER_NODE_ID);
+Node node_hdl([](CanardFrame const & frame) -> bool { return mcp2515.transmit(frame); }, DEFAULT_AUX_CONTROLLER_NODE_ID);
 
 static uint16_t updateinterval_inputvoltage=3*1000;
 static uint16_t updateinterval_internaltemperature=10*1000;
@@ -168,7 +166,7 @@ static uint16_t updateinterval_light=250;
 
 /* REGISTER ***************************************************************************/
 
-static RegisterNatural8  reg_rw_uavcan_node_id                        ("uavcan.node.id",                         Register::Access::ReadWrite, Register::Persistent::No, AUX_CONTROLLER_NODE_ID, [&node_hdl](uint8_t const & val) { node_hdl.setNodeId(val); });
+static RegisterNatural8  reg_rw_uavcan_node_id                        ("uavcan.node.id",                         Register::Access::ReadWrite, Register::Persistent::No, DEFAULT_AUX_CONTROLLER_NODE_ID, [&node_hdl](uint8_t const & val) { node_hdl.setNodeId(val); });
 static RegisterString    reg_ro_uavcan_node_description               ("uavcan.node.description",                Register::Access::ReadWrite, Register::Persistent::No, "L3X-Z AUX_CONTROLLER");
 static RegisterNatural16 reg_ro_uavcan_pub_inputvoltage_id            ("uavcan.pub.inputvoltage.id",             Register::Access::ReadOnly,  Register::Persistent::No, ID_INPUT_VOLTAGE);
 static RegisterString    reg_ro_uavcan_pub_inputvoltage_type          ("uavcan.pub.inputvoltage.type",           Register::Access::ReadOnly,  Register::Persistent::No, "uavcan.primitive.scalar.Real32.1.0");
@@ -208,6 +206,24 @@ static RegisterNatural16 reg_rw_aux_updateinterval_analoginput0       ("aux.upda
 static RegisterNatural16 reg_rw_aux_updateinterval_analoginput1       ("aux.updateinterval.analoginput1",        Register::Access::ReadWrite, Register::Persistent::No, updateinterval_analoginput1,        nullptr, nullptr , [](uint16_t const & val) { return std::min(val, static_cast<uint16_t>(100)); });
 static RegisterNatural16 reg_rw_aux_updateinterval_light              ("aux.updateinterval.light",               Register::Access::ReadWrite, Register::Persistent::No, updateinterval_light,               nullptr, nullptr , [](uint16_t const & val) { return std::min(val, static_cast<uint16_t>(100)); });
 static RegisterList      reg_list;
+
+/* NODE INFO **************************************************************************/
+
+static NodeInfo node_info
+(
+  /* uavcan.node.Version.1.0 protocol_version */
+  1, 0,
+  /* uavcan.node.Version.1.0 hardware_version */
+  1, 0,
+  /* uavcan.node.Version.1.0 software_version */
+  0, 1,
+  /* saturated uint64 software_vcs_revision_id */
+  0,
+  /* saturated uint8[16] unique_id */
+  OpenCyphalUniqueId(),
+  /* saturated uint8[<=50] name */
+  "107-systems.l3xz-fw_aux-controller"
+);
 
 Heartbeat_1_0<> hb;
 Bit_1_0<ID_INPUT0> uavcan_input0;
@@ -261,9 +277,8 @@ void light_amber()
 
 void setup()
 {
-//  Watchdog.enable(1000);
-
   Serial.begin(115200);
+  //while (!Serial) { }
 
   /* Setup LED pins and initialize */
   pinMode(LED_BUILTIN, OUTPUT);
@@ -298,7 +313,6 @@ void setup()
 
   /* Initialize MCP2515 */
   mcp2515.begin();
-//  mcp2515.setBitRate(CanBitRate::BR_1000kBPS_16MHZ);
   mcp2515.setBitRate(CanBitRate::BR_250kBPS_16MHZ);
   mcp2515.setNormalMode();
 
@@ -310,9 +324,10 @@ void setup()
   hb = Heartbeat_1_0<>::Mode::INITIALIZATION;
   hb.data.vendor_specific_status_code = 0;
 
-  /* Subscribe to the GetInfo request */
-  node_hdl.subscribe<GetInfo_1_0::Request<>>(onGetInfo_1_0_Request_Received);
-  reg_list.subscribe(node_hdl);
+  /* Register callbacks for node info and register api.
+   */
+  node_info.subscribe(node_hdl);
+
   reg_list.add(reg_rw_uavcan_node_id);
   reg_list.add(reg_ro_uavcan_node_description);
   reg_list.add(reg_ro_uavcan_pub_inputvoltage_id);
@@ -352,6 +367,8 @@ void setup()
   reg_list.add(reg_rw_aux_updateinterval_analoginput0);
   reg_list.add(reg_rw_aux_updateinterval_analoginput1);
   reg_list.add(reg_rw_aux_updateinterval_light);
+  reg_list.subscribe(node_hdl);
+
   /* Subscribe to the reception of Bit message. */
   node_hdl.subscribe<Bit_1_0<ID_LED1>>(onLed1_Received);
   node_hdl.subscribe<Bit_1_0<ID_OUTPUT0>>(onOutput0_Received);
@@ -576,9 +593,6 @@ void loop()
     node_hdl.publish(uavcan_analog_input1);
     prev_analog_input1 = now;
   }
-
-  /* Feed the watchdog to keep it from biting. */
-//  Watchdog.reset();
 }
 
 /**************************************************************************************
@@ -639,15 +653,6 @@ void onServo1_Received(CanardRxTransfer const & transfer, Node & /* node_hdl */)
 void onLightMode_Received(CanardRxTransfer const & transfer, Node & /* node_hdl */)
 {
   uavcan_light_mode = Integer8_1_0<ID_LIGHT_MODE>::deserialize(transfer);
-}
-
-void onGetInfo_1_0_Request_Received(CanardRxTransfer const &transfer, Node & node_hdl)
-{
-  Serial.println("onGetInfo_1_0_Request_Received");
-
-  GetInfo_1_0::Response<> rsp = GetInfo_1_0::Response<>();
-  memcpy(&rsp.data, &NODE_INFO, sizeof(uavcan_node_GetInfo_Response_1_0));
-  node_hdl.respond(rsp, transfer.metadata.remote_node_id, transfer.metadata.transfer_id);
 }
 
 void onExecuteCommand_1_1_Request_Received(CanardRxTransfer const & transfer, Node & node_hdl)
