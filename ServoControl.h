@@ -28,7 +28,7 @@ public:
 
   ServoControl()
   { }
-  
+
   void begin(int const servo0_pin, int const servo1_pin)
   {
     _servo0.attach(servo0_pin, 800, 2200);
