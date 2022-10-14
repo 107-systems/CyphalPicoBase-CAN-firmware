@@ -218,14 +218,6 @@ static NodeInfo node_info
 );
 
 Heartbeat_1_0<> hb;
-Bit_1_0<ID_INPUT0> uavcan_input0;
-Bit_1_0<ID_INPUT1> uavcan_input1;
-Bit_1_0<ID_INPUT2> uavcan_input2;
-Bit_1_0<ID_INPUT3> uavcan_input3;
-Integer16_1_0<ID_ANALOG_INPUT0> uavcan_analog_input0;
-Integer16_1_0<ID_ANALOG_INPUT1> uavcan_analog_input1;
-Real32_1_0<ID_INPUT_VOLTAGE> uavcan_input_voltage;
-Real32_1_0<ID_INTERNAL_TEMPERATURE> uavcan_internal_temperature;
 Integer8_1_0<ID_LIGHT_MODE> uavcan_light_mode;
 Servo servo0;
 Servo servo1;
