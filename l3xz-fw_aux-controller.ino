@@ -42,9 +42,9 @@
 #undef min
 #include <algorithm>
 
-#include "PortId.h"
-#include "ServoControl.h"
-#include "DigitalOutControl.h"
+#include "src/PortId.h"
+#include "src/ServoControl.h"
+#include "src/DigitalOutControl.h"
 
 /**************************************************************************************
  * NAMESPACE
