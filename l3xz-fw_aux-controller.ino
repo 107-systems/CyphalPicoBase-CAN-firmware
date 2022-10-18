@@ -34,7 +34,6 @@
 #include <Servo.h>
 
 #include <I2C_eeprom.h>
-#include <Adafruit_NeoPixel.h>
 #include <107-Arduino-Cyphal.h>
 #include <107-Arduino-MCP2515.h>
 
@@ -134,7 +133,7 @@ Node node_hdl([](CanardFrame const & frame) -> bool { return mcp2515.transmit(fr
 
 ServoControl servo_ctrl(SERVO0_PIN, SERVO1_PIN);
 DigitalOutControl digital_out_ctrl(OUTPUT0_PIN, OUTPUT1_PIN);
-NeoPixelControl neo_pixel_ctrl;
+NeoPixelControl neo_pixel_ctrl(NEOPIXEL_PIN, NEOPIXEL_NUM_PIXELS);
 
 
 static uint16_t update_period_ms_inputvoltage        =  3*1000;
@@ -211,8 +210,6 @@ static NodeInfo node_info
 Heartbeat_1_0<> hb;
 Integer8_1_0<ID_LIGHT_MODE> uavcan_light_mode;
 
-Adafruit_NeoPixel pixels(NEOPIXEL_NUM_PIXELS, NEOPIXEL_PIN, NEO_GRB);
-
 /**************************************************************************************
  * SETUP/LOOP
  **************************************************************************************/
@@ -236,6 +233,7 @@ void setup()
 
   servo_ctrl.begin();
   digital_out_ctrl.begin();
+  neo_pixel_ctrl.begin();
 
   /* Setup SPI access */
   SPI.begin();
@@ -313,9 +311,6 @@ void setup()
   /* Subscribe to incoming service requests */
   node_hdl.subscribe<ExecuteCommand_1_1::Request<>>(onExecuteCommand_1_1_Request_Received);
 
-  /* Init Neopixel */
-  pixels.begin();
-
   neo_pixel_ctrl.light_red();
   delay(100);
   neo_pixel_ctrl.light_amber();
@@ -391,48 +386,48 @@ void loop()
     {
       if (uavcan_light_mode.data.value == LIGHT_MODE_RUN_RED)
       {
-        pixels.setPixelColor(running_light_counter, pixels.Color(55, 0, 0));
-        pixels.setPixelColor((running_light_counter+7)%8, pixels.Color(27, 0, 0));
-        pixels.setPixelColor((running_light_counter+6)%8, pixels.Color(14, 0, 0));
-        pixels.setPixelColor((running_light_counter+5)%8, pixels.Color(7, 0, 0));
-        pixels.setPixelColor((running_light_counter+4)%8, pixels.Color(0, 0, 0));
-        pixels.show();
+        neo_pixel_ctrl.pixels().setPixelColor(running_light_counter,       neo_pixel_ctrl.pixels().Color(55, 0, 0));
+        neo_pixel_ctrl.pixels().setPixelColor((running_light_counter+7)%8, neo_pixel_ctrl.pixels().Color(27, 0, 0));
+        neo_pixel_ctrl.pixels().setPixelColor((running_light_counter+6)%8, neo_pixel_ctrl.pixels().Color(14, 0, 0));
+        neo_pixel_ctrl.pixels().setPixelColor((running_light_counter+5)%8, neo_pixel_ctrl.pixels().Color(7, 0, 0));
+        neo_pixel_ctrl.pixels().setPixelColor((running_light_counter+4)%8, neo_pixel_ctrl.pixels().Color(0, 0, 0));
+        neo_pixel_ctrl.pixels().show();
       }
       else if (uavcan_light_mode.data.value == LIGHT_MODE_RUN_GREEN)
       {
-        pixels.setPixelColor(running_light_counter, pixels.Color(0, 55, 0));
-        pixels.setPixelColor((running_light_counter+7)%8, pixels.Color(0, 27, 0));
-        pixels.setPixelColor((running_light_counter+6)%8, pixels.Color(0, 14, 0));
-        pixels.setPixelColor((running_light_counter+5)%8, pixels.Color(0, 7, 0));
-        pixels.setPixelColor((running_light_counter+4)%8, pixels.Color(0, 0, 0));
-        pixels.show();
+        neo_pixel_ctrl.pixels().setPixelColor(running_light_counter,       neo_pixel_ctrl.pixels().Color(0, 55, 0));
+        neo_pixel_ctrl.pixels().setPixelColor((running_light_counter+7)%8, neo_pixel_ctrl.pixels().Color(0, 27, 0));
+        neo_pixel_ctrl.pixels().setPixelColor((running_light_counter+6)%8, neo_pixel_ctrl.pixels().Color(0, 14, 0));
+        neo_pixel_ctrl.pixels().setPixelColor((running_light_counter+5)%8, neo_pixel_ctrl.pixels().Color(0, 7, 0));
+        neo_pixel_ctrl.pixels().setPixelColor((running_light_counter+4)%8, neo_pixel_ctrl.pixels().Color(0, 0, 0));
+        neo_pixel_ctrl.pixels().show();
       }
       else if (uavcan_light_mode.data.value == LIGHT_MODE_RUN_BLUE)
       {
-        pixels.setPixelColor(running_light_counter, pixels.Color(0, 0, 55));
-        pixels.setPixelColor((running_light_counter+7)%8, pixels.Color(0, 0, 27));
-        pixels.setPixelColor((running_light_counter+6)%8, pixels.Color(0, 0, 14));
-        pixels.setPixelColor((running_light_counter+5)%8, pixels.Color(0, 0, 7));
-        pixels.setPixelColor((running_light_counter+4)%8, pixels.Color(0, 0, 0));
-        pixels.show();
+        neo_pixel_ctrl.pixels().setPixelColor(running_light_counter,       neo_pixel_ctrl.pixels().Color(0, 0, 55));
+        neo_pixel_ctrl.pixels().setPixelColor((running_light_counter+7)%8, neo_pixel_ctrl.pixels().Color(0, 0, 27));
+        neo_pixel_ctrl.pixels().setPixelColor((running_light_counter+6)%8, neo_pixel_ctrl.pixels().Color(0, 0, 14));
+        neo_pixel_ctrl.pixels().setPixelColor((running_light_counter+5)%8, neo_pixel_ctrl.pixels().Color(0, 0, 7));
+        neo_pixel_ctrl.pixels().setPixelColor((running_light_counter+4)%8, neo_pixel_ctrl.pixels().Color(0, 0, 0));
+        neo_pixel_ctrl.pixels().show();
       }
       else if (uavcan_light_mode.data.value == LIGHT_MODE_RUN_WHITE)
       {
-        pixels.setPixelColor(running_light_counter, pixels.Color(55, 55, 55));
-        pixels.setPixelColor((running_light_counter+7)%8, pixels.Color(27, 27, 27));
-        pixels.setPixelColor((running_light_counter+6)%8, pixels.Color(14, 14, 14));
-        pixels.setPixelColor((running_light_counter+5)%8, pixels.Color(7, 7, 7));
-        pixels.setPixelColor((running_light_counter+4)%8, pixels.Color(0, 0, 0));
-        pixels.show();
+        neo_pixel_ctrl.pixels().setPixelColor(running_light_counter,       neo_pixel_ctrl.pixels().Color(55, 55, 55));
+        neo_pixel_ctrl.pixels().setPixelColor((running_light_counter+7)%8, neo_pixel_ctrl.pixels().Color(27, 27, 27));
+        neo_pixel_ctrl.pixels().setPixelColor((running_light_counter+6)%8, neo_pixel_ctrl.pixels().Color(14, 14, 14));
+        neo_pixel_ctrl.pixels().setPixelColor((running_light_counter+5)%8, neo_pixel_ctrl.pixels().Color(7, 7, 7));
+        neo_pixel_ctrl.pixels().setPixelColor((running_light_counter+4)%8, neo_pixel_ctrl.pixels().Color(0, 0, 0));
+        neo_pixel_ctrl.pixels().show();
       }
       else if (uavcan_light_mode.data.value == LIGHT_MODE_RUN_AMBER)
       {
-        pixels.setPixelColor(running_light_counter, pixels.Color(55, 40, 0));
-        pixels.setPixelColor((running_light_counter+7)%8, pixels.Color(27, 20, 0));
-        pixels.setPixelColor((running_light_counter+6)%8, pixels.Color(14, 10, 0));
-        pixels.setPixelColor((running_light_counter+5)%8, pixels.Color(7, 5, 0));
-        pixels.setPixelColor((running_light_counter+4)%8, pixels.Color(0, 0, 0));
-        pixels.show();
+        neo_pixel_ctrl.pixels().setPixelColor(running_light_counter,       neo_pixel_ctrl.pixels().Color(55, 40, 0));
+        neo_pixel_ctrl.pixels().setPixelColor((running_light_counter+7)%8, neo_pixel_ctrl.pixels().Color(27, 20, 0));
+        neo_pixel_ctrl.pixels().setPixelColor((running_light_counter+6)%8, neo_pixel_ctrl.pixels().Color(14, 10, 0));
+        neo_pixel_ctrl.pixels().setPixelColor((running_light_counter+5)%8, neo_pixel_ctrl.pixels().Color(7, 5, 0));
+        neo_pixel_ctrl.pixels().setPixelColor((running_light_counter+4)%8, neo_pixel_ctrl.pixels().Color(0, 0, 0));
+        neo_pixel_ctrl.pixels().show();
       }
     }
     else if (is_light_on&&(uavcan_light_mode.data.value == LIGHT_MODE_BLINK_RED||uavcan_light_mode.data.value == LIGHT_MODE_BLINK_GREEN||uavcan_light_mode.data.value == LIGHT_MODE_BLINK_BLUE||uavcan_light_mode.data.value == LIGHT_MODE_BLINK_WHITE||uavcan_light_mode.data.value == LIGHT_MODE_BLINK_AMBER))

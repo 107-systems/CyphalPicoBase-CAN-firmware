@@ -8,19 +8,12 @@
 
 #include "../include/NeoPixelControl.h"
 
-#include <Adafruit_NeoPixel.h>
-
-/**************************************************************************************
- * EXTERN
- **************************************************************************************/
-
-extern Adafruit_NeoPixel pixels;
-
 /**************************************************************************************
  * CTOR/DTOR
  **************************************************************************************/
 
-NeoPixelControl::NeoPixelControl()
+NeoPixelControl::NeoPixelControl(int const pin, int const num_pixels)
+: _pixels(num_pixels, pin, NEO_GRB)
 {
 
 }
@@ -29,38 +22,43 @@ NeoPixelControl::NeoPixelControl()
  * PUBLIC MEMBER FUNCTIONS
  **************************************************************************************/
 
+void NeoPixelControl::begin()
+{
+  _pixels.begin();
+}
+
 void NeoPixelControl::light_off()
 {
-  pixels.clear();
-  pixels.show();
+  _pixels.clear();
+  _pixels.show();
 }
 
 void NeoPixelControl::light_green()
 {
-  pixels.fill(pixels.Color(0, 55, 0));
-  pixels.show();
+  _pixels.fill(_pixels.Color(0, 55, 0));
+  _pixels.show();
 }
 
 void NeoPixelControl::light_red()
 {
-  pixels.fill(pixels.Color(55, 0, 0));
-  pixels.show();
+  _pixels.fill(_pixels.Color(55, 0, 0));
+  _pixels.show();
 }
 
 void NeoPixelControl::light_blue()
 {
-  pixels.fill(pixels.Color(0, 0, 55));
-  pixels.show();
+  _pixels.fill(_pixels.Color(0, 0, 55));
+  _pixels.show();
 }
 
 void NeoPixelControl::light_white()
 {
-  pixels.fill(pixels.Color(55, 55, 55));
-  pixels.show();
+  _pixels.fill(_pixels.Color(55, 55, 55));
+  _pixels.show();
 }
 
 void NeoPixelControl::light_amber()
 {
-  pixels.fill(pixels.Color(55, 40, 0));
-  pixels.show();
+  _pixels.fill(_pixels.Color(55, 40, 0));
+  _pixels.show();
 }
