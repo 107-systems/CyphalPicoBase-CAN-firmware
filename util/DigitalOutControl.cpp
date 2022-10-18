@@ -6,7 +6,7 @@
  * INCLUDE
  **************************************************************************************/
 
-#include "../include/DigitalOutControl.h"
+#include "DigitalOutControl.h"
 
 #include <Arduino.h>
 
