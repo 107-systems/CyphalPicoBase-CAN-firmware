@@ -41,10 +41,10 @@
 #undef min
 #include <algorithm>
 
-#include "util/PortId.h"
-#include "util/ServoControl.h"
-#include "util/NeoPixelControl.h"
-#include "util/DigitalOutControl.h"
+#include "src/PortId.h"
+#include "src/ServoControl.h"
+#include "src/NeoPixelControl.h"
+#include "src/DigitalOutControl.h"
 
 /**************************************************************************************
  * NAMESPACE
