@@ -129,7 +129,8 @@ ArduinoMCP2515 mcp2515([]()
                        onReceiveBufferFull,
                        nullptr);
 
-Node node_hdl([](CanardFrame const & frame) -> bool { return mcp2515.transmit(frame); }, DEFAULT_AUX_CONTROLLER_NODE_ID);
+CyphalHeap<Node::DEFAULT_O1HEAP_SIZE> node_heap;
+Node node_hdl(node_heap.data(), node_heap.size(), DEFAULT_AUX_CONTROLLER_NODE_ID);
 
 ServoControl servo_ctrl(SERVO0_PIN, SERVO1_PIN);
 DigitalOutControl digital_out_ctrl(OUTPUT0_PIN, OUTPUT1_PIN);
@@ -328,7 +329,7 @@ void loop()
 {
   /* Process all pending OpenCyphal actions.
    */
-  node_hdl.spinSome();
+  node_hdl.spinSome([](CanardFrame const & frame) -> bool { return mcp2515.transmit(frame); });
 
   /* Publish all the gathered data, although at various
    * different intervals.
