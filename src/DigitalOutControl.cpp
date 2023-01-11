@@ -14,11 +14,31 @@
  * CTOR/DTOR
  **************************************************************************************/
 
-DigitalOutControl::DigitalOutControl(int const out_0_pin, int const out_1_pin)
+DigitalOutControl::DigitalOutControl(int const out_0_pin, int const out_1_pin, Node & node_hdl)
 : _out_0_pin{out_0_pin}
 , _out_1_pin{out_1_pin}
 {
+  _out_0_sub = node_hdl.create_subscription<TOpenCyphalDigitalOut_0>(
+    ID_OUTPUT0,
+    CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC,
+    [this](TOpenCyphalDigitalOut_0 const & msg)
+    {
+      if(msg.data.value)
+        digitalWrite(_out_0_pin, HIGH);
+      else
+        digitalWrite(_out_0_pin, LOW);
+    });
 
+  _out_1_sub = node_hdl.create_subscription<TOpenCyphalDigitalOut_1>(
+    ID_OUTPUT1,
+    CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC,
+    [this](TOpenCyphalDigitalOut_1 const & msg)
+    {
+      if(msg.data.value)
+        digitalWrite(_out_1_pin, HIGH);
+      else
+        digitalWrite(_out_1_pin, LOW);
+    });
 }
 
 /**************************************************************************************
@@ -32,29 +52,4 @@ void DigitalOutControl::begin()
 
   digitalWrite(_out_0_pin, LOW);
   digitalWrite(_out_1_pin, LOW);
-}
-
-void DigitalOutControl::subscribe(Node & node_hdl)
-{
-  node_hdl.subscribe<TOpenCyphalDigitalOut_0>(
-      [this](CanardRxTransfer const & transfer, Node & /* node_hdl */)
-      {
-          TOpenCyphalDigitalOut_0 const uavcan_output_0 = TOpenCyphalDigitalOut_0::deserialize(transfer);
-
-          if(uavcan_output_0.data.value)
-            digitalWrite(_out_0_pin, HIGH);
-          else
-            digitalWrite(_out_0_pin, LOW);
-      });
-
-  node_hdl.subscribe<TOpenCyphalDigitalOut_1>(
-      [this](CanardRxTransfer const & transfer, Node & /* node_hdl */)
-      {
-        TOpenCyphalDigitalOut_1 const uavcan_output_1 = TOpenCyphalDigitalOut_1::deserialize(transfer);
-
-        if(uavcan_output_1.data.value)
-          digitalWrite(_out_1_pin, HIGH);
-        else
-          digitalWrite(_out_1_pin, LOW);
-      });
 }

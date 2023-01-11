@@ -36,6 +36,8 @@
 #include <I2C_eeprom.h>
 #include <107-Arduino-Cyphal.h>
 #include <107-Arduino-MCP2515.h>
+#include <107-Arduino-UniqueId.h>
+#include <107-Arduino-CriticalSection.h>
 
 #undef max
 #undef min
@@ -102,11 +104,11 @@ static int8_t const LIGHT_MODE_RUN_AMBER   = 105;
  **************************************************************************************/
 
 void onReceiveBufferFull(CanardFrame const & frame);
-void onLed1_Received (CanardRxTransfer const &, Node &);
-void onLightMode_Received(CanardRxTransfer const &, Node &);
-
-/* Cyphal Service Requests */
-void onExecuteCommand_1_1_Request_Received(CanardRxTransfer const &, Node &);
+/* Cyphal Subscription Callbacks */
+void onLed1_Received(Bit_1_0<ID_LED1> const & msg);
+void onLightMode_Received(Integer8_1_0<ID_LIGHT_MODE> const & msg);
+/* Cyphal Service Request Callbacks */
+ExecuteCommand_1_0::Response<> onExecuteCommand_1_0_Request_Received(ExecuteCommand_1_0::Request<> const &);
 
 /**************************************************************************************
  * GLOBAL VARIABLES
@@ -129,11 +131,49 @@ ArduinoMCP2515 mcp2515([]()
                        onReceiveBufferFull,
                        nullptr);
 
-CyphalHeap<Node::DEFAULT_O1HEAP_SIZE> node_heap;
-Node node_hdl(node_heap.data(), node_heap.size(), DEFAULT_AUX_CONTROLLER_NODE_ID);
+Node::Heap<Node::DEFAULT_O1HEAP_SIZE> node_heap;
+Node node_hdl(node_heap.data(), node_heap.size(), micros, DEFAULT_AUX_CONTROLLER_NODE_ID);
 
-ServoControl servo_ctrl(SERVO0_PIN, SERVO1_PIN);
-DigitalOutControl digital_out_ctrl(OUTPUT0_PIN, OUTPUT1_PIN);
+Publisher<Heartbeat_1_0<>> heartbeat_pub = node_hdl.create_publisher<Heartbeat_1_0<>>
+  (Heartbeat_1_0<>::PORT_ID, 1*1000*1000UL /* = 1 sec in usecs. */);
+Publisher<Real32_1_0<ID_INPUT_VOLTAGE>> input_voltage_pub = node_hdl.create_publisher<Real32_1_0<ID_INPUT_VOLTAGE>>
+  (ID_INPUT_VOLTAGE, 1*1000*1000UL /* = 1 sec in usecs. */);
+Publisher<Real32_1_0<ID_INTERNAL_TEMPERATURE>> internal_temperature_pub = node_hdl.create_publisher<Real32_1_0<ID_INTERNAL_TEMPERATURE>>
+  (ID_INTERNAL_TEMPERATURE, 1*1000*1000UL /* = 1 sec in usecs. */);
+Publisher<Bit_1_0<ID_INPUT0>> input_0_pub = node_hdl.create_publisher<Bit_1_0<ID_INPUT0>>
+  (ID_INPUT0, 1*1000*1000UL /* = 1 sec in usecs. */);
+Publisher<Bit_1_0<ID_INPUT1>> input_1_pub = node_hdl.create_publisher<Bit_1_0<ID_INPUT1>>
+  (ID_INPUT1, 1*1000*1000UL /* = 1 sec in usecs. */);
+Publisher<Bit_1_0<ID_INPUT2>> input_2_pub = node_hdl.create_publisher<Bit_1_0<ID_INPUT2>>
+  (ID_INPUT2, 1*1000*1000UL /* = 1 sec in usecs. */);
+Publisher<Bit_1_0<ID_INPUT3>> input_3_pub = node_hdl.create_publisher<Bit_1_0<ID_INPUT3>>
+  (ID_INPUT3, 1*1000*1000UL /* = 1 sec in usecs. */);
+Publisher<Integer16_1_0<ID_ANALOG_INPUT0>> analog_input_0_pub = node_hdl.create_publisher<Integer16_1_0<ID_ANALOG_INPUT0>>
+  (ID_ANALOG_INPUT0, 1*1000*1000UL /* = 1 sec in usecs. */);
+Publisher<Integer16_1_0<ID_ANALOG_INPUT1>> analog_input_1_pub = node_hdl.create_publisher<Integer16_1_0<ID_ANALOG_INPUT1>>
+  (ID_ANALOG_INPUT1, 1*1000*1000UL /* = 1 sec in usecs. */);
+
+Subscription led_subscription =
+  node_hdl.create_subscription<Bit_1_0<ID_LED1>>(ID_LED1, CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC, onLed1_Received);
+
+static Integer8_1_0<ID_LIGHT_MODE> light_mode_msg;
+Subscription light_mode_subscription =
+  node_hdl.create_subscription<Integer8_1_0<ID_LIGHT_MODE>>(
+    ID_LIGHT_MODE,
+    CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC,
+    [&light_mode_msg](Integer8_1_0<ID_LIGHT_MODE> const & msg)
+    {
+      light_mode_msg = msg;
+    });
+
+ServiceServer execute_command_srv = node_hdl.create_service_server<ExecuteCommand_1_0::Request<>, ExecuteCommand_1_0::Response<>>(
+  ExecuteCommand_1_0::Request<>::PORT_ID,
+  2*1000*1000UL,
+  onExecuteCommand_1_0_Request_Received);
+
+
+ServoControl servo_ctrl(SERVO0_PIN, SERVO1_PIN, node_hdl);
+DigitalOutControl digital_out_ctrl(OUTPUT0_PIN, OUTPUT1_PIN, node_hdl);
 NeoPixelControl neo_pixel_ctrl(NEOPIXEL_PIN, NEOPIXEL_NUM_PIXELS);
 
 
@@ -188,12 +228,13 @@ static RegisterNatural16 reg_rw_aux_update_period_ms_input3             ("aux.up
 static RegisterNatural16 reg_rw_aux_update_period_ms_analoginput0       ("aux.update_period_ms.analoginput0",        Register::Access::ReadWrite, Register::Persistent::No, update_period_ms_analoginput0,        nullptr, nullptr , [](uint16_t const & val) { return std::min(val, static_cast<uint16_t>(100)); });
 static RegisterNatural16 reg_rw_aux_update_period_ms_analoginput1       ("aux.update_period_ms.analoginput1",        Register::Access::ReadWrite, Register::Persistent::No, update_period_ms_analoginput1,        nullptr, nullptr , [](uint16_t const & val) { return std::min(val, static_cast<uint16_t>(100)); });
 static RegisterNatural16 reg_rw_aux_update_period_ms_light              ("aux.update_period_ms.light",               Register::Access::ReadWrite, Register::Persistent::No, update_period_ms_light,               nullptr, nullptr , [](uint16_t const & val) { return std::min(val, static_cast<uint16_t>(100)); });
-static RegisterList      reg_list;
+static RegisterList      reg_list(node_hdl);
 
 /* NODE INFO **************************************************************************/
 
 static NodeInfo node_info
 (
+  node_hdl,
   /* uavcan.node.Version.1.0 protocol_version */
   1, 0,
   /* uavcan.node.Version.1.0 hardware_version */
@@ -208,8 +249,7 @@ static NodeInfo node_info
   "107-systems.l3xz-fw_aux-controller"
 );
 
-Heartbeat_1_0<> hb;
-Integer8_1_0<ID_LIGHT_MODE> uavcan_light_mode;
+Heartbeat_1_0<> hb_msg;
 
 /**************************************************************************************
  * SETUP/LOOP
@@ -251,17 +291,15 @@ void setup()
   mcp2515.setNormalMode();
 
   /* Configure initial heartbeat */
-  uavcan_light_mode.data.value = LIGHT_MODE_RUN_BLUE;
+  light_mode_msg.data.value = LIGHT_MODE_RUN_BLUE;
 
-  hb.data.uptime = 0;
-  hb = Heartbeat_1_0<>::Health::NOMINAL;
-  hb = Heartbeat_1_0<>::Mode::INITIALIZATION;
-  hb.data.vendor_specific_status_code = 0;
+  hb_msg.data.uptime = 0;
+  hb_msg.data.health.value = uavcan_node_Health_1_0_NOMINAL;
+  hb_msg.data.mode.value = uavcan_node_Mode_1_0_INITIALIZATION;
+  hb_msg.data.vendor_specific_status_code = 0;
 
-  /* Register callbacks for node info and register api.
+  /* Register callbacks.
    */
-  node_info.subscribe(node_hdl);
-
   reg_list.add(reg_rw_uavcan_node_id);
   reg_list.add(reg_ro_uavcan_node_description);
   reg_list.add(reg_ro_uavcan_pub_inputvoltage_id);
@@ -301,16 +339,6 @@ void setup()
   reg_list.add(reg_rw_aux_update_period_ms_analoginput0);
   reg_list.add(reg_rw_aux_update_period_ms_analoginput1);
   reg_list.add(reg_rw_aux_update_period_ms_light);
-  reg_list.subscribe(node_hdl);
-
-  servo_ctrl.subscribe(node_hdl);
-  digital_out_ctrl.subscribe(node_hdl);
-
-  /* Subscribe to the reception of Bit message. */
-  node_hdl.subscribe<Bit_1_0<ID_LED1>>(onLed1_Received);
-  node_hdl.subscribe<Integer8_1_0<ID_LIGHT_MODE>>(onLightMode_Received);
-  /* Subscribe to incoming service requests */
-  node_hdl.subscribe<ExecuteCommand_1_1::Request<>>(onExecuteCommand_1_1_Request_Received);
 
   neo_pixel_ctrl.light_red();
   delay(100);
@@ -329,7 +357,10 @@ void loop()
 {
   /* Process all pending OpenCyphal actions.
    */
-  node_hdl.spinSome([](CanardFrame const & frame) -> bool { return mcp2515.transmit(frame); });
+  {
+    CriticalSection crit_sec;
+    node_hdl.spinSome([] (CanardFrame const & frame) { return mcp2515.transmit(frame); });
+  }
 
   /* Publish all the gathered data, although at various
    * different intervals.
@@ -373,19 +404,19 @@ void loop()
     running_light_counter ++;
     if(running_light_counter>=8) running_light_counter=0;
 
-    if (uavcan_light_mode.data.value == LIGHT_MODE_RED)
+    if      (light_mode_msg.data.value == LIGHT_MODE_RED)
       neo_pixel_ctrl.light_red();
-    else if (uavcan_light_mode.data.value == LIGHT_MODE_GREEN)
+    else if (light_mode_msg.data.value == LIGHT_MODE_GREEN)
       neo_pixel_ctrl.light_green();
-    else if (uavcan_light_mode.data.value == LIGHT_MODE_BLUE)
+    else if (light_mode_msg.data.value == LIGHT_MODE_BLUE)
       neo_pixel_ctrl.light_blue();
-    else if (uavcan_light_mode.data.value == LIGHT_MODE_WHITE)
+    else if (light_mode_msg.data.value == LIGHT_MODE_WHITE)
       neo_pixel_ctrl.light_white();
-    else if (uavcan_light_mode.data.value == LIGHT_MODE_AMBER)
+    else if (light_mode_msg.data.value == LIGHT_MODE_AMBER)
       neo_pixel_ctrl.light_amber();
-    else if (uavcan_light_mode.data.value == LIGHT_MODE_RUN_RED||uavcan_light_mode.data.value == LIGHT_MODE_RUN_GREEN||uavcan_light_mode.data.value == LIGHT_MODE_RUN_BLUE||uavcan_light_mode.data.value == LIGHT_MODE_RUN_WHITE||uavcan_light_mode.data.value == LIGHT_MODE_RUN_AMBER)
+    else if (light_mode_msg.data.value == LIGHT_MODE_RUN_RED||light_mode_msg.data.value == LIGHT_MODE_RUN_GREEN||light_mode_msg.data.value == LIGHT_MODE_RUN_BLUE||light_mode_msg.data.value == LIGHT_MODE_RUN_WHITE||light_mode_msg.data.value == LIGHT_MODE_RUN_AMBER)
     {
-      if (uavcan_light_mode.data.value == LIGHT_MODE_RUN_RED)
+      if (light_mode_msg.data.value == LIGHT_MODE_RUN_RED)
       {
         neo_pixel_ctrl.pixels().setPixelColor(running_light_counter,       neo_pixel_ctrl.pixels().Color(55, 0, 0));
         neo_pixel_ctrl.pixels().setPixelColor((running_light_counter+7)%8, neo_pixel_ctrl.pixels().Color(27, 0, 0));
@@ -394,7 +425,7 @@ void loop()
         neo_pixel_ctrl.pixels().setPixelColor((running_light_counter+4)%8, neo_pixel_ctrl.pixels().Color(0, 0, 0));
         neo_pixel_ctrl.pixels().show();
       }
-      else if (uavcan_light_mode.data.value == LIGHT_MODE_RUN_GREEN)
+      else if (light_mode_msg.data.value == LIGHT_MODE_RUN_GREEN)
       {
         neo_pixel_ctrl.pixels().setPixelColor(running_light_counter,       neo_pixel_ctrl.pixels().Color(0, 55, 0));
         neo_pixel_ctrl.pixels().setPixelColor((running_light_counter+7)%8, neo_pixel_ctrl.pixels().Color(0, 27, 0));
@@ -403,7 +434,7 @@ void loop()
         neo_pixel_ctrl.pixels().setPixelColor((running_light_counter+4)%8, neo_pixel_ctrl.pixels().Color(0, 0, 0));
         neo_pixel_ctrl.pixels().show();
       }
-      else if (uavcan_light_mode.data.value == LIGHT_MODE_RUN_BLUE)
+      else if (light_mode_msg.data.value == LIGHT_MODE_RUN_BLUE)
       {
         neo_pixel_ctrl.pixels().setPixelColor(running_light_counter,       neo_pixel_ctrl.pixels().Color(0, 0, 55));
         neo_pixel_ctrl.pixels().setPixelColor((running_light_counter+7)%8, neo_pixel_ctrl.pixels().Color(0, 0, 27));
@@ -412,7 +443,7 @@ void loop()
         neo_pixel_ctrl.pixels().setPixelColor((running_light_counter+4)%8, neo_pixel_ctrl.pixels().Color(0, 0, 0));
         neo_pixel_ctrl.pixels().show();
       }
-      else if (uavcan_light_mode.data.value == LIGHT_MODE_RUN_WHITE)
+      else if (light_mode_msg.data.value == LIGHT_MODE_RUN_WHITE)
       {
         neo_pixel_ctrl.pixels().setPixelColor(running_light_counter,       neo_pixel_ctrl.pixels().Color(55, 55, 55));
         neo_pixel_ctrl.pixels().setPixelColor((running_light_counter+7)%8, neo_pixel_ctrl.pixels().Color(27, 27, 27));
@@ -421,7 +452,7 @@ void loop()
         neo_pixel_ctrl.pixels().setPixelColor((running_light_counter+4)%8, neo_pixel_ctrl.pixels().Color(0, 0, 0));
         neo_pixel_ctrl.pixels().show();
       }
-      else if (uavcan_light_mode.data.value == LIGHT_MODE_RUN_AMBER)
+      else if (light_mode_msg.data.value == LIGHT_MODE_RUN_AMBER)
       {
         neo_pixel_ctrl.pixels().setPixelColor(running_light_counter,       neo_pixel_ctrl.pixels().Color(55, 40, 0));
         neo_pixel_ctrl.pixels().setPixelColor((running_light_counter+7)%8, neo_pixel_ctrl.pixels().Color(27, 20, 0));
@@ -431,15 +462,15 @@ void loop()
         neo_pixel_ctrl.pixels().show();
       }
     }
-    else if (is_light_on&&(uavcan_light_mode.data.value == LIGHT_MODE_BLINK_RED||uavcan_light_mode.data.value == LIGHT_MODE_BLINK_GREEN||uavcan_light_mode.data.value == LIGHT_MODE_BLINK_BLUE||uavcan_light_mode.data.value == LIGHT_MODE_BLINK_WHITE||uavcan_light_mode.data.value == LIGHT_MODE_BLINK_AMBER))
+    else if (is_light_on&&(light_mode_msg.data.value == LIGHT_MODE_BLINK_RED||light_mode_msg.data.value == LIGHT_MODE_BLINK_GREEN||light_mode_msg.data.value == LIGHT_MODE_BLINK_BLUE||light_mode_msg.data.value == LIGHT_MODE_BLINK_WHITE||light_mode_msg.data.value == LIGHT_MODE_BLINK_AMBER))
     {
-      if (uavcan_light_mode.data.value == LIGHT_MODE_BLINK_GREEN)
+      if (light_mode_msg.data.value == LIGHT_MODE_BLINK_GREEN)
         neo_pixel_ctrl.light_green();
-      else if (uavcan_light_mode.data.value == LIGHT_MODE_BLINK_BLUE)
+      else if (light_mode_msg.data.value == LIGHT_MODE_BLINK_BLUE)
         neo_pixel_ctrl.light_blue();
-      else if (uavcan_light_mode.data.value == LIGHT_MODE_BLINK_WHITE)
+      else if (light_mode_msg.data.value == LIGHT_MODE_BLINK_WHITE)
         neo_pixel_ctrl.light_white();
-      else if (uavcan_light_mode.data.value == LIGHT_MODE_BLINK_AMBER)
+      else if (light_mode_msg.data.value == LIGHT_MODE_BLINK_AMBER)
         neo_pixel_ctrl.light_amber();
       else
         neo_pixel_ctrl.light_red();
@@ -451,12 +482,12 @@ void loop()
   }
 
   /* Update the heartbeat object */
-  hb.data.uptime = millis() / 1000;
-  hb = Heartbeat_1_0<>::Mode::OPERATIONAL;
+  hb_msg.data.uptime = millis() / 1000;
+  hb_msg.data.mode.value = uavcan_node_Mode_1_0_OPERATIONAL;
 
   /* Publish the heartbeat once/second */
   if(now - prev_hearbeat > 1000) {
-    node_hdl.publish(hb);
+    heartbeat_pub->publish(hb_msg);
     prev_hearbeat = now;
   }
   if((now - prev_battery_voltage) > (update_period_ms_inputvoltage))
@@ -466,7 +497,7 @@ void loop()
     Serial.println(analog);
     Real32_1_0<ID_INPUT_VOLTAGE> uavcan_input_voltage;
     uavcan_input_voltage.data.value = analog;
-    node_hdl.publish(uavcan_input_voltage);
+    input_voltage_pub->publish(uavcan_input_voltage);
     prev_battery_voltage = now;
   }
   if((now - prev_internal_temperature) > (update_period_ms_internaltemperature))
@@ -476,7 +507,7 @@ void loop()
     Serial.println(temperature);
     Real32_1_0<ID_INTERNAL_TEMPERATURE> uavcan_internal_temperature;
     uavcan_internal_temperature.data.value = temperature;
-    node_hdl.publish(uavcan_internal_temperature);
+    internal_temperature_pub->publish(uavcan_internal_temperature);
     prev_internal_temperature = now;
   }
 
@@ -485,42 +516,42 @@ void loop()
   {
     Bit_1_0<ID_INPUT0> uavcan_input0;
     uavcan_input0.data.value = digitalRead(INPUT0_PIN);
-    node_hdl.publish(uavcan_input0);
+    input_0_pub->publish(uavcan_input0);
     prev_input0 = now;
   }
   if((now - prev_input1) > update_period_ms_input1)
   {
     Bit_1_0<ID_INPUT1> uavcan_input1;
     uavcan_input1.data.value = digitalRead(INPUT1_PIN);
-    node_hdl.publish(uavcan_input1);
+    input_1_pub->publish(uavcan_input1);
     prev_input1 = now;
   }
   if((now - prev_input2) > update_period_ms_input2)
   {
     Bit_1_0<ID_INPUT2> uavcan_input2;
     uavcan_input2.data.value = digitalRead(INPUT2_PIN);
-    node_hdl.publish(uavcan_input2);
+    input_2_pub->publish(uavcan_input2);
     prev_input2 = now;
   }
   if((now - prev_input3) > update_period_ms_input3)
   {
     Bit_1_0<ID_INPUT3> uavcan_input3;
     uavcan_input3.data.value = digitalRead(INPUT3_PIN);
-    node_hdl.publish(uavcan_input3);
+    input_3_pub->publish(uavcan_input3);
     prev_input3 = now;
   }
   if((now - prev_analog_input0) > update_period_ms_analoginput0)
   {
     Integer16_1_0<ID_ANALOG_INPUT0> uavcan_analog_input0;
     uavcan_analog_input0.data.value = analogRead(ANALOG_INPUT0_PIN);
-    node_hdl.publish(uavcan_analog_input0);
+    analog_input_0_pub->publish(uavcan_analog_input0);
     prev_analog_input0 = now;
   }
   if((now - prev_analog_input1) > update_period_ms_analoginput1)
   {
     Integer16_1_0<ID_ANALOG_INPUT1> uavcan_analog_input1;
     uavcan_analog_input1.data.value = analogRead(ANALOG_INPUT1_PIN);
-    node_hdl.publish(uavcan_analog_input1);
+    analog_input_1_pub->publish(uavcan_analog_input1);
     prev_analog_input1 = now;
   }
 }
@@ -531,14 +562,12 @@ void loop()
 
 void onReceiveBufferFull(CanardFrame const & frame)
 {
-  node_hdl.onCanFrameReceived(frame, micros());
+  node_hdl.onCanFrameReceived(frame);
 }
 
-void onLed1_Received(CanardRxTransfer const & transfer, Node & /* node_hdl */)
+void onLed1_Received(Bit_1_0<ID_LED1> const & msg)
 {
-  Bit_1_0<ID_LED1> const uavcan_led1 = Bit_1_0<ID_LED1>::deserialize(transfer);
-
-  if(uavcan_led1.data.value)
+  if(msg.data.value)
   {
     digitalWrite(LED_BUILTIN, HIGH);
     Serial.println("Received Bit1: true");
@@ -550,14 +579,9 @@ void onLed1_Received(CanardRxTransfer const & transfer, Node & /* node_hdl */)
   }
 }
 
-void onLightMode_Received(CanardRxTransfer const & transfer, Node & /* node_hdl */)
+ExecuteCommand_1_0::Response<> onExecuteCommand_1_0_Request_Received(ExecuteCommand_1_0::Request<> const & req)
 {
-  uavcan_light_mode = Integer8_1_0<ID_LIGHT_MODE>::deserialize(transfer);
-}
-
-void onExecuteCommand_1_1_Request_Received(CanardRxTransfer const & transfer, Node & node_hdl)
-{
-  ExecuteCommand_1_1::Request<> req = ExecuteCommand_1_1::Request<>::deserialize(transfer);
+  ExecuteCommand_1_0::Response<> rsp;
 
   Serial.print("onExecuteCommand_1_1_Request_Received: ");
   Serial.println(req.data.command);
@@ -565,30 +589,22 @@ void onExecuteCommand_1_1_Request_Received(CanardRxTransfer const & transfer, No
   if (req.data.command == uavcan_node_ExecuteCommand_Request_1_1_COMMAND_RESTART)
   {
     /* Send the response. */
-    ExecuteCommand_1_1::Response<> rsp;
-    rsp = ExecuteCommand_1_1::Response<>::Status::SUCCESS;
-    node_hdl.respond(rsp, transfer.metadata.remote_node_id, transfer.metadata.transfer_id);
-
+    rsp.data.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_SUCCESS;
     watchdog_reboot(0,0,1000);
   }
   else if (req.data.command == uavcan_node_ExecuteCommand_Request_1_1_COMMAND_POWER_OFF)
   {
     /* Send the response. */
-    ExecuteCommand_1_1::Response<> rsp;
-    rsp = ExecuteCommand_1_1::Response<>::Status::SUCCESS;
-    node_hdl.respond(rsp, transfer.metadata.remote_node_id, transfer.metadata.transfer_id);
+    rsp.data.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_SUCCESS;
 
     digitalWrite(LED2_PIN, HIGH);
     digitalWrite(LED3_PIN, HIGH);
     neo_pixel_ctrl.light_off();
-    while(1); /* loop forever */
   }
   else if (req.data.command == uavcan_node_ExecuteCommand_Request_1_1_COMMAND_BEGIN_SOFTWARE_UPDATE)
   {
     /* Send the response. */
-    ExecuteCommand_1_1::Response<> rsp;
-    rsp = ExecuteCommand_1_1::Response<>::Status::BAD_COMMAND;
-    node_hdl.respond(rsp, transfer.metadata.remote_node_id, transfer.metadata.transfer_id);
+    rsp.data.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_BAD_COMMAND;
     /* not implemented yet */
   }
   else if (req.data.command == uavcan_node_ExecuteCommand_Request_1_1_COMMAND_FACTORY_RESET)
@@ -605,31 +621,25 @@ void onExecuteCommand_1_1_Request_Received(CanardRxTransfer const & transfer, No
     update_period_ms_light=250;
 
     /* Send the response. */
-    ExecuteCommand_1_1::Response<> rsp;
-    rsp = ExecuteCommand_1_1::Response<>::Status::SUCCESS;
-    node_hdl.respond(rsp, transfer.metadata.remote_node_id, transfer.metadata.transfer_id);
+    rsp.data.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_SUCCESS;
   }
   else if (req.data.command == uavcan_node_ExecuteCommand_Request_1_1_COMMAND_EMERGENCY_STOP)
   {
     /* Send the response. */
-    ExecuteCommand_1_1::Response<> rsp;
-    rsp = ExecuteCommand_1_1::Response<>::Status::BAD_COMMAND;
-    node_hdl.respond(rsp, transfer.metadata.remote_node_id, transfer.metadata.transfer_id);
+    rsp.data.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_BAD_COMMAND;
     /* not implemented yet */
   }
   else if (req.data.command == uavcan_node_ExecuteCommand_Request_1_1_COMMAND_STORE_PERSISTENT_STATES)
   {
     /* Send the response. */
-    ExecuteCommand_1_1::Response<> rsp;
-    rsp = ExecuteCommand_1_1::Response<>::Status::BAD_COMMAND;
-    node_hdl.respond(rsp, transfer.metadata.remote_node_id, transfer.metadata.transfer_id);
+    rsp.data.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_BAD_COMMAND;
     /* not implemented yet */
   }
   else
   {
     /* Send the response. */
-    ExecuteCommand_1_1::Response<> rsp;
-    rsp = ExecuteCommand_1_1::Response<>::Status::BAD_COMMAND;
-    node_hdl.respond(rsp, transfer.metadata.remote_node_id, transfer.metadata.transfer_id);
+    rsp.data.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_BAD_COMMAND;
   }
+
+  return rsp;
 }
