@@ -132,7 +132,7 @@ ArduinoMCP2515 mcp2515([]()
                        nullptr);
 
 Node::Heap<Node::DEFAULT_O1HEAP_SIZE> node_heap;
-Node node_hdl(node_heap.data(), node_heap.size(), micros, DEFAULT_AUX_CONTROLLER_NODE_ID);
+Node node_hdl(node_heap.data(), node_heap.size(), micros, [] (CanardFrame const & frame) { return mcp2515.transmit(frame); }, DEFAULT_AUX_CONTROLLER_NODE_ID);
 
 Publisher<Heartbeat_1_0<>> heartbeat_pub = node_hdl.create_publisher<Heartbeat_1_0<>>
   (Heartbeat_1_0<>::PORT_ID, 1*1000*1000UL /* = 1 sec in usecs. */);
@@ -189,36 +189,36 @@ static uint16_t update_period_ms_light               =     250;
 
 /* REGISTER ***************************************************************************/
 
-static RegisterNatural8  reg_rw_uavcan_node_id                          ("uavcan.node.id",                         Register::Access::ReadWrite, Register::Persistent::No, DEFAULT_AUX_CONTROLLER_NODE_ID, [&node_hdl](uint8_t const & val) { node_hdl.setNodeId(val); });
-static RegisterString    reg_ro_uavcan_node_description                 ("uavcan.node.description",                Register::Access::ReadWrite, Register::Persistent::No, "L3X-Z AUX_CONTROLLER");
-static RegisterNatural16 reg_ro_uavcan_pub_inputvoltage_id              ("uavcan.pub.inputvoltage.id",             Register::Access::ReadOnly,  Register::Persistent::No, ID_INPUT_VOLTAGE);
-static RegisterString    reg_ro_uavcan_pub_inputvoltage_type            ("uavcan.pub.inputvoltage.type",           Register::Access::ReadOnly,  Register::Persistent::No, "uavcan.primitive.scalar.Real32.1.0");
-static RegisterNatural16 reg_ro_uavcan_pub_internaltemperature_id       ("uavcan.pub.internaltemperature.id",      Register::Access::ReadOnly,  Register::Persistent::No, ID_INTERNAL_TEMPERATURE);
-static RegisterString    reg_ro_uavcan_pub_internaltemperature_type     ("uavcan.pub.internaltemperature.type",    Register::Access::ReadOnly,  Register::Persistent::No, "uavcan.primitive.scalar.Real32.1.0");
-static RegisterNatural16 reg_ro_uavcan_pub_input0_id                    ("uavcan.pub.input0.id",                   Register::Access::ReadOnly,  Register::Persistent::No, ID_INPUT0);
-static RegisterString    reg_ro_uavcan_pub_input0_type                  ("uavcan.pub.input0.type",                 Register::Access::ReadOnly,  Register::Persistent::No, "uavcan.primitive.scalar.Bit.1.0");
-static RegisterNatural16 reg_ro_uavcan_pub_input1_id                    ("uavcan.pub.input1.id",                   Register::Access::ReadOnly,  Register::Persistent::No, ID_INPUT1);
-static RegisterString    reg_ro_uavcan_pub_input1_type                  ("uavcan.pub.input1.type",                 Register::Access::ReadOnly,  Register::Persistent::No, "uavcan.primitive.scalar.Bit.1.0");
-static RegisterNatural16 reg_ro_uavcan_pub_input2_id                    ("uavcan.pub.input2.id",                   Register::Access::ReadOnly,  Register::Persistent::No, ID_INPUT2);
-static RegisterString    reg_ro_uavcan_pub_input2_type                  ("uavcan.pub.input2.type",                 Register::Access::ReadOnly,  Register::Persistent::No, "uavcan.primitive.scalar.Bit.1.0");
-static RegisterNatural16 reg_ro_uavcan_pub_input3_id                    ("uavcan.pub.input3.id",                   Register::Access::ReadOnly,  Register::Persistent::No, ID_INPUT3);
-static RegisterString    reg_ro_uavcan_pub_input3_type                  ("uavcan.pub.input3.type",                 Register::Access::ReadOnly,  Register::Persistent::No, "uavcan.primitive.scalar.Bit.1.0");
-static RegisterNatural16 reg_ro_uavcan_pub_analoginput0_id              ("uavcan.pub.analoginput0.id",             Register::Access::ReadOnly,  Register::Persistent::No, ID_ANALOG_INPUT0);
-static RegisterString    reg_ro_uavcan_pub_analoginput0_type            ("uavcan.pub.analoginput0.type",           Register::Access::ReadOnly,  Register::Persistent::No, "uavcan.primitive.scalar.Integer16.1.0");
-static RegisterNatural16 reg_ro_uavcan_pub_analoginput1_id              ("uavcan.pub.analoginput1.id",             Register::Access::ReadOnly,  Register::Persistent::No, ID_ANALOG_INPUT1);
-static RegisterString    reg_ro_uavcan_pub_analoginput1_type            ("uavcan.pub.analoginput1.type",           Register::Access::ReadOnly,  Register::Persistent::No, "uavcan.primitive.scalar.Integer16.1.0");
-static RegisterNatural16 reg_ro_uavcan_sub_led1_id                      ("uavcan.sub.led1.id",                     Register::Access::ReadOnly,  Register::Persistent::No, ID_LED1);
-static RegisterString    reg_ro_uavcan_sub_led1_type                    ("uavcan.sub.led1.type",                   Register::Access::ReadOnly,  Register::Persistent::No, "uavcan.primitive.scalar.Bit.1.0");
-static RegisterNatural16 reg_ro_uavcan_sub_output0_id                   ("uavcan.sub.output0.id",                  Register::Access::ReadOnly,  Register::Persistent::No, ID_OUTPUT0);
-static RegisterString    reg_ro_uavcan_sub_output0_type                 ("uavcan.sub.output0.type",                Register::Access::ReadOnly,  Register::Persistent::No, "uavcan.primitive.scalar.Bit.1.0");
-static RegisterNatural16 reg_ro_uavcan_sub_output1_id                   ("uavcan.sub.output1.id",                  Register::Access::ReadOnly,  Register::Persistent::No, ID_OUTPUT1);
-static RegisterString    reg_ro_uavcan_sub_output1_type                 ("uavcan.sub.output1.type",                Register::Access::ReadOnly,  Register::Persistent::No, "uavcan.primitive.scalar.Bit.1.0");
-static RegisterNatural16 reg_ro_uavcan_sub_servo0_id                    ("uavcan.sub.servo0.id",                   Register::Access::ReadOnly,  Register::Persistent::No, ID_SERVO0);
-static RegisterString    reg_ro_uavcan_sub_servo0_type                  ("uavcan.sub.servo0.type",                 Register::Access::ReadOnly,  Register::Persistent::No, "uavcan.primitive.scalar.Integer16.1.0");
-static RegisterNatural16 reg_ro_uavcan_sub_servo1_id                    ("uavcan.sub.servo1.id",                   Register::Access::ReadOnly,  Register::Persistent::No, ID_SERVO1);
-static RegisterString    reg_ro_uavcan_sub_servo1_type                  ("uavcan.sub.servo1.type",                 Register::Access::ReadOnly,  Register::Persistent::No, "uavcan.primitive.scalar.Integer16.1.0");
-static RegisterNatural16 reg_ro_uavcan_sub_lightmode_id                 ("uavcan.sub.lightmode.id",                Register::Access::ReadOnly,  Register::Persistent::No, ID_LIGHT_MODE);
-static RegisterString    reg_ro_uavcan_sub_lightmode_type               ("uavcan.sub.lightmode.type",              Register::Access::ReadOnly,  Register::Persistent::No, "uavcan.primitive.scalar.Integer8.1.0");
+static RegisterNatural8  reg_rw_cyphal_node_id                          ("cyphal.node.id",                         Register::Access::ReadWrite, Register::Persistent::No, DEFAULT_AUX_CONTROLLER_NODE_ID, [&node_hdl](uint8_t const & val) { node_hdl.setNodeId(val); });
+static RegisterString    reg_ro_cyphal_node_description                 ("cyphal.node.description",                Register::Access::ReadWrite, Register::Persistent::No, "L3X-Z AUX_CONTROLLER");
+static RegisterNatural16 reg_ro_cyphal_pub_inputvoltage_id              ("cyphal.pub.inputvoltage.id",             Register::Access::ReadOnly,  Register::Persistent::No, ID_INPUT_VOLTAGE);
+static RegisterString    reg_ro_cyphal_pub_inputvoltage_type            ("cyphal.pub.inputvoltage.type",           Register::Access::ReadOnly,  Register::Persistent::No, "cyphal.primitive.scalar.Real32.1.0");
+static RegisterNatural16 reg_ro_cyphal_pub_internaltemperature_id       ("cyphal.pub.internaltemperature.id",      Register::Access::ReadOnly,  Register::Persistent::No, ID_INTERNAL_TEMPERATURE);
+static RegisterString    reg_ro_cyphal_pub_internaltemperature_type     ("cyphal.pub.internaltemperature.type",    Register::Access::ReadOnly,  Register::Persistent::No, "cyphal.primitive.scalar.Real32.1.0");
+static RegisterNatural16 reg_ro_cyphal_pub_input0_id                    ("cyphal.pub.input0.id",                   Register::Access::ReadOnly,  Register::Persistent::No, ID_INPUT0);
+static RegisterString    reg_ro_cyphal_pub_input0_type                  ("cyphal.pub.input0.type",                 Register::Access::ReadOnly,  Register::Persistent::No, "cyphal.primitive.scalar.Bit.1.0");
+static RegisterNatural16 reg_ro_cyphal_pub_input1_id                    ("cyphal.pub.input1.id",                   Register::Access::ReadOnly,  Register::Persistent::No, ID_INPUT1);
+static RegisterString    reg_ro_cyphal_pub_input1_type                  ("cyphal.pub.input1.type",                 Register::Access::ReadOnly,  Register::Persistent::No, "cyphal.primitive.scalar.Bit.1.0");
+static RegisterNatural16 reg_ro_cyphal_pub_input2_id                    ("cyphal.pub.input2.id",                   Register::Access::ReadOnly,  Register::Persistent::No, ID_INPUT2);
+static RegisterString    reg_ro_cyphal_pub_input2_type                  ("cyphal.pub.input2.type",                 Register::Access::ReadOnly,  Register::Persistent::No, "cyphal.primitive.scalar.Bit.1.0");
+static RegisterNatural16 reg_ro_cyphal_pub_input3_id                    ("cyphal.pub.input3.id",                   Register::Access::ReadOnly,  Register::Persistent::No, ID_INPUT3);
+static RegisterString    reg_ro_cyphal_pub_input3_type                  ("cyphal.pub.input3.type",                 Register::Access::ReadOnly,  Register::Persistent::No, "cyphal.primitive.scalar.Bit.1.0");
+static RegisterNatural16 reg_ro_cyphal_pub_analoginput0_id              ("cyphal.pub.analoginput0.id",             Register::Access::ReadOnly,  Register::Persistent::No, ID_ANALOG_INPUT0);
+static RegisterString    reg_ro_cyphal_pub_analoginput0_type            ("cyphal.pub.analoginput0.type",           Register::Access::ReadOnly,  Register::Persistent::No, "cyphal.primitive.scalar.Integer16.1.0");
+static RegisterNatural16 reg_ro_cyphal_pub_analoginput1_id              ("cyphal.pub.analoginput1.id",             Register::Access::ReadOnly,  Register::Persistent::No, ID_ANALOG_INPUT1);
+static RegisterString    reg_ro_cyphal_pub_analoginput1_type            ("cyphal.pub.analoginput1.type",           Register::Access::ReadOnly,  Register::Persistent::No, "cyphal.primitive.scalar.Integer16.1.0");
+static RegisterNatural16 reg_ro_cyphal_sub_led1_id                      ("cyphal.sub.led1.id",                     Register::Access::ReadOnly,  Register::Persistent::No, ID_LED1);
+static RegisterString    reg_ro_cyphal_sub_led1_type                    ("cyphal.sub.led1.type",                   Register::Access::ReadOnly,  Register::Persistent::No, "cyphal.primitive.scalar.Bit.1.0");
+static RegisterNatural16 reg_ro_cyphal_sub_output0_id                   ("cyphal.sub.output0.id",                  Register::Access::ReadOnly,  Register::Persistent::No, ID_OUTPUT0);
+static RegisterString    reg_ro_cyphal_sub_output0_type                 ("cyphal.sub.output0.type",                Register::Access::ReadOnly,  Register::Persistent::No, "cyphal.primitive.scalar.Bit.1.0");
+static RegisterNatural16 reg_ro_cyphal_sub_output1_id                   ("cyphal.sub.output1.id",                  Register::Access::ReadOnly,  Register::Persistent::No, ID_OUTPUT1);
+static RegisterString    reg_ro_cyphal_sub_output1_type                 ("cyphal.sub.output1.type",                Register::Access::ReadOnly,  Register::Persistent::No, "cyphal.primitive.scalar.Bit.1.0");
+static RegisterNatural16 reg_ro_cyphal_sub_servo0_id                    ("cyphal.sub.servo0.id",                   Register::Access::ReadOnly,  Register::Persistent::No, ID_SERVO0);
+static RegisterString    reg_ro_cyphal_sub_servo0_type                  ("cyphal.sub.servo0.type",                 Register::Access::ReadOnly,  Register::Persistent::No, "cyphal.primitive.scalar.Integer16.1.0");
+static RegisterNatural16 reg_ro_cyphal_sub_servo1_id                    ("cyphal.sub.servo1.id",                   Register::Access::ReadOnly,  Register::Persistent::No, ID_SERVO1);
+static RegisterString    reg_ro_cyphal_sub_servo1_type                  ("cyphal.sub.servo1.type",                 Register::Access::ReadOnly,  Register::Persistent::No, "cyphal.primitive.scalar.Integer16.1.0");
+static RegisterNatural16 reg_ro_cyphal_sub_lightmode_id                 ("cyphal.sub.lightmode.id",                Register::Access::ReadOnly,  Register::Persistent::No, ID_LIGHT_MODE);
+static RegisterString    reg_ro_cyphal_sub_lightmode_type               ("cyphal.sub.lightmode.type",              Register::Access::ReadOnly,  Register::Persistent::No, "cyphal.primitive.scalar.Integer8.1.0");
 static RegisterNatural16 reg_rw_aux_update_period_ms_inputvoltage       ("aux.update_period_ms.inputvoltage",        Register::Access::ReadWrite, Register::Persistent::No, update_period_ms_inputvoltage,        nullptr, nullptr , [](uint16_t const & val) { return std::min(val, static_cast<uint16_t>(100)); });
 static RegisterNatural16 reg_rw_aux_update_period_ms_internaltemperature("aux.update_period_ms.internaltemperature", Register::Access::ReadWrite, Register::Persistent::No, update_period_ms_internaltemperature, nullptr, nullptr , [](uint16_t const & val) { return std::min(val, static_cast<uint16_t>(100)); });
 static RegisterNatural16 reg_rw_aux_update_period_ms_input0             ("aux.update_period_ms.input0",              Register::Access::ReadWrite, Register::Persistent::No, update_period_ms_input0,              nullptr, nullptr , [](uint16_t const & val) { return std::min(val, static_cast<uint16_t>(100)); });
@@ -235,11 +235,11 @@ static RegisterList      reg_list(node_hdl);
 static NodeInfo node_info
 (
   node_hdl,
-  /* uavcan.node.Version.1.0 protocol_version */
+  /* cyphal.node.Version.1.0 protocol_version */
   1, 0,
-  /* uavcan.node.Version.1.0 hardware_version */
+  /* cyphal.node.Version.1.0 hardware_version */
   1, 0,
-  /* uavcan.node.Version.1.0 software_version */
+  /* cyphal.node.Version.1.0 software_version */
   0, 1,
   /* saturated uint64 software_vcs_revision_id */
   0,
@@ -300,36 +300,36 @@ void setup()
 
   /* Register callbacks.
    */
-  reg_list.add(reg_rw_uavcan_node_id);
-  reg_list.add(reg_ro_uavcan_node_description);
-  reg_list.add(reg_ro_uavcan_pub_inputvoltage_id);
-  reg_list.add(reg_ro_uavcan_pub_internaltemperature_id);
-  reg_list.add(reg_ro_uavcan_pub_input0_id);
-  reg_list.add(reg_ro_uavcan_pub_input1_id);
-  reg_list.add(reg_ro_uavcan_pub_input2_id);
-  reg_list.add(reg_ro_uavcan_pub_input3_id);
-  reg_list.add(reg_ro_uavcan_pub_analoginput0_id);
-  reg_list.add(reg_ro_uavcan_pub_analoginput1_id);
-  reg_list.add(reg_ro_uavcan_sub_led1_id);
-  reg_list.add(reg_ro_uavcan_sub_output0_id);
-  reg_list.add(reg_ro_uavcan_sub_output1_id);
-  reg_list.add(reg_ro_uavcan_sub_servo0_id);
-  reg_list.add(reg_ro_uavcan_sub_servo1_id);
-  reg_list.add(reg_ro_uavcan_sub_lightmode_id);
-  reg_list.add(reg_ro_uavcan_pub_inputvoltage_type);
-  reg_list.add(reg_ro_uavcan_pub_internaltemperature_type);
-  reg_list.add(reg_ro_uavcan_pub_input0_type);
-  reg_list.add(reg_ro_uavcan_pub_input1_type);
-  reg_list.add(reg_ro_uavcan_pub_input2_type);
-  reg_list.add(reg_ro_uavcan_pub_input3_type);
-  reg_list.add(reg_ro_uavcan_pub_analoginput0_type);
-  reg_list.add(reg_ro_uavcan_pub_analoginput1_type);
-  reg_list.add(reg_ro_uavcan_sub_led1_type);
-  reg_list.add(reg_ro_uavcan_sub_output0_type);
-  reg_list.add(reg_ro_uavcan_sub_output1_type);
-  reg_list.add(reg_ro_uavcan_sub_servo0_type);
-  reg_list.add(reg_ro_uavcan_sub_servo1_type);
-  reg_list.add(reg_ro_uavcan_sub_lightmode_type);
+  reg_list.add(reg_rw_cyphal_node_id);
+  reg_list.add(reg_ro_cyphal_node_description);
+  reg_list.add(reg_ro_cyphal_pub_inputvoltage_id);
+  reg_list.add(reg_ro_cyphal_pub_internaltemperature_id);
+  reg_list.add(reg_ro_cyphal_pub_input0_id);
+  reg_list.add(reg_ro_cyphal_pub_input1_id);
+  reg_list.add(reg_ro_cyphal_pub_input2_id);
+  reg_list.add(reg_ro_cyphal_pub_input3_id);
+  reg_list.add(reg_ro_cyphal_pub_analoginput0_id);
+  reg_list.add(reg_ro_cyphal_pub_analoginput1_id);
+  reg_list.add(reg_ro_cyphal_sub_led1_id);
+  reg_list.add(reg_ro_cyphal_sub_output0_id);
+  reg_list.add(reg_ro_cyphal_sub_output1_id);
+  reg_list.add(reg_ro_cyphal_sub_servo0_id);
+  reg_list.add(reg_ro_cyphal_sub_servo1_id);
+  reg_list.add(reg_ro_cyphal_sub_lightmode_id);
+  reg_list.add(reg_ro_cyphal_pub_inputvoltage_type);
+  reg_list.add(reg_ro_cyphal_pub_internaltemperature_type);
+  reg_list.add(reg_ro_cyphal_pub_input0_type);
+  reg_list.add(reg_ro_cyphal_pub_input1_type);
+  reg_list.add(reg_ro_cyphal_pub_input2_type);
+  reg_list.add(reg_ro_cyphal_pub_input3_type);
+  reg_list.add(reg_ro_cyphal_pub_analoginput0_type);
+  reg_list.add(reg_ro_cyphal_pub_analoginput1_type);
+  reg_list.add(reg_ro_cyphal_sub_led1_type);
+  reg_list.add(reg_ro_cyphal_sub_output0_type);
+  reg_list.add(reg_ro_cyphal_sub_output1_type);
+  reg_list.add(reg_ro_cyphal_sub_servo0_type);
+  reg_list.add(reg_ro_cyphal_sub_servo1_type);
+  reg_list.add(reg_ro_cyphal_sub_lightmode_type);
   reg_list.add(reg_rw_aux_update_period_ms_inputvoltage);
   reg_list.add(reg_rw_aux_update_period_ms_internaltemperature);
   reg_list.add(reg_rw_aux_update_period_ms_input0);
@@ -359,7 +359,7 @@ void loop()
    */
   {
     CriticalSection crit_sec;
-    node_hdl.spinSome([] (CanardFrame const & frame) { return mcp2515.transmit(frame); });
+    node_hdl.spinSome();
   }
 
   /* Publish all the gathered data, although at various
