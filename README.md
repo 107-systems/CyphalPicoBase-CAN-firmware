@@ -1,16 +1,12 @@
 <a href="https://107-systems.org/"><img align="right" src="https://raw.githubusercontent.com/107-systems/.github/main/logo/107-systems.png" width="15%"></a>
-:floppy_disk: Firmware for L3X-Z auxiliary controller
-=====================================================
+:floppy_disk: `OpenCyphalPicoBase-firmware`
+===========================================
 <a href="https://opencyphal.org/"><img align="right" src="https://raw.githubusercontent.com/107-systems/.github/main/logo/opencyphal.svg" width="25%"></a>
-[![General Formatting Checks](https://github.com/107-systems/l3xz-fw_aux-controller/workflows/General%20Formatting%20Checks/badge.svg)](https://github.com/107-systems/l3xz-fw_aux-controller/actions?workflow=General+Formatting+Checks)
-[![Spell Check](https://github.com/107-systems/l3xz-fw_aux-controller/workflows/Spell%20Check/badge.svg)](https://github.com/107-systems/l3xz-fw_aux-controller/actions?workflow=Spell+Check)
-[![Compile Examples](https://github.com/107-systems/l3xz-fw_aux-controller/workflows/Compile/badge.svg)](https://github.com/107-systems/l3xz-fw_aux-controller/actions?workflow=Compile)
+[![General Formatting Checks](https://github.com/107-systems/OpenCyphalPicoBase-firmware/workflows/General%20Formatting%20Checks/badge.svg)](https://github.com/107-systems/OpenCyphalPicoBase-firmware/actions?workflow=General+Formatting+Checks)
+[![Spell Check](https://github.com/107-systems/OpenCyphalPicoBase-firmware/workflows/Spell%20Check/badge.svg)](https://github.com/107-systems/OpenCyphalPicoBase-firmware/actions?workflow=Spell+Check)
+[![Compile Examples](https://github.com/107-systems/OpenCyphalPicoBase-firmware/workflows/Compile/badge.svg)](https://github.com/107-systems/OpenCyphalPicoBase-firmware/actions?workflow=Compile)
 
-Firmware for the auxiliary controller controlling alarm/status LEDs and emergency stop.
-
-<p align="center">
-  <a href="https://github.com/107-systems/l3xz"><img src="https://raw.githubusercontent.com/107-systems/.github/main/logo/l3xz-logo-memento-mori-github.png" width="40%"></a>
-</p>
+Firmware for the [OpenCyphalPicoBase](https://github.com/generationmake/OpenCyphalPicoBase) board.
 
 ## How-to-build/upload
 ```bash
@@ -18,16 +14,10 @@ arduino-cli compile -b rp2040:rp2040:rpipico -v .
 arduino-cli upload -b rp2040:rp2040:rpipico -v . -p /dev/ttyACM0
 ```
 
-## OpenCyphal Settings
-
-Specific settings for the L3X-Z Hexapod can be found here: https://github.com/107-systems/l3xz-hw#node-ids .
-
 ### Node-ID
-
-Every leg controller needs to have its own Node-ID. The Node-ID is stored in the eeprom. If no eeprom is found, the Node-ID is 101.
+The Node-ID is stored in the eeprom. If no eeprom is found, the Node-ID is 101.
 
 ### Subject-ID
-
 Some Subject-IDs are the same as with the leg controller. The host can differentiate between them by their Node-IDs.
 
 | **Subject-ID** | **Direction** | **Name**             | **Type**    |
@@ -115,7 +105,3 @@ Some Subject-IDs are the same as with the leg controller. The host can different
 | 38      | GND          | GND           |                                  |
 | 39      | VSYS         |               |                                  |
 | 40      | VBUS         | 5V-rail       | supply voltage for board         |
-
-## Related Repositories
-* [107-Arduino-MCP2515](https://github.com/107-systems/107-Arduino-MCP2515)
-* [107-Arduino-UAVCAN](https://github.com/107-systems/107-Arduino-UAVCAN)
