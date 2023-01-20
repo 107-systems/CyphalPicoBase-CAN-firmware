@@ -24,13 +24,13 @@ public:
   typedef uavcan::primitive::scalar::Bit_1_0<ID_OUTPUT0> TOpenCyphalDigitalOut_0;
   typedef uavcan::primitive::scalar::Bit_1_0<ID_OUTPUT1> TOpenCyphalDigitalOut_1;
 
-  DigitalOutControl(int const out_0_pin, int const out_1_pin);
+  DigitalOutControl(int const out_0_pin, int const out_1_pin, Node & node_hdl);
 
   void begin();
-  void subscribe(Node & node_hdl);
 
 private:
   int _out_0_pin, _out_1_pin;
+  Subscription _out_0_sub, _out_1_sub;
 };
 
 #endif /* AUX_CTRL_DIGITAL_OUTPUT_CONTROL_H_ */
