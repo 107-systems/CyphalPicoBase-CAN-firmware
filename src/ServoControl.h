@@ -23,8 +23,8 @@ class ServoControl
 {
 public:
 
-  typedef uavcan::primitive::scalar::Integer16_1_0<ID_SERVO0> TOpenCyphalServo_0;
-  typedef uavcan::primitive::scalar::Integer16_1_0<ID_SERVO1> TOpenCyphalServo_1;
+  typedef uavcan::primitive::scalar::Integer16_1_0 TOpenCyphalServo_0;
+  typedef uavcan::primitive::scalar::Integer16_1_0 TOpenCyphalServo_1;
 
   ServoControl(int const servo_0_pin, int const servo_1_pin, Node & node_hdl);
 

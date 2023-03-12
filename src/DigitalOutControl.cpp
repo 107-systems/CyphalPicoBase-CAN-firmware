@@ -23,7 +23,7 @@ DigitalOutControl::DigitalOutControl(int const out_0_pin, int const out_1_pin, N
     CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC,
     [this](TOpenCyphalDigitalOut_0 const & msg)
     {
-      if(msg.data.value)
+      if(msg.value)
         digitalWrite(_out_0_pin, HIGH);
       else
         digitalWrite(_out_0_pin, LOW);
@@ -34,7 +34,7 @@ DigitalOutControl::DigitalOutControl(int const out_0_pin, int const out_1_pin, N
     CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC,
     [this](TOpenCyphalDigitalOut_1 const & msg)
     {
-      if(msg.data.value)
+      if(msg.value)
         digitalWrite(_out_1_pin, HIGH);
       else
         digitalWrite(_out_1_pin, LOW);

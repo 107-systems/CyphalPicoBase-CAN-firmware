@@ -21,8 +21,8 @@ class DigitalOutControl
 {
 public:
 
-  typedef uavcan::primitive::scalar::Bit_1_0<ID_OUTPUT0> TOpenCyphalDigitalOut_0;
-  typedef uavcan::primitive::scalar::Bit_1_0<ID_OUTPUT1> TOpenCyphalDigitalOut_1;
+  typedef uavcan::primitive::scalar::Bit_1_0 TOpenCyphalDigitalOut_0;
+  typedef uavcan::primitive::scalar::Bit_1_0 TOpenCyphalDigitalOut_1;
 
   DigitalOutControl(int const out_0_pin, int const out_1_pin, Node & node_hdl);
 
