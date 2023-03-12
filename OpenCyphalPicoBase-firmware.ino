@@ -105,10 +105,10 @@ static int8_t const LIGHT_MODE_RUN_AMBER   = 105;
 
 void onReceiveBufferFull(CanardFrame const & frame);
 /* Cyphal Subscription Callbacks */
-void onLed1_Received(Bit_1_0<ID_LED1> const & msg);
-void onLightMode_Received(Integer8_1_0<ID_LIGHT_MODE> const & msg);
+void onLed1_Received(Bit_1_0 const & msg);
+void onLightMode_Received(Integer8_1_0 const & msg);
 /* Cyphal Service Request Callbacks */
-ExecuteCommand_1_0::Response<> onExecuteCommand_1_0_Request_Received(ExecuteCommand_1_0::Request<> const &);
+ExecuteCommand::Response_1_1 onExecuteCommand_1_1_Request_Received(ExecuteCommand::Request_1_1 const &);
 
 /**************************************************************************************
  * GLOBAL VARIABLES
@@ -134,48 +134,51 @@ ArduinoMCP2515 mcp2515([]()
 Node::Heap<Node::DEFAULT_O1HEAP_SIZE> node_heap;
 Node node_hdl(node_heap.data(), node_heap.size(), micros, [] (CanardFrame const & frame) { return mcp2515.transmit(frame); }, DEFAULT_AUX_CONTROLLER_NODE_ID);
 
-Publisher<Heartbeat_1_0<>> heartbeat_pub = node_hdl.create_publisher<Heartbeat_1_0<>>
-  (Heartbeat_1_0<>::PORT_ID, 1*1000*1000UL /* = 1 sec in usecs. */);
-Publisher<Real32_1_0<ID_INPUT_VOLTAGE>> input_voltage_pub = node_hdl.create_publisher<Real32_1_0<ID_INPUT_VOLTAGE>>
+Publisher<Heartbeat_1_0> heartbeat_pub = node_hdl.create_publisher<Heartbeat_1_0>
+  (Heartbeat_1_0::_traits_::FixedPortId, 1*1000*1000UL /* = 1 sec in usecs. */);
+Publisher<Real32_1_0> input_voltage_pub = node_hdl.create_publisher<Real32_1_0>
   (ID_INPUT_VOLTAGE, 1*1000*1000UL /* = 1 sec in usecs. */);
-Publisher<Real32_1_0<ID_INTERNAL_TEMPERATURE>> internal_temperature_pub = node_hdl.create_publisher<Real32_1_0<ID_INTERNAL_TEMPERATURE>>
+Publisher<Real32_1_0> internal_temperature_pub = node_hdl.create_publisher<Real32_1_0>
   (ID_INTERNAL_TEMPERATURE, 1*1000*1000UL /* = 1 sec in usecs. */);
-Publisher<Bit_1_0<ID_INPUT0>> input_0_pub = node_hdl.create_publisher<Bit_1_0<ID_INPUT0>>
+Publisher<Bit_1_0> input_0_pub = node_hdl.create_publisher<Bit_1_0>
   (ID_INPUT0, 1*1000*1000UL /* = 1 sec in usecs. */);
-Publisher<Bit_1_0<ID_INPUT1>> input_1_pub = node_hdl.create_publisher<Bit_1_0<ID_INPUT1>>
+Publisher<Bit_1_0> input_1_pub = node_hdl.create_publisher<Bit_1_0>
   (ID_INPUT1, 1*1000*1000UL /* = 1 sec in usecs. */);
-Publisher<Bit_1_0<ID_INPUT2>> input_2_pub = node_hdl.create_publisher<Bit_1_0<ID_INPUT2>>
+Publisher<Bit_1_0> input_2_pub = node_hdl.create_publisher<Bit_1_0>
   (ID_INPUT2, 1*1000*1000UL /* = 1 sec in usecs. */);
-Publisher<Bit_1_0<ID_INPUT3>> input_3_pub = node_hdl.create_publisher<Bit_1_0<ID_INPUT3>>
+Publisher<Bit_1_0> input_3_pub = node_hdl.create_publisher<Bit_1_0>
   (ID_INPUT3, 1*1000*1000UL /* = 1 sec in usecs. */);
-Publisher<Integer16_1_0<ID_ANALOG_INPUT0>> analog_input_0_pub = node_hdl.create_publisher<Integer16_1_0<ID_ANALOG_INPUT0>>
+Publisher<Integer16_1_0> analog_input_0_pub = node_hdl.create_publisher<Integer16_1_0>
   (ID_ANALOG_INPUT0, 1*1000*1000UL /* = 1 sec in usecs. */);
-Publisher<Integer16_1_0<ID_ANALOG_INPUT1>> analog_input_1_pub = node_hdl.create_publisher<Integer16_1_0<ID_ANALOG_INPUT1>>
+Publisher<Integer16_1_0> analog_input_1_pub = node_hdl.create_publisher<Integer16_1_0>
   (ID_ANALOG_INPUT1, 1*1000*1000UL /* = 1 sec in usecs. */);
 
 Subscription led_subscription =
-  node_hdl.create_subscription<Bit_1_0<ID_LED1>>(ID_LED1, CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC, onLed1_Received);
+  node_hdl.create_subscription<Bit_1_0>(ID_LED1, CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC, onLed1_Received);
 
-static Integer8_1_0<ID_LIGHT_MODE> light_mode_msg;
+static Integer8_1_0 light_mode_msg;
 Subscription light_mode_subscription =
-  node_hdl.create_subscription<Integer8_1_0<ID_LIGHT_MODE>>(
+  node_hdl.create_subscription<Integer8_1_0>(
     ID_LIGHT_MODE,
     CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC,
-    [&light_mode_msg](Integer8_1_0<ID_LIGHT_MODE> const & msg)
+    [&light_mode_msg](Integer8_1_0 const & msg)
     {
       light_mode_msg = msg;
     });
 
-ServiceServer execute_command_srv = node_hdl.create_service_server<ExecuteCommand_1_0::Request<>, ExecuteCommand_1_0::Response<>>(
-  ExecuteCommand_1_0::Request<>::PORT_ID,
+ServiceServer execute_command_srv = node_hdl.create_service_server<ExecuteCommand::Request_1_1, ExecuteCommand::Response_1_1>(
+  ExecuteCommand::Request_1_1::_traits_::FixedPortId,
   2*1000*1000UL,
-  onExecuteCommand_1_0_Request_Received);
+  onExecuteCommand_1_1_Request_Received);
 
 
 ServoControl servo_ctrl(SERVO0_PIN, SERVO1_PIN, node_hdl);
 DigitalOutControl digital_out_ctrl(OUTPUT0_PIN, OUTPUT1_PIN, node_hdl);
 NeoPixelControl neo_pixel_ctrl(NEOPIXEL_PIN, NEOPIXEL_NUM_PIXELS);
 
+/* REGISTER ***************************************************************************/
+
+static CanardNodeID node_id = DEFAULT_AUX_CONTROLLER_NODE_ID;
 
 static uint16_t update_period_ms_inputvoltage        =  3*1000;
 static uint16_t update_period_ms_internaltemperature = 10*1000;
@@ -187,48 +190,51 @@ static uint16_t update_period_ms_analoginput0        =     500;
 static uint16_t update_period_ms_analoginput1        =     500;
 static uint16_t update_period_ms_light               =     250;
 
-/* REGISTER ***************************************************************************/
+#if __GNUC__ >= 11
 
-static RegisterNatural8  reg_rw_cyphal_node_id                          ("cyphal.node.id",                         Register::Access::ReadWrite, Register::Persistent::No, DEFAULT_AUX_CONTROLLER_NODE_ID, [&node_hdl](uint8_t const & val) { node_hdl.setNodeId(val); });
-static RegisterString    reg_ro_cyphal_node_description                 ("cyphal.node.description",                Register::Access::ReadWrite, Register::Persistent::No, "L3X-Z AUX_CONTROLLER");
-static RegisterNatural16 reg_ro_cyphal_pub_inputvoltage_id              ("cyphal.pub.inputvoltage.id",             Register::Access::ReadOnly,  Register::Persistent::No, ID_INPUT_VOLTAGE);
-static RegisterString    reg_ro_cyphal_pub_inputvoltage_type            ("cyphal.pub.inputvoltage.type",           Register::Access::ReadOnly,  Register::Persistent::No, "cyphal.primitive.scalar.Real32.1.0");
-static RegisterNatural16 reg_ro_cyphal_pub_internaltemperature_id       ("cyphal.pub.internaltemperature.id",      Register::Access::ReadOnly,  Register::Persistent::No, ID_INTERNAL_TEMPERATURE);
-static RegisterString    reg_ro_cyphal_pub_internaltemperature_type     ("cyphal.pub.internaltemperature.type",    Register::Access::ReadOnly,  Register::Persistent::No, "cyphal.primitive.scalar.Real32.1.0");
-static RegisterNatural16 reg_ro_cyphal_pub_input0_id                    ("cyphal.pub.input0.id",                   Register::Access::ReadOnly,  Register::Persistent::No, ID_INPUT0);
-static RegisterString    reg_ro_cyphal_pub_input0_type                  ("cyphal.pub.input0.type",                 Register::Access::ReadOnly,  Register::Persistent::No, "cyphal.primitive.scalar.Bit.1.0");
-static RegisterNatural16 reg_ro_cyphal_pub_input1_id                    ("cyphal.pub.input1.id",                   Register::Access::ReadOnly,  Register::Persistent::No, ID_INPUT1);
-static RegisterString    reg_ro_cyphal_pub_input1_type                  ("cyphal.pub.input1.type",                 Register::Access::ReadOnly,  Register::Persistent::No, "cyphal.primitive.scalar.Bit.1.0");
-static RegisterNatural16 reg_ro_cyphal_pub_input2_id                    ("cyphal.pub.input2.id",                   Register::Access::ReadOnly,  Register::Persistent::No, ID_INPUT2);
-static RegisterString    reg_ro_cyphal_pub_input2_type                  ("cyphal.pub.input2.type",                 Register::Access::ReadOnly,  Register::Persistent::No, "cyphal.primitive.scalar.Bit.1.0");
-static RegisterNatural16 reg_ro_cyphal_pub_input3_id                    ("cyphal.pub.input3.id",                   Register::Access::ReadOnly,  Register::Persistent::No, ID_INPUT3);
-static RegisterString    reg_ro_cyphal_pub_input3_type                  ("cyphal.pub.input3.type",                 Register::Access::ReadOnly,  Register::Persistent::No, "cyphal.primitive.scalar.Bit.1.0");
-static RegisterNatural16 reg_ro_cyphal_pub_analoginput0_id              ("cyphal.pub.analoginput0.id",             Register::Access::ReadOnly,  Register::Persistent::No, ID_ANALOG_INPUT0);
-static RegisterString    reg_ro_cyphal_pub_analoginput0_type            ("cyphal.pub.analoginput0.type",           Register::Access::ReadOnly,  Register::Persistent::No, "cyphal.primitive.scalar.Integer16.1.0");
-static RegisterNatural16 reg_ro_cyphal_pub_analoginput1_id              ("cyphal.pub.analoginput1.id",             Register::Access::ReadOnly,  Register::Persistent::No, ID_ANALOG_INPUT1);
-static RegisterString    reg_ro_cyphal_pub_analoginput1_type            ("cyphal.pub.analoginput1.type",           Register::Access::ReadOnly,  Register::Persistent::No, "cyphal.primitive.scalar.Integer16.1.0");
-static RegisterNatural16 reg_ro_cyphal_sub_led1_id                      ("cyphal.sub.led1.id",                     Register::Access::ReadOnly,  Register::Persistent::No, ID_LED1);
-static RegisterString    reg_ro_cyphal_sub_led1_type                    ("cyphal.sub.led1.type",                   Register::Access::ReadOnly,  Register::Persistent::No, "cyphal.primitive.scalar.Bit.1.0");
-static RegisterNatural16 reg_ro_cyphal_sub_output0_id                   ("cyphal.sub.output0.id",                  Register::Access::ReadOnly,  Register::Persistent::No, ID_OUTPUT0);
-static RegisterString    reg_ro_cyphal_sub_output0_type                 ("cyphal.sub.output0.type",                Register::Access::ReadOnly,  Register::Persistent::No, "cyphal.primitive.scalar.Bit.1.0");
-static RegisterNatural16 reg_ro_cyphal_sub_output1_id                   ("cyphal.sub.output1.id",                  Register::Access::ReadOnly,  Register::Persistent::No, ID_OUTPUT1);
-static RegisterString    reg_ro_cyphal_sub_output1_type                 ("cyphal.sub.output1.type",                Register::Access::ReadOnly,  Register::Persistent::No, "cyphal.primitive.scalar.Bit.1.0");
-static RegisterNatural16 reg_ro_cyphal_sub_servo0_id                    ("cyphal.sub.servo0.id",                   Register::Access::ReadOnly,  Register::Persistent::No, ID_SERVO0);
-static RegisterString    reg_ro_cyphal_sub_servo0_type                  ("cyphal.sub.servo0.type",                 Register::Access::ReadOnly,  Register::Persistent::No, "cyphal.primitive.scalar.Integer16.1.0");
-static RegisterNatural16 reg_ro_cyphal_sub_servo1_id                    ("cyphal.sub.servo1.id",                   Register::Access::ReadOnly,  Register::Persistent::No, ID_SERVO1);
-static RegisterString    reg_ro_cyphal_sub_servo1_type                  ("cyphal.sub.servo1.type",                 Register::Access::ReadOnly,  Register::Persistent::No, "cyphal.primitive.scalar.Integer16.1.0");
-static RegisterNatural16 reg_ro_cyphal_sub_lightmode_id                 ("cyphal.sub.lightmode.id",                Register::Access::ReadOnly,  Register::Persistent::No, ID_LIGHT_MODE);
-static RegisterString    reg_ro_cyphal_sub_lightmode_type               ("cyphal.sub.lightmode.type",              Register::Access::ReadOnly,  Register::Persistent::No, "cyphal.primitive.scalar.Integer8.1.0");
-static RegisterNatural16 reg_rw_aux_update_period_ms_inputvoltage       ("aux.update_period_ms.inputvoltage",        Register::Access::ReadWrite, Register::Persistent::No, update_period_ms_inputvoltage,        nullptr, nullptr , [](uint16_t const & val) { return std::min(val, static_cast<uint16_t>(100)); });
-static RegisterNatural16 reg_rw_aux_update_period_ms_internaltemperature("aux.update_period_ms.internaltemperature", Register::Access::ReadWrite, Register::Persistent::No, update_period_ms_internaltemperature, nullptr, nullptr , [](uint16_t const & val) { return std::min(val, static_cast<uint16_t>(100)); });
-static RegisterNatural16 reg_rw_aux_update_period_ms_input0             ("aux.update_period_ms.input0",              Register::Access::ReadWrite, Register::Persistent::No, update_period_ms_input0,              nullptr, nullptr , [](uint16_t const & val) { return std::min(val, static_cast<uint16_t>(100)); });
-static RegisterNatural16 reg_rw_aux_update_period_ms_input1             ("aux.update_period_ms.input1",              Register::Access::ReadWrite, Register::Persistent::No, update_period_ms_input1,              nullptr, nullptr , [](uint16_t const & val) { return std::min(val, static_cast<uint16_t>(100)); });
-static RegisterNatural16 reg_rw_aux_update_period_ms_input2             ("aux.update_period_ms.input2",              Register::Access::ReadWrite, Register::Persistent::No, update_period_ms_input2,              nullptr, nullptr , [](uint16_t const & val) { return std::min(val, static_cast<uint16_t>(100)); });
-static RegisterNatural16 reg_rw_aux_update_period_ms_input3             ("aux.update_period_ms.input3",              Register::Access::ReadWrite, Register::Persistent::No, update_period_ms_input3,              nullptr, nullptr , [](uint16_t const & val) { return std::min(val, static_cast<uint16_t>(100)); });
-static RegisterNatural16 reg_rw_aux_update_period_ms_analoginput0       ("aux.update_period_ms.analoginput0",        Register::Access::ReadWrite, Register::Persistent::No, update_period_ms_analoginput0,        nullptr, nullptr , [](uint16_t const & val) { return std::min(val, static_cast<uint16_t>(100)); });
-static RegisterNatural16 reg_rw_aux_update_period_ms_analoginput1       ("aux.update_period_ms.analoginput1",        Register::Access::ReadWrite, Register::Persistent::No, update_period_ms_analoginput1,        nullptr, nullptr , [](uint16_t const & val) { return std::min(val, static_cast<uint16_t>(100)); });
-static RegisterNatural16 reg_rw_aux_update_period_ms_light              ("aux.update_period_ms.light",               Register::Access::ReadWrite, Register::Persistent::No, update_period_ms_light,               nullptr, nullptr , [](uint16_t const & val) { return std::min(val, static_cast<uint16_t>(100)); });
-static RegisterList      reg_list(node_hdl);
+Registry reg(node_hdl, micros);
+
+const auto reg_rw_cyphal_node_id                           = reg.expose("cyphal.node.id", node_id);
+const auto reg_ro_cyphal_node_description                  = reg.route ("cyphal.node.description",             {true}, []() { return "L3X-Z AUX_CONTROLLER"; });
+const auto reg_ro_cyphal_pub_inputvoltage_id               = reg.route ("cyphal.pub.inputvoltage.id",          {true}, []() { return ID_INPUT_VOLTAGE; });
+const auto reg_ro_cyphal_pub_inputvoltage_type             = reg.route ("cyphal.pub.inputvoltage.type",        {true}, []() { return "cyphal.primitive.scalar.Real32.1.0"; });
+const auto reg_ro_cyphal_pub_internaltemperature_id        = reg.route ("cyphal.pub.internaltemperature.id",   {true}, []() { return ID_INTERNAL_TEMPERATURE; });
+const auto reg_ro_cyphal_pub_internaltemperature_type      = reg.route ("cyphal.pub.internaltemperature.type", {true}, []() { return "cyphal.primitive.scalar.Real32.1.0" });
+const auto reg_ro_cyphal_pub_input0_id                     = reg.route ("cyphal.pub.input0.id",                {true}, []() { return ID_INPUT0; });
+const auto reg_ro_cyphal_pub_input0_type                   = reg.route ("cyphal.pub.input0.type",              {true}, []() { return "cyphal.primitive.scalar.Bit.1.0"; });
+const auto reg_ro_cyphal_pub_input1_id                     = reg.route ("cyphal.pub.input1.id",                {true}, []() { return ID_INPUT1; });
+const auto reg_ro_cyphal_pub_input1_type                   = reg.route ("cyphal.pub.input1.type",              {true}, []() { return "cyphal.primitive.scalar.Bit.1.0"; });
+const auto reg_ro_cyphal_pub_input2_id                     = reg.route ("cyphal.pub.input2.id",                {true}, []() { return ID_INPUT2; });
+const auto reg_ro_cyphal_pub_input2_type                   = reg.route ("cyphal.pub.input2.type",              {true}, []() { return "cyphal.primitive.scalar.Bit.1.0"; });
+const auto reg_ro_cyphal_pub_input3_id                     = reg.route ("cyphal.pub.input3.id",                {true}, []() { return ID_INPUT3; });
+const auto reg_ro_cyphal_pub_input3_type                   = reg.route ("cyphal.pub.input3.type",              {true}, []() { return "cyphal.primitive.scalar.Bit.1.0"; });
+const auto reg_ro_cyphal_pub_analoginput0_id               = reg.route ("cyphal.pub.analoginput0.id",          {true}, []() { return ID_ANALOG_INPUT0; });
+const auto reg_ro_cyphal_pub_analoginput0_type             = reg.route ("cyphal.pub.analoginput0.type",        {true}, []() { return "cyphal.primitive.scalar.Integer16.1.0"; });
+const auto reg_ro_cyphal_pub_analoginput1_id               = reg.route ("cyphal.pub.analoginput1.id",          {true}, []() { return ID_ANALOG_INPUT1; });
+const auto reg_ro_cyphal_pub_analoginput1_type             = reg.route ("cyphal.pub.analoginput1.type",        {true}, []() { return "cyphal.primitive.scalar.Integer16.1.0"; });
+const auto reg_ro_cyphal_sub_led1_id                       = reg.route ("cyphal.sub.led1.id",                  {true}, []() { return ID_LED1; });
+const auto reg_ro_cyphal_sub_led1_type                     = reg.route ("cyphal.sub.led1.type",                {true}, []() { return "cyphal.primitive.scalar.Bit.1.0"; });
+const auto reg_ro_cyphal_sub_output0_id                    = reg.route ("cyphal.sub.output0.id",               {true}, []() { return ID_OUTPUT0; });
+const auto reg_ro_cyphal_sub_output0_type                  = reg.route ("cyphal.sub.output0.type",             {true}, []() { return "cyphal.primitive.scalar.Bit.1.0"; });
+const auto reg_ro_cyphal_sub_output1_id                    = reg.route ("cyphal.sub.output1.id",               {true}, []() { return ID_OUTPUT1; });
+const auto reg_ro_cyphal_sub_output1_type                  = reg.route ("cyphal.sub.output1.type",             {true}, []() { return "cyphal.primitive.scalar.Bit.1.0"; });
+const auto reg_ro_cyphal_sub_servo0_id                     = reg.route ("cyphal.sub.servo0.id",                {true}, []() { return ID_SERVO0; });
+const auto reg_ro_cyphal_sub_servo0_type                   = reg.route ("cyphal.sub.servo0.type",              {true}, []() { return "cyphal.primitive.scalar.Integer16.1.0"; });
+const auto reg_ro_cyphal_sub_servo1_id                     = reg.route ("cyphal.sub.servo1.id",                {true}, []() { return ID_SERVO1; });
+const auto reg_ro_cyphal_sub_servo1_type                   = reg.route ("cyphal.sub.servo1.type",              {true}, []() { return "cyphal.primitive.scalar.Integer16.1.0"; });
+const auto reg_ro_cyphal_sub_lightmode_id                  = reg.route ("cyphal.sub.lightmode.id",             {true}, []() { return ID_LIGHT_MODE; });
+const auto reg_ro_cyphal_sub_lightmode_type                = reg.route ("cyphal.sub.lightmode.type",           {true}, []() { return "cyphal.primitive.scalar.Integer8.1.0"; });
+const auto reg_rw_aux_update_period_ms_inputvoltage        = reg.expose("aux.update_period_ms.inputvoltage", update_period_ms_inputvoltage);
+const auto reg_rw_aux_update_period_ms_internaltemperature = reg.expose("aux.update_period_ms.internaltemperature", update_period_ms_internaltemperature);
+const auto reg_rw_aux_update_period_ms_input0              = reg.expose("aux.update_period_ms.input0", update_period_ms_input0);
+const auto reg_rw_aux_update_period_ms_input1              = reg.expose("aux.update_period_ms.input1", update_period_ms_input1);
+const auto reg_rw_aux_update_period_ms_input2              = reg.expose("aux.update_period_ms.input2", update_period_ms_input2);
+const auto reg_rw_aux_update_period_ms_input3              = reg.expose("aux.update_period_ms.input3", update_period_ms_input3);
+const auto reg_rw_aux_update_period_ms_analoginput0        = reg.expose("aux.update_period_ms.analoginput0", update_period_ms_analoginput0);
+const auto reg_rw_aux_update_period_ms_analoginput1        = reg.expose("aux.update_period_ms.analoginput1", update_period_ms_analoginput1);
+const auto reg_rw_aux_update_period_ms_light               = reg.expose("aux.update_period_ms.light", update_period_ms_light);
+
+#endif /* __GNUC__ >= 11 */
 
 /* NODE INFO **************************************************************************/
 
@@ -248,8 +254,6 @@ static NodeInfo node_info
   /* saturated uint8[<=50] name */
   "107-systems.l3xz-fw_aux-controller"
 );
-
-Heartbeat_1_0<> hb_msg;
 
 /**************************************************************************************
  * SETUP/LOOP
@@ -291,54 +295,7 @@ void setup()
   mcp2515.setNormalMode();
 
   /* Configure initial heartbeat */
-  light_mode_msg.data.value = LIGHT_MODE_RUN_BLUE;
-
-  hb_msg.data.uptime = 0;
-  hb_msg.data.health.value = uavcan_node_Health_1_0_NOMINAL;
-  hb_msg.data.mode.value = uavcan_node_Mode_1_0_INITIALIZATION;
-  hb_msg.data.vendor_specific_status_code = 0;
-
-  /* Register callbacks.
-   */
-  reg_list.add(reg_rw_cyphal_node_id);
-  reg_list.add(reg_ro_cyphal_node_description);
-  reg_list.add(reg_ro_cyphal_pub_inputvoltage_id);
-  reg_list.add(reg_ro_cyphal_pub_internaltemperature_id);
-  reg_list.add(reg_ro_cyphal_pub_input0_id);
-  reg_list.add(reg_ro_cyphal_pub_input1_id);
-  reg_list.add(reg_ro_cyphal_pub_input2_id);
-  reg_list.add(reg_ro_cyphal_pub_input3_id);
-  reg_list.add(reg_ro_cyphal_pub_analoginput0_id);
-  reg_list.add(reg_ro_cyphal_pub_analoginput1_id);
-  reg_list.add(reg_ro_cyphal_sub_led1_id);
-  reg_list.add(reg_ro_cyphal_sub_output0_id);
-  reg_list.add(reg_ro_cyphal_sub_output1_id);
-  reg_list.add(reg_ro_cyphal_sub_servo0_id);
-  reg_list.add(reg_ro_cyphal_sub_servo1_id);
-  reg_list.add(reg_ro_cyphal_sub_lightmode_id);
-  reg_list.add(reg_ro_cyphal_pub_inputvoltage_type);
-  reg_list.add(reg_ro_cyphal_pub_internaltemperature_type);
-  reg_list.add(reg_ro_cyphal_pub_input0_type);
-  reg_list.add(reg_ro_cyphal_pub_input1_type);
-  reg_list.add(reg_ro_cyphal_pub_input2_type);
-  reg_list.add(reg_ro_cyphal_pub_input3_type);
-  reg_list.add(reg_ro_cyphal_pub_analoginput0_type);
-  reg_list.add(reg_ro_cyphal_pub_analoginput1_type);
-  reg_list.add(reg_ro_cyphal_sub_led1_type);
-  reg_list.add(reg_ro_cyphal_sub_output0_type);
-  reg_list.add(reg_ro_cyphal_sub_output1_type);
-  reg_list.add(reg_ro_cyphal_sub_servo0_type);
-  reg_list.add(reg_ro_cyphal_sub_servo1_type);
-  reg_list.add(reg_ro_cyphal_sub_lightmode_type);
-  reg_list.add(reg_rw_aux_update_period_ms_inputvoltage);
-  reg_list.add(reg_rw_aux_update_period_ms_internaltemperature);
-  reg_list.add(reg_rw_aux_update_period_ms_input0);
-  reg_list.add(reg_rw_aux_update_period_ms_input1);
-  reg_list.add(reg_rw_aux_update_period_ms_input2);
-  reg_list.add(reg_rw_aux_update_period_ms_input3);
-  reg_list.add(reg_rw_aux_update_period_ms_analoginput0);
-  reg_list.add(reg_rw_aux_update_period_ms_analoginput1);
-  reg_list.add(reg_rw_aux_update_period_ms_light);
+  light_mode_msg.value = LIGHT_MODE_RUN_BLUE;
 
   neo_pixel_ctrl.light_red();
   delay(100);
@@ -404,19 +361,19 @@ void loop()
     running_light_counter ++;
     if(running_light_counter>=8) running_light_counter=0;
 
-    if      (light_mode_msg.data.value == LIGHT_MODE_RED)
+    if      (light_mode_msg.value == LIGHT_MODE_RED)
       neo_pixel_ctrl.light_red();
-    else if (light_mode_msg.data.value == LIGHT_MODE_GREEN)
+    else if (light_mode_msg.value == LIGHT_MODE_GREEN)
       neo_pixel_ctrl.light_green();
-    else if (light_mode_msg.data.value == LIGHT_MODE_BLUE)
+    else if (light_mode_msg.value == LIGHT_MODE_BLUE)
       neo_pixel_ctrl.light_blue();
-    else if (light_mode_msg.data.value == LIGHT_MODE_WHITE)
+    else if (light_mode_msg.value == LIGHT_MODE_WHITE)
       neo_pixel_ctrl.light_white();
-    else if (light_mode_msg.data.value == LIGHT_MODE_AMBER)
+    else if (light_mode_msg.value == LIGHT_MODE_AMBER)
       neo_pixel_ctrl.light_amber();
-    else if (light_mode_msg.data.value == LIGHT_MODE_RUN_RED||light_mode_msg.data.value == LIGHT_MODE_RUN_GREEN||light_mode_msg.data.value == LIGHT_MODE_RUN_BLUE||light_mode_msg.data.value == LIGHT_MODE_RUN_WHITE||light_mode_msg.data.value == LIGHT_MODE_RUN_AMBER)
+    else if (light_mode_msg.value == LIGHT_MODE_RUN_RED||light_mode_msg.value == LIGHT_MODE_RUN_GREEN||light_mode_msg.value == LIGHT_MODE_RUN_BLUE||light_mode_msg.value == LIGHT_MODE_RUN_WHITE||light_mode_msg.value == LIGHT_MODE_RUN_AMBER)
     {
-      if (light_mode_msg.data.value == LIGHT_MODE_RUN_RED)
+      if (light_mode_msg.value == LIGHT_MODE_RUN_RED)
       {
         neo_pixel_ctrl.pixels().setPixelColor(running_light_counter,       neo_pixel_ctrl.pixels().Color(55, 0, 0));
         neo_pixel_ctrl.pixels().setPixelColor((running_light_counter+7)%8, neo_pixel_ctrl.pixels().Color(27, 0, 0));
@@ -425,7 +382,7 @@ void loop()
         neo_pixel_ctrl.pixels().setPixelColor((running_light_counter+4)%8, neo_pixel_ctrl.pixels().Color(0, 0, 0));
         neo_pixel_ctrl.pixels().show();
       }
-      else if (light_mode_msg.data.value == LIGHT_MODE_RUN_GREEN)
+      else if (light_mode_msg.value == LIGHT_MODE_RUN_GREEN)
       {
         neo_pixel_ctrl.pixels().setPixelColor(running_light_counter,       neo_pixel_ctrl.pixels().Color(0, 55, 0));
         neo_pixel_ctrl.pixels().setPixelColor((running_light_counter+7)%8, neo_pixel_ctrl.pixels().Color(0, 27, 0));
@@ -434,7 +391,7 @@ void loop()
         neo_pixel_ctrl.pixels().setPixelColor((running_light_counter+4)%8, neo_pixel_ctrl.pixels().Color(0, 0, 0));
         neo_pixel_ctrl.pixels().show();
       }
-      else if (light_mode_msg.data.value == LIGHT_MODE_RUN_BLUE)
+      else if (light_mode_msg.value == LIGHT_MODE_RUN_BLUE)
       {
         neo_pixel_ctrl.pixels().setPixelColor(running_light_counter,       neo_pixel_ctrl.pixels().Color(0, 0, 55));
         neo_pixel_ctrl.pixels().setPixelColor((running_light_counter+7)%8, neo_pixel_ctrl.pixels().Color(0, 0, 27));
@@ -443,7 +400,7 @@ void loop()
         neo_pixel_ctrl.pixels().setPixelColor((running_light_counter+4)%8, neo_pixel_ctrl.pixels().Color(0, 0, 0));
         neo_pixel_ctrl.pixels().show();
       }
-      else if (light_mode_msg.data.value == LIGHT_MODE_RUN_WHITE)
+      else if (light_mode_msg.value == LIGHT_MODE_RUN_WHITE)
       {
         neo_pixel_ctrl.pixels().setPixelColor(running_light_counter,       neo_pixel_ctrl.pixels().Color(55, 55, 55));
         neo_pixel_ctrl.pixels().setPixelColor((running_light_counter+7)%8, neo_pixel_ctrl.pixels().Color(27, 27, 27));
@@ -452,7 +409,7 @@ void loop()
         neo_pixel_ctrl.pixels().setPixelColor((running_light_counter+4)%8, neo_pixel_ctrl.pixels().Color(0, 0, 0));
         neo_pixel_ctrl.pixels().show();
       }
-      else if (light_mode_msg.data.value == LIGHT_MODE_RUN_AMBER)
+      else if (light_mode_msg.value == LIGHT_MODE_RUN_AMBER)
       {
         neo_pixel_ctrl.pixels().setPixelColor(running_light_counter,       neo_pixel_ctrl.pixels().Color(55, 40, 0));
         neo_pixel_ctrl.pixels().setPixelColor((running_light_counter+7)%8, neo_pixel_ctrl.pixels().Color(27, 20, 0));
@@ -462,15 +419,15 @@ void loop()
         neo_pixel_ctrl.pixels().show();
       }
     }
-    else if (is_light_on&&(light_mode_msg.data.value == LIGHT_MODE_BLINK_RED||light_mode_msg.data.value == LIGHT_MODE_BLINK_GREEN||light_mode_msg.data.value == LIGHT_MODE_BLINK_BLUE||light_mode_msg.data.value == LIGHT_MODE_BLINK_WHITE||light_mode_msg.data.value == LIGHT_MODE_BLINK_AMBER))
+    else if (is_light_on&&(light_mode_msg.value == LIGHT_MODE_BLINK_RED||light_mode_msg.value == LIGHT_MODE_BLINK_GREEN||light_mode_msg.value == LIGHT_MODE_BLINK_BLUE||light_mode_msg.value == LIGHT_MODE_BLINK_WHITE||light_mode_msg.value == LIGHT_MODE_BLINK_AMBER))
     {
-      if (light_mode_msg.data.value == LIGHT_MODE_BLINK_GREEN)
+      if (light_mode_msg.value == LIGHT_MODE_BLINK_GREEN)
         neo_pixel_ctrl.light_green();
-      else if (light_mode_msg.data.value == LIGHT_MODE_BLINK_BLUE)
+      else if (light_mode_msg.value == LIGHT_MODE_BLINK_BLUE)
         neo_pixel_ctrl.light_blue();
-      else if (light_mode_msg.data.value == LIGHT_MODE_BLINK_WHITE)
+      else if (light_mode_msg.value == LIGHT_MODE_BLINK_WHITE)
         neo_pixel_ctrl.light_white();
-      else if (light_mode_msg.data.value == LIGHT_MODE_BLINK_AMBER)
+      else if (light_mode_msg.value == LIGHT_MODE_BLINK_AMBER)
         neo_pixel_ctrl.light_amber();
       else
         neo_pixel_ctrl.light_red();
@@ -481,13 +438,18 @@ void loop()
     prev_led = now;
   }
 
-  /* Update the heartbeat object */
-  hb_msg.data.uptime = millis() / 1000;
-  hb_msg.data.mode.value = uavcan_node_Mode_1_0_OPERATIONAL;
-
   /* Publish the heartbeat once/second */
-  if(now - prev_hearbeat > 1000) {
-    heartbeat_pub->publish(hb_msg);
+  if(now - prev_hearbeat > 1000)
+  {
+    Heartbeat_1_0 msg;
+
+    msg.uptime = millis() / 1000;
+    msg.health.value = uavcan::node::Health_1_0::NOMINAL;
+    msg.mode.value = uavcan::node::Mode_1_0::OPERATIONAL;
+    msg.vendor_specific_status_code = 0;
+
+    heartbeat_pub->publish(msg);
+
     prev_hearbeat = now;
   }
   if((now - prev_battery_voltage) > (update_period_ms_inputvoltage))
@@ -495,9 +457,11 @@ void loop()
     float const analog = analogRead(ANALOG_PIN)*3.3*11.0/1023.0;
     Serial.print("Analog Pin: ");
     Serial.println(analog);
-    Real32_1_0<ID_INPUT_VOLTAGE> uavcan_input_voltage;
-    uavcan_input_voltage.data.value = analog;
+
+    Real32_1_0 uavcan_input_voltage;
+    uavcan_input_voltage.value = analog;
     input_voltage_pub->publish(uavcan_input_voltage);
+
     prev_battery_voltage = now;
   }
   if((now - prev_internal_temperature) > (update_period_ms_internaltemperature))
@@ -505,53 +469,61 @@ void loop()
     float const temperature = analogReadTemp();
     Serial.print("Temperature: ");
     Serial.println(temperature);
-    Real32_1_0<ID_INTERNAL_TEMPERATURE> uavcan_internal_temperature;
-    uavcan_internal_temperature.data.value = temperature;
+
+    Real32_1_0 uavcan_internal_temperature;
+    uavcan_internal_temperature.value = temperature;
     internal_temperature_pub->publish(uavcan_internal_temperature);
+
     prev_internal_temperature = now;
   }
 
   /* Handling of inputs */
   if((now - prev_input0) > update_period_ms_input0)
   {
-    Bit_1_0<ID_INPUT0> uavcan_input0;
-    uavcan_input0.data.value = digitalRead(INPUT0_PIN);
+    Bit_1_0 uavcan_input0;
+    uavcan_input0.value = digitalRead(INPUT0_PIN);
     input_0_pub->publish(uavcan_input0);
+
     prev_input0 = now;
   }
   if((now - prev_input1) > update_period_ms_input1)
   {
-    Bit_1_0<ID_INPUT1> uavcan_input1;
-    uavcan_input1.data.value = digitalRead(INPUT1_PIN);
+    Bit_1_0 uavcan_input1;
+    uavcan_input1.value = digitalRead(INPUT1_PIN);
     input_1_pub->publish(uavcan_input1);
+
     prev_input1 = now;
   }
   if((now - prev_input2) > update_period_ms_input2)
   {
-    Bit_1_0<ID_INPUT2> uavcan_input2;
-    uavcan_input2.data.value = digitalRead(INPUT2_PIN);
+    Bit_1_0 uavcan_input2;
+    uavcan_input2.value = digitalRead(INPUT2_PIN);
     input_2_pub->publish(uavcan_input2);
+
     prev_input2 = now;
   }
   if((now - prev_input3) > update_period_ms_input3)
   {
-    Bit_1_0<ID_INPUT3> uavcan_input3;
-    uavcan_input3.data.value = digitalRead(INPUT3_PIN);
+    Bit_1_0 uavcan_input3;
+    uavcan_input3.value = digitalRead(INPUT3_PIN);
     input_3_pub->publish(uavcan_input3);
+
     prev_input3 = now;
   }
   if((now - prev_analog_input0) > update_period_ms_analoginput0)
   {
-    Integer16_1_0<ID_ANALOG_INPUT0> uavcan_analog_input0;
-    uavcan_analog_input0.data.value = analogRead(ANALOG_INPUT0_PIN);
+    Integer16_1_0 uavcan_analog_input0;
+    uavcan_analog_input0.value = analogRead(ANALOG_INPUT0_PIN);
     analog_input_0_pub->publish(uavcan_analog_input0);
+
     prev_analog_input0 = now;
   }
   if((now - prev_analog_input1) > update_period_ms_analoginput1)
   {
-    Integer16_1_0<ID_ANALOG_INPUT1> uavcan_analog_input1;
-    uavcan_analog_input1.data.value = analogRead(ANALOG_INPUT1_PIN);
+    Integer16_1_0 uavcan_analog_input1;
+    uavcan_analog_input1.value = analogRead(ANALOG_INPUT1_PIN);
     analog_input_1_pub->publish(uavcan_analog_input1);
+
     prev_analog_input1 = now;
   }
 }
@@ -565,9 +537,9 @@ void onReceiveBufferFull(CanardFrame const & frame)
   node_hdl.onCanFrameReceived(frame);
 }
 
-void onLed1_Received(Bit_1_0<ID_LED1> const & msg)
+void onLed1_Received(Bit_1_0 const & msg)
 {
-  if(msg.data.value)
+  if(msg.value)
   {
     digitalWrite(LED_BUILTIN, HIGH);
     Serial.println("Received Bit1: true");
@@ -579,35 +551,35 @@ void onLed1_Received(Bit_1_0<ID_LED1> const & msg)
   }
 }
 
-ExecuteCommand_1_0::Response<> onExecuteCommand_1_0_Request_Received(ExecuteCommand_1_0::Request<> const & req)
+ExecuteCommand::Response_1_1 onExecuteCommand_1_1_Request_Received(ExecuteCommand::Request_1_1 const & req)
 {
-  ExecuteCommand_1_0::Response<> rsp;
+  ExecuteCommand::Response_1_1 rsp;
 
   Serial.print("onExecuteCommand_1_1_Request_Received: ");
-  Serial.println(req.data.command);
+  Serial.println(req.command);
 
-  if (req.data.command == uavcan_node_ExecuteCommand_Request_1_1_COMMAND_RESTART)
+  if (req.command == ExecuteCommand::Request_1_1::COMMAND_RESTART)
   {
     /* Send the response. */
-    rsp.data.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_SUCCESS;
+    rsp.status = ExecuteCommand::Response_1_1::STATUS_SUCCESS;
     watchdog_reboot(0,0,1000);
   }
-  else if (req.data.command == uavcan_node_ExecuteCommand_Request_1_1_COMMAND_POWER_OFF)
+  else if (req.command == ExecuteCommand::Request_1_1::COMMAND_POWER_OFF)
   {
     /* Send the response. */
-    rsp.data.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_SUCCESS;
+    rsp.status = ExecuteCommand::Response_1_1::STATUS_SUCCESS;
 
     digitalWrite(LED2_PIN, HIGH);
     digitalWrite(LED3_PIN, HIGH);
     neo_pixel_ctrl.light_off();
   }
-  else if (req.data.command == uavcan_node_ExecuteCommand_Request_1_1_COMMAND_BEGIN_SOFTWARE_UPDATE)
+  else if (req.command == ExecuteCommand::Request_1_1::COMMAND_BEGIN_SOFTWARE_UPDATE)
   {
     /* Send the response. */
-    rsp.data.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_BAD_COMMAND;
+    rsp.status = ExecuteCommand::Response_1_1::STATUS_BAD_COMMAND;
     /* not implemented yet */
   }
-  else if (req.data.command == uavcan_node_ExecuteCommand_Request_1_1_COMMAND_FACTORY_RESET)
+  else if (req.command == ExecuteCommand::Request_1_1::COMMAND_FACTORY_RESET)
   {
     /* set factory settings */
     update_period_ms_inputvoltage=3*1000;
@@ -621,24 +593,24 @@ ExecuteCommand_1_0::Response<> onExecuteCommand_1_0_Request_Received(ExecuteComm
     update_period_ms_light=250;
 
     /* Send the response. */
-    rsp.data.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_SUCCESS;
+    rsp.status = ExecuteCommand::Response_1_1::STATUS_SUCCESS;
   }
-  else if (req.data.command == uavcan_node_ExecuteCommand_Request_1_1_COMMAND_EMERGENCY_STOP)
+  else if (req.command == ExecuteCommand::Request_1_1::COMMAND_EMERGENCY_STOP)
   {
     /* Send the response. */
-    rsp.data.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_BAD_COMMAND;
+    rsp.status = ExecuteCommand::Response_1_1::STATUS_BAD_COMMAND;
     /* not implemented yet */
   }
-  else if (req.data.command == uavcan_node_ExecuteCommand_Request_1_1_COMMAND_STORE_PERSISTENT_STATES)
+  else if (req.command == ExecuteCommand::Request_1_1::COMMAND_STORE_PERSISTENT_STATES)
   {
     /* Send the response. */
-    rsp.data.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_BAD_COMMAND;
+    rsp.status = ExecuteCommand::Response_1_1::STATUS_BAD_COMMAND;
     /* not implemented yet */
   }
   else
   {
     /* Send the response. */
-    rsp.data.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_BAD_COMMAND;
+    rsp.status = ExecuteCommand::Response_1_1::STATUS_BAD_COMMAND;
   }
 
   return rsp;
