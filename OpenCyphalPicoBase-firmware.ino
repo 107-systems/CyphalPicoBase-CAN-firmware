@@ -248,7 +248,11 @@ static NodeInfo node_info
   /* cyphal.node.Version.1.0 software_version */
   0, 1,
   /* saturated uint64 software_vcs_revision_id */
+#ifdef CYPHAL_NODE_INFO_GIT_VERSION
+  CYPHAL_NODE_INFO_GIT_VERSION,
+#else
   0,
+#endif
   /* saturated uint8[16] unique_id */
   OpenCyphalUniqueId(),
   /* saturated uint8[<=50] name */
