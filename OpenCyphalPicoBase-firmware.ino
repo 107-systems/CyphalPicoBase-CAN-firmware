@@ -116,7 +116,6 @@ ExecuteCommand::Response_1_1 onExecuteCommand_1_1_Request_Received(ExecuteComman
 
 ArduinoMCP2515 mcp2515([]()
                        {
-                         noInterrupts();
                          SPI.beginTransaction(MCP2515x_SPI_SETTING);
                          digitalWrite(MCP2515_CS_PIN, LOW);
                        },
@@ -124,7 +123,6 @@ ArduinoMCP2515 mcp2515([]()
                        {
                          digitalWrite(MCP2515_CS_PIN, HIGH);
                          SPI.endTransaction();
-                         interrupts();
                        },
                        [](uint8_t const d) { return SPI.transfer(d); },
                        micros,
@@ -192,72 +190,49 @@ static uint16_t update_period_ms_light               =     250;
 
 #if __GNUC__ >= 11
 
-Registry reg(node_hdl, micros);
+Registry node_registry(node_hdl, micros);
 
-const auto reg_rw_cyphal_node_id                           = reg.expose("cyphal.node.id", node_id);
-const auto reg_ro_cyphal_node_description                  = reg.route ("cyphal.node.description",             {true}, []() { return "L3X-Z AUX_CONTROLLER"; });
-const auto reg_ro_cyphal_pub_inputvoltage_id               = reg.route ("cyphal.pub.inputvoltage.id",          {true}, []() { return ID_INPUT_VOLTAGE; });
-const auto reg_ro_cyphal_pub_inputvoltage_type             = reg.route ("cyphal.pub.inputvoltage.type",        {true}, []() { return "cyphal.primitive.scalar.Real32.1.0"; });
-const auto reg_ro_cyphal_pub_internaltemperature_id        = reg.route ("cyphal.pub.internaltemperature.id",   {true}, []() { return ID_INTERNAL_TEMPERATURE; });
-const auto reg_ro_cyphal_pub_internaltemperature_type      = reg.route ("cyphal.pub.internaltemperature.type", {true}, []() { return "cyphal.primitive.scalar.Real32.1.0" });
-const auto reg_ro_cyphal_pub_input0_id                     = reg.route ("cyphal.pub.input0.id",                {true}, []() { return ID_INPUT0; });
-const auto reg_ro_cyphal_pub_input0_type                   = reg.route ("cyphal.pub.input0.type",              {true}, []() { return "cyphal.primitive.scalar.Bit.1.0"; });
-const auto reg_ro_cyphal_pub_input1_id                     = reg.route ("cyphal.pub.input1.id",                {true}, []() { return ID_INPUT1; });
-const auto reg_ro_cyphal_pub_input1_type                   = reg.route ("cyphal.pub.input1.type",              {true}, []() { return "cyphal.primitive.scalar.Bit.1.0"; });
-const auto reg_ro_cyphal_pub_input2_id                     = reg.route ("cyphal.pub.input2.id",                {true}, []() { return ID_INPUT2; });
-const auto reg_ro_cyphal_pub_input2_type                   = reg.route ("cyphal.pub.input2.type",              {true}, []() { return "cyphal.primitive.scalar.Bit.1.0"; });
-const auto reg_ro_cyphal_pub_input3_id                     = reg.route ("cyphal.pub.input3.id",                {true}, []() { return ID_INPUT3; });
-const auto reg_ro_cyphal_pub_input3_type                   = reg.route ("cyphal.pub.input3.type",              {true}, []() { return "cyphal.primitive.scalar.Bit.1.0"; });
-const auto reg_ro_cyphal_pub_analoginput0_id               = reg.route ("cyphal.pub.analoginput0.id",          {true}, []() { return ID_ANALOG_INPUT0; });
-const auto reg_ro_cyphal_pub_analoginput0_type             = reg.route ("cyphal.pub.analoginput0.type",        {true}, []() { return "cyphal.primitive.scalar.Integer16.1.0"; });
-const auto reg_ro_cyphal_pub_analoginput1_id               = reg.route ("cyphal.pub.analoginput1.id",          {true}, []() { return ID_ANALOG_INPUT1; });
-const auto reg_ro_cyphal_pub_analoginput1_type             = reg.route ("cyphal.pub.analoginput1.type",        {true}, []() { return "cyphal.primitive.scalar.Integer16.1.0"; });
-const auto reg_ro_cyphal_sub_led1_id                       = reg.route ("cyphal.sub.led1.id",                  {true}, []() { return ID_LED1; });
-const auto reg_ro_cyphal_sub_led1_type                     = reg.route ("cyphal.sub.led1.type",                {true}, []() { return "cyphal.primitive.scalar.Bit.1.0"; });
-const auto reg_ro_cyphal_sub_output0_id                    = reg.route ("cyphal.sub.output0.id",               {true}, []() { return ID_OUTPUT0; });
-const auto reg_ro_cyphal_sub_output0_type                  = reg.route ("cyphal.sub.output0.type",             {true}, []() { return "cyphal.primitive.scalar.Bit.1.0"; });
-const auto reg_ro_cyphal_sub_output1_id                    = reg.route ("cyphal.sub.output1.id",               {true}, []() { return ID_OUTPUT1; });
-const auto reg_ro_cyphal_sub_output1_type                  = reg.route ("cyphal.sub.output1.type",             {true}, []() { return "cyphal.primitive.scalar.Bit.1.0"; });
-const auto reg_ro_cyphal_sub_servo0_id                     = reg.route ("cyphal.sub.servo0.id",                {true}, []() { return ID_SERVO0; });
-const auto reg_ro_cyphal_sub_servo0_type                   = reg.route ("cyphal.sub.servo0.type",              {true}, []() { return "cyphal.primitive.scalar.Integer16.1.0"; });
-const auto reg_ro_cyphal_sub_servo1_id                     = reg.route ("cyphal.sub.servo1.id",                {true}, []() { return ID_SERVO1; });
-const auto reg_ro_cyphal_sub_servo1_type                   = reg.route ("cyphal.sub.servo1.type",              {true}, []() { return "cyphal.primitive.scalar.Integer16.1.0"; });
-const auto reg_ro_cyphal_sub_lightmode_id                  = reg.route ("cyphal.sub.lightmode.id",             {true}, []() { return ID_LIGHT_MODE; });
-const auto reg_ro_cyphal_sub_lightmode_type                = reg.route ("cyphal.sub.lightmode.type",           {true}, []() { return "cyphal.primitive.scalar.Integer8.1.0"; });
-const auto reg_rw_aux_update_period_ms_inputvoltage        = reg.expose("aux.update_period_ms.inputvoltage", update_period_ms_inputvoltage);
-const auto reg_rw_aux_update_period_ms_internaltemperature = reg.expose("aux.update_period_ms.internaltemperature", update_period_ms_internaltemperature);
-const auto reg_rw_aux_update_period_ms_input0              = reg.expose("aux.update_period_ms.input0", update_period_ms_input0);
-const auto reg_rw_aux_update_period_ms_input1              = reg.expose("aux.update_period_ms.input1", update_period_ms_input1);
-const auto reg_rw_aux_update_period_ms_input2              = reg.expose("aux.update_period_ms.input2", update_period_ms_input2);
-const auto reg_rw_aux_update_period_ms_input3              = reg.expose("aux.update_period_ms.input3", update_period_ms_input3);
-const auto reg_rw_aux_update_period_ms_analoginput0        = reg.expose("aux.update_period_ms.analoginput0", update_period_ms_analoginput0);
-const auto reg_rw_aux_update_period_ms_analoginput1        = reg.expose("aux.update_period_ms.analoginput1", update_period_ms_analoginput1);
-const auto reg_rw_aux_update_period_ms_light               = reg.expose("aux.update_period_ms.light", update_period_ms_light);
+const auto reg_rw_cyphal_node_id                           = node_registry.expose("cyphal.node.id",                           {}, node_id);
+const auto reg_ro_cyphal_node_description                  = node_registry.route ("cyphal.node.description",                  {true}, []() { return "L3X-Z AUX_CONTROLLER"; });
+const auto reg_ro_cyphal_pub_inputvoltage_id               = node_registry.route ("cyphal.pub.inputvoltage.id",               {true}, []() { return ID_INPUT_VOLTAGE; });
+const auto reg_ro_cyphal_pub_inputvoltage_type             = node_registry.route ("cyphal.pub.inputvoltage.type",             {true}, []() { return "cyphal.primitive.scalar.Real32.1.0"; });
+const auto reg_ro_cyphal_pub_internaltemperature_id        = node_registry.route ("cyphal.pub.internaltemperature.id",        {true}, []() { return ID_INTERNAL_TEMPERATURE; });
+const auto reg_ro_cyphal_pub_internaltemperature_type      = node_registry.route ("cyphal.pub.internaltemperature.type",      {true}, []() { return "cyphal.primitive.scalar.Real32.1.0"; });
+const auto reg_ro_cyphal_pub_input0_id                     = node_registry.route ("cyphal.pub.input0.id",                     {true}, []() { return ID_INPUT0; });
+const auto reg_ro_cyphal_pub_input0_type                   = node_registry.route ("cyphal.pub.input0.type",                   {true}, []() { return "cyphal.primitive.scalar.Bit.1.0"; });
+const auto reg_ro_cyphal_pub_input1_id                     = node_registry.route ("cyphal.pub.input1.id",                     {true}, []() { return ID_INPUT1; });
+const auto reg_ro_cyphal_pub_input1_type                   = node_registry.route ("cyphal.pub.input1.type",                   {true}, []() { return "cyphal.primitive.scalar.Bit.1.0"; });
+const auto reg_ro_cyphal_pub_input2_id                     = node_registry.route ("cyphal.pub.input2.id",                     {true}, []() { return ID_INPUT2; });
+const auto reg_ro_cyphal_pub_input2_type                   = node_registry.route ("cyphal.pub.input2.type",                   {true}, []() { return "cyphal.primitive.scalar.Bit.1.0"; });
+const auto reg_ro_cyphal_pub_input3_id                     = node_registry.route ("cyphal.pub.input3.id",                     {true}, []() { return ID_INPUT3; });
+const auto reg_ro_cyphal_pub_input3_type                   = node_registry.route ("cyphal.pub.input3.type",                   {true}, []() { return "cyphal.primitive.scalar.Bit.1.0"; });
+const auto reg_ro_cyphal_pub_analoginput0_id               = node_registry.route ("cyphal.pub.analoginput0.id",               {true}, []() { return ID_ANALOG_INPUT0; });
+const auto reg_ro_cyphal_pub_analoginput0_type             = node_registry.route ("cyphal.pub.analoginput0.type",             {true}, []() { return "cyphal.primitive.scalar.Integer16.1.0"; });
+const auto reg_ro_cyphal_pub_analoginput1_id               = node_registry.route ("cyphal.pub.analoginput1.id",               {true}, []() { return ID_ANALOG_INPUT1; });
+const auto reg_ro_cyphal_pub_analoginput1_type             = node_registry.route ("cyphal.pub.analoginput1.type",             {true}, []() { return "cyphal.primitive.scalar.Integer16.1.0"; });
+const auto reg_ro_cyphal_sub_led1_id                       = node_registry.route ("cyphal.sub.led1.id",                       {true}, []() { return ID_LED1; });
+const auto reg_ro_cyphal_sub_led1_type                     = node_registry.route ("cyphal.sub.led1.type",                     {true}, []() { return "cyphal.primitive.scalar.Bit.1.0"; });
+const auto reg_ro_cyphal_sub_output0_id                    = node_registry.route ("cyphal.sub.output0.id",                    {true}, []() { return ID_OUTPUT0; });
+const auto reg_ro_cyphal_sub_output0_type                  = node_registry.route ("cyphal.sub.output0.type",                  {true}, []() { return "cyphal.primitive.scalar.Bit.1.0"; });
+const auto reg_ro_cyphal_sub_output1_id                    = node_registry.route ("cyphal.sub.output1.id",                    {true}, []() { return ID_OUTPUT1; });
+const auto reg_ro_cyphal_sub_output1_type                  = node_registry.route ("cyphal.sub.output1.type",                  {true}, []() { return "cyphal.primitive.scalar.Bit.1.0"; });
+const auto reg_ro_cyphal_sub_servo0_id                     = node_registry.route ("cyphal.sub.servo0.id",                     {true}, []() { return ID_SERVO0; });
+const auto reg_ro_cyphal_sub_servo0_type                   = node_registry.route ("cyphal.sub.servo0.type",                   {true}, []() { return "cyphal.primitive.scalar.Integer16.1.0"; });
+const auto reg_ro_cyphal_sub_servo1_id                     = node_registry.route ("cyphal.sub.servo1.id",                     {true}, []() { return ID_SERVO1; });
+const auto reg_ro_cyphal_sub_servo1_type                   = node_registry.route ("cyphal.sub.servo1.type",                   {true}, []() { return "cyphal.primitive.scalar.Integer16.1.0"; });
+const auto reg_ro_cyphal_sub_lightmode_id                  = node_registry.route ("cyphal.sub.lightmode.id",                  {true}, []() { return ID_LIGHT_MODE; });
+const auto reg_ro_cyphal_sub_lightmode_type                = node_registry.route ("cyphal.sub.lightmode.type",                {true}, []() { return "cyphal.primitive.scalar.Integer8.1.0"; });
+const auto reg_rw_aux_update_period_ms_inputvoltage        = node_registry.expose("aux.update_period_ms.inputvoltage",        {}, update_period_ms_inputvoltage);
+const auto reg_rw_aux_update_period_ms_internaltemperature = node_registry.expose("aux.update_period_ms.internaltemperature", {}, update_period_ms_internaltemperature);
+const auto reg_rw_aux_update_period_ms_input0              = node_registry.expose("aux.update_period_ms.input0",              {}, update_period_ms_input0);
+const auto reg_rw_aux_update_period_ms_input1              = node_registry.expose("aux.update_period_ms.input1",              {}, update_period_ms_input1);
+const auto reg_rw_aux_update_period_ms_input2              = node_registry.expose("aux.update_period_ms.input2",              {}, update_period_ms_input2);
+const auto reg_rw_aux_update_period_ms_input3              = node_registry.expose("aux.update_period_ms.input3",              {}, update_period_ms_input3);
+const auto reg_rw_aux_update_period_ms_analoginput0        = node_registry.expose("aux.update_period_ms.analoginput0",        {}, update_period_ms_analoginput0);
+const auto reg_rw_aux_update_period_ms_analoginput1        = node_registry.expose("aux.update_period_ms.analoginput1",        {}, update_period_ms_analoginput1);
+const auto reg_rw_aux_update_period_ms_light               = node_registry.expose("aux.update_period_ms.light",               {}, update_period_ms_light);
 
 #endif /* __GNUC__ >= 11 */
-
-/* NODE INFO **************************************************************************/
-
-static NodeInfo node_info
-(
-  node_hdl,
-  /* cyphal.node.Version.1.0 protocol_version */
-  1, 0,
-  /* cyphal.node.Version.1.0 hardware_version */
-  1, 0,
-  /* cyphal.node.Version.1.0 software_version */
-  0, 1,
-  /* saturated uint64 software_vcs_revision_id */
-#ifdef CYPHAL_NODE_INFO_GIT_VERSION
-  CYPHAL_NODE_INFO_GIT_VERSION,
-#else
-  0,
-#endif
-  /* saturated uint8[16] unique_id */
-  OpenCyphalUniqueId(),
-  /* saturated uint8[<=50] name */
-  "107-systems.l3xz-fw_aux-controller"
-);
 
 /**************************************************************************************
  * SETUP/LOOP
@@ -267,6 +242,27 @@ void setup()
 {
   Serial.begin(115200);
   //while (!Serial) { }
+
+  /* NODE INFO ************************************************************************/
+  static auto node_info = node_hdl.create_node_info
+  (
+    /* cyphal.node.Version.1.0 protocol_version */
+    1, 0,
+    /* cyphal.node.Version.1.0 hardware_version */
+    1, 0,
+    /* cyphal.node.Version.1.0 software_version */
+    0, 1,
+    /* saturated uint64 software_vcs_revision_id */
+#ifdef CYPHAL_NODE_INFO_GIT_VERSION
+    CYPHAL_NODE_INFO_GIT_VERSION,
+#else
+    0,
+#endif
+    /* saturated uint8[16] unique_id */
+    OpenCyphalUniqueId(),
+    /* saturated uint8[<=50] name */
+    "107-systems.l3xz-fw_aux-controller"
+  );
 
   /* Setup LED pins and initialize */
   pinMode(LED_BUILTIN, OUTPUT);
