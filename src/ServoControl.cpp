@@ -20,7 +20,6 @@ ServoControl::ServoControl(int const servo_0_pin, int const servo_1_pin, Node & 
 
   _servo_0_sub = node_hdl.create_subscription<TOpenCyphalServo_0>(
     ID_SERVO0,
-    CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC,
     [this](TOpenCyphalServo_0 const & msg) -> void
     {
       _servo_0.writeMicroseconds(msg.value);
@@ -28,7 +27,6 @@ ServoControl::ServoControl(int const servo_0_pin, int const servo_1_pin, Node & 
 
   _servo_1_sub = node_hdl.create_subscription<TOpenCyphalServo_1>(
     ID_SERVO1,
-    CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC,
     [this](TOpenCyphalServo_1 const & msg) -> void
     {
       _servo_1.writeMicroseconds(msg.value);

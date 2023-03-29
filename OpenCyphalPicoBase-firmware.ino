@@ -33,10 +33,10 @@
 #include <Wire.h>
 #include <Servo.h>
 
-#include <I2C_eeprom.h>
 #include <107-Arduino-Cyphal.h>
 #include <107-Arduino-MCP2515.h>
 #include <107-Arduino-UniqueId.h>
+#include <107-Arduino-24LCxx.hpp>
 #include <107-Arduino-CriticalSection.h>
 
 #undef max
@@ -79,7 +79,9 @@ static int const ANALOG_INPUT1_PIN = 28;
 
 static int const NEOPIXEL_NUM_PIXELS = 8; /* Popular NeoPixel ring size */
 
-static CanardNodeID const DEFAULT_AUX_CONTROLLER_NODE_ID = 99;
+static CanardNodeID const DEFAULT_PICO_BASE_NODE_ID = 61;
+
+static uint8_t const EEPROM_I2C_DEV_ADDR = 0x50;
 
 static SPISettings  const MCP2515x_SPI_SETTING{1000000, MSBFIRST, SPI_MODE0};
 
@@ -130,10 +132,10 @@ ArduinoMCP2515 mcp2515([]()
                        nullptr);
 
 Node::Heap<Node::DEFAULT_O1HEAP_SIZE> node_heap;
-Node node_hdl(node_heap.data(), node_heap.size(), micros, [] (CanardFrame const & frame) { return mcp2515.transmit(frame); }, DEFAULT_AUX_CONTROLLER_NODE_ID);
+Node node_hdl(node_heap.data(), node_heap.size(), micros, [] (CanardFrame const & frame) { return mcp2515.transmit(frame); }, DEFAULT_PICO_BASE_NODE_ID);
 
 Publisher<Heartbeat_1_0> heartbeat_pub = node_hdl.create_publisher<Heartbeat_1_0>
-  (Heartbeat_1_0::_traits_::FixedPortId, 1*1000*1000UL /* = 1 sec in usecs. */);
+  (1*1000*1000UL /* = 1 sec in usecs. */);
 Publisher<Real32_1_0> input_voltage_pub = node_hdl.create_publisher<Real32_1_0>
   (ID_INPUT_VOLTAGE, 1*1000*1000UL /* = 1 sec in usecs. */);
 Publisher<Real32_1_0> internal_temperature_pub = node_hdl.create_publisher<Real32_1_0>
@@ -152,13 +154,12 @@ Publisher<Integer16_1_0> analog_input_1_pub = node_hdl.create_publisher<Integer1
   (ID_ANALOG_INPUT1, 1*1000*1000UL /* = 1 sec in usecs. */);
 
 Subscription led_subscription =
-  node_hdl.create_subscription<Bit_1_0>(ID_LED1, CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC, onLed1_Received);
+  node_hdl.create_subscription<Bit_1_0>(ID_LED1, onLed1_Received);
 
 static Integer8_1_0 light_mode_msg;
 Subscription light_mode_subscription =
   node_hdl.create_subscription<Integer8_1_0>(
     ID_LIGHT_MODE,
-    CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC,
     [&light_mode_msg](Integer8_1_0 const & msg)
     {
       light_mode_msg = msg;
@@ -169,6 +170,14 @@ ServiceServer execute_command_srv = node_hdl.create_service_server<ExecuteComman
   2*1000*1000UL,
   onExecuteCommand_1_1_Request_Received);
 
+EEPROM_24LCxx eeprom(EEPROM_24LCxx_Type::LC64,
+                     EEPROM_I2C_DEV_ADDR,
+                     [](size_t const dev_addr) { Wire.beginTransmission(dev_addr); },
+                     [](uint8_t const data) { Wire.write(data); },
+                     []() { return Wire.endTransmission(); },
+                     [](uint8_t const dev_addr, size_t const len) -> size_t { return Wire.requestFrom(dev_addr, len); },
+                     []() { return Wire.available(); },
+                     []() { return Wire.read(); });
 
 ServoControl servo_ctrl(SERVO0_PIN, SERVO1_PIN, node_hdl);
 DigitalOutControl digital_out_ctrl(OUTPUT0_PIN, OUTPUT1_PIN, node_hdl);
@@ -176,7 +185,7 @@ NeoPixelControl neo_pixel_ctrl(NEOPIXEL_PIN, NEOPIXEL_NUM_PIXELS);
 
 /* REGISTER ***************************************************************************/
 
-static CanardNodeID node_id = DEFAULT_AUX_CONTROLLER_NODE_ID;
+static CanardNodeID node_id = DEFAULT_PICO_BASE_NODE_ID;
 
 static uint16_t update_period_ms_inputvoltage        =  3*1000;
 static uint16_t update_period_ms_internaltemperature = 10*1000;
@@ -263,6 +272,13 @@ void setup()
     /* saturated uint8[<=50] name */
     "107-systems.l3xz-fw_aux-controller"
   );
+
+  /* Setup Wire and check EEPROM. */
+  Wire.begin();
+  if (!eeprom.isConnected()) {
+    Serial.println("Error, could not connect to EEPROM");
+    return;
+  }
 
   /* Setup LED pins and initialize */
   pinMode(LED_BUILTIN, OUTPUT);

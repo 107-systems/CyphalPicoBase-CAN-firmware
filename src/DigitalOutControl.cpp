@@ -20,7 +20,6 @@ DigitalOutControl::DigitalOutControl(int const out_0_pin, int const out_1_pin, N
 {
   _out_0_sub = node_hdl.create_subscription<TOpenCyphalDigitalOut_0>(
     ID_OUTPUT0,
-    CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC,
     [this](TOpenCyphalDigitalOut_0 const & msg)
     {
       if(msg.value)
@@ -31,7 +30,6 @@ DigitalOutControl::DigitalOutControl(int const out_0_pin, int const out_1_pin, N
 
   _out_1_sub = node_hdl.create_subscription<TOpenCyphalDigitalOut_1>(
     ID_OUTPUT1,
-    CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC,
     [this](TOpenCyphalDigitalOut_1 const & msg)
     {
       if(msg.value)

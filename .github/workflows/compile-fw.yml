@@ -42,16 +42,14 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           libraries: |
             - source-path: ./
-            - name: 107-Arduino-MCP2515
             - source-url: https://github.com/107-systems/107-Arduino-Cyphal.git
+            - name: 107-Arduino-MCP2515
             - name: 107-Arduino-UniqueId
             - name: 107-Arduino-CriticalSection
-            - name: I2C_Eeprom
-            - source-url: https://github.com/adafruit/Adafruit_SleepyDog.git
+            - name: 107-Arduino-24LCxx
             - source-url: https://github.com/adafruit/Adafruit_NeoPixel.git
             - source-url: https://github.com/adafruit/Adafruit_NeoPixel_ZeroDMA.git
             - source-url: https://github.com/adafruit/Adafruit_ZeroDMA.git
-
           sketches-report-path: ${{ env.SKETCHES_REPORTS_PATH }}
           sketch-paths: ./
 
