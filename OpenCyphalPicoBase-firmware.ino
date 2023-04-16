@@ -79,7 +79,7 @@ static int const ANALOG_INPUT1_PIN = 28;
 
 static int const NEOPIXEL_NUM_PIXELS = 8; /* Popular NeoPixel ring size */
 
-static CanardNodeID const DEFAULT_PICO_BASE_NODE_ID = 61;
+static CanardNodeID const DEFAULT_PICO_BASE_NODE_ID = 65535;
 
 static uint8_t const EEPROM_I2C_DEV_ADDR = 0x50;
 
