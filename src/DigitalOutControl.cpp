@@ -18,7 +18,7 @@ DigitalOutControl::DigitalOutControl(int const out_0_pin, int const out_1_pin, N
 : _out_0_pin{out_0_pin}
 , _out_1_pin{out_1_pin}
 {
-  _out_0_sub = node_hdl.create_subscription<TOpenCyphalDigitalOut_0>(
+/*  _out_0_sub = node_hdl.create_subscription<TOpenCyphalDigitalOut_0>(
     ID_OUTPUT0,
     [this](TOpenCyphalDigitalOut_0 const & msg)
     {
@@ -36,7 +36,7 @@ DigitalOutControl::DigitalOutControl(int const out_0_pin, int const out_1_pin, N
         digitalWrite(_out_1_pin, HIGH);
       else
         digitalWrite(_out_1_pin, LOW);
-    });
+    });*/
 }
 
 /**************************************************************************************
