@@ -32,6 +32,7 @@
 
 #include <107-Arduino-Cyphal.h>
 #include <107-Arduino-Cyphal-Support.h>
+
 #include <107-Arduino-MCP2515.h>
 #include <107-Arduino-littlefs.h>
 #include <107-Arduino-24LCxx.hpp>
@@ -203,7 +204,7 @@ cyphal::support::platform::storage::littlefs::KeyValueStorage kv_storage(filesys
 
 /* REGISTER ***************************************************************************/
 
-static uint16_t     node_id           = std::numeric_limits<uint16_t>::max();
+static uint16_t     node_id                      = std::numeric_limits<uint16_t>::max();
 static CanardPortID port_id_input_voltage        = std::numeric_limits<CanardPortID>::max();
 static CanardPortID port_id_led1                 = std::numeric_limits<CanardPortID>::max();
 static CanardPortID port_id_internal_temperature = std::numeric_limits<CanardPortID>::max();
@@ -338,14 +339,6 @@ void setup()
     input_2_pub = node_hdl.create_publisher<uavcan::primitive::scalar::Bit_1_0>(port_id_input2, 1*1000*1000UL /* = 1 sec in usecs. */);
   if (port_id_input3 != std::numeric_limits<CanardPortID>::max())
     input_3_pub = node_hdl.create_publisher<uavcan::primitive::scalar::Bit_1_0>(port_id_input3, 1*1000*1000UL /* = 1 sec in usecs. */);
-//  if (port_id_output0 != std::numeric_limits<CanardPortID>::max())
-//    radiation_pub = node_hdl.create_publisher<uavcan::primitive::scalar::Natural16_1_0>(port_id_output0, 1*1000*1000UL /* = 1 sec in usecs. */);
-//  if (port_id_output1 != std::numeric_limits<CanardPortID>::max())
-//    radiation_pub = node_hdl.create_publisher<uavcan::primitive::scalar::Natural16_1_0>(port_id_output1, 1*1000*1000UL /* = 1 sec in usecs. */);
-//  if (port_id_servo0 != std::numeric_limits<CanardPortID>::max())
-//    radiation_pub = node_hdl.create_publisher<uavcan::primitive::scalar::Natural16_1_0>(port_id_servo0, 1*1000*1000UL /* = 1 sec in usecs. */);
-//  if (port_id_servo1 != std::numeric_limits<CanardPortID>::max())
-//    radiation_pub = node_hdl.create_publisher<uavcan::primitive::scalar::Natural16_1_0>(port_id_servo1, 1*1000*1000UL /* = 1 sec in usecs. */);
   if (port_id_analog_input0 != std::numeric_limits<CanardPortID>::max())
     analog_input_0_pub = node_hdl.create_publisher<uavcan::primitive::scalar::Integer16_1_0>(port_id_analog_input0, 1*1000*1000UL /* = 1 sec in usecs. */);
   if (port_id_analog_input1 != std::numeric_limits<CanardPortID>::max())
@@ -371,7 +364,7 @@ void setup()
     /* saturated uint8[16] unique_id */
     cyphal::support::UniqueId::instance().value(),
     /* saturated uint8[<=50] name */
-    "107-systems.l3xz-fw_aux-controller"
+    "107-systems.open-cyphal-pico-base"
   );
 
   /* Setup LED pins and initialize */
