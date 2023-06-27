@@ -48,7 +48,6 @@
 #undef min
 #include <algorithm>
 
-#include "src/ServoControl.h"
 #include "src/NeoPixelControl.h"
 
 /**************************************************************************************
@@ -150,9 +149,11 @@ Subscription light_mode_subscription;
 
 Subscription output_0_subscription, output_1_subscription;
 
+Servo servo_0, servo_1;
+Subscription servo_0_subscription, servo_1_subscription;
+
 ServiceServer execute_command_srv = node_hdl.create_service_server<ExecuteCommand::Request_1_1, ExecuteCommand::Response_1_1>(2*1000*1000UL, onExecuteCommand_1_1_Request_Received);
 
-ServoControl servo_ctrl(SERVO0_PIN, SERVO1_PIN, node_hdl);
 NeoPixelControl neo_pixel_ctrl(NEOPIXEL_PIN, NEOPIXEL_NUM_PIXELS);
 
 /* LITTLEFS/EEPROM ********************************************************************/
@@ -356,6 +357,22 @@ void setup()
           digitalWrite(OUTPUT1_PIN, LOW);
       });
 
+  if (port_id_servo0 != std::numeric_limits<CanardPortID>::max())
+    servo_0_subscription = node_hdl.create_subscription<uavcan::primitive::scalar::Integer16_1_0>(
+      port_id_servo0,
+      [this](uavcan::primitive::scalar::Integer16_1_0 const & msg) -> void
+      {
+        servo_0.writeMicroseconds(msg.value);
+      });
+
+  if (port_id_servo1 != std::numeric_limits<CanardPortID>::max())
+    servo_1_subscription = node_hdl.create_subscription<uavcan::primitive::scalar::Integer16_1_0>(
+      port_id_servo1,
+      [this](uavcan::primitive::scalar::Integer16_1_0 const & msg) -> void
+      {
+        servo_1.writeMicroseconds(msg.value);
+      });
+
   if (port_id_input0 != std::numeric_limits<CanardPortID>::max())
     input_0_pub = node_hdl.create_publisher<uavcan::primitive::scalar::Bit_1_0>(port_id_input0, 1*1000*1000UL /* = 1 sec in usecs. */);
   if (port_id_input1 != std::numeric_limits<CanardPortID>::max())
@@ -412,7 +429,12 @@ void setup()
   digitalWrite(OUT0_PIN, LOW);
   digitalWrite(OUT1_PIN, LOW);
 
-  servo_ctrl.begin();
+  /* Setup SERVO0/SERVO1. */
+  servo_0.attach(SERVO0_PIN, 800, 2200);
+  servo_1.attach(SERVO1_PIN, 800, 2200);
+  servo_0.writeMicroseconds(1500);
+  servo_1.writeMicroseconds(1500);
+
   neo_pixel_ctrl.begin();
 
   /* Setup SPI access */
