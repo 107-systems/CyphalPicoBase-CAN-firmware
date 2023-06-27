@@ -108,10 +108,6 @@ static int8_t const LIGHT_MODE_RUN_AMBER   = 105;
  **************************************************************************************/
 
 void onReceiveBufferFull(CanardFrame const & frame);
-/* Cyphal Subscription Callbacks */
-void onLed1_Received(uavcan::primitive::scalar::Bit_1_0 const & msg);
-void onLightMode_Received(uavcan::primitive::scalar::Integer8_1_0 const & msg);
-/* Cyphal Service Request Callbacks */
 ExecuteCommand::Response_1_1 onExecuteCommand_1_1_Request_Received(ExecuteCommand::Request_1_1 const &);
 
 /**************************************************************************************
@@ -328,16 +324,25 @@ void setup()
 
   if (port_id_input_voltage != std::numeric_limits<CanardPortID>::max())
     input_voltage_pub = node_hdl.create_publisher<uavcan::primitive::scalar::Real32_1_0>(port_id_input_voltage, 1*1000*1000UL /* = 1 sec in usecs. */);
+
   if (port_id_led1 != std::numeric_limits<CanardPortID>::max())
-    led_subscription = node_hdl.create_subscription<uavcan::primitive::scalar::Bit_1_0>(port_id_led1, onLed1_Received);
+    led_subscription = node_hdl.create_subscription<uavcan::primitive::scalar::Bit_1_0>(
+      port_id_led1,
+      [] (uavcan::primitive::scalar::Bit_1_0 const & msg)
+      {
+        if(msg.value)
+          digitalWrite(LED_BUILTIN, HIGH);
+        else
+          digitalWrite(LED_BUILTIN, LOW);
+      });
+
   if (port_id_internal_temperature != std::numeric_limits<CanardPortID>::max())
     internal_temperature_pub = node_hdl.create_publisher<uavcan::primitive::scalar::Real32_1_0>(port_id_internal_temperature, 1*1000*1000UL /* = 1 sec in usecs. */);
 
   if (port_id_output0 != std::numeric_limits<CanardPortID>::max())
     output_0_subscription = node_hdl.create_subscription<uavcan::primitive::scalar::Bit_1_0>(
       port_id_output0,
-      1*1000*1000UL /* = 1 sec in usecs. */,
-      [this](uavcan::primitive::scalar::Bit_1_0 const & msg)
+      [](uavcan::primitive::scalar::Bit_1_0 const & msg)
       {
         if(msg.value)
           digitalWrite(OUTPUT0_PIN, HIGH);
@@ -348,8 +353,7 @@ void setup()
   if (port_id_output1 != std::numeric_limits<CanardPortID>::max())
     output_1_subscription = node_hdl.create_subscription<uavcan::primitive::scalar::Bit_1_0>(
       port_id_output1,
-      1*1000*1000UL /* = 1 sec in usecs. */,
-      [this](uavcan::primitive::scalar::Bit_1_0 const & msg)
+      [](uavcan::primitive::scalar::Bit_1_0 const & msg)
       {
         if(msg.value)
           digitalWrite(OUTPUT1_PIN, HIGH);
@@ -360,7 +364,7 @@ void setup()
   if (port_id_servo0 != std::numeric_limits<CanardPortID>::max())
     servo_0_subscription = node_hdl.create_subscription<uavcan::primitive::scalar::Integer16_1_0>(
       port_id_servo0,
-      [this](uavcan::primitive::scalar::Integer16_1_0 const & msg) -> void
+      [](uavcan::primitive::scalar::Integer16_1_0 const & msg) -> void
       {
         servo_0.writeMicroseconds(msg.value);
       });
@@ -368,7 +372,7 @@ void setup()
   if (port_id_servo1 != std::numeric_limits<CanardPortID>::max())
     servo_1_subscription = node_hdl.create_subscription<uavcan::primitive::scalar::Integer16_1_0>(
       port_id_servo1,
-      [this](uavcan::primitive::scalar::Integer16_1_0 const & msg) -> void
+      [](uavcan::primitive::scalar::Integer16_1_0 const & msg) -> void
       {
         servo_1.writeMicroseconds(msg.value);
       });
@@ -388,7 +392,12 @@ void setup()
     analog_input_1_pub = node_hdl.create_publisher<uavcan::primitive::scalar::Integer16_1_0>(port_id_analog_input1, 1*1000*1000UL /* = 1 sec in usecs. */);
 
   if (port_id_light_mode != std::numeric_limits<CanardPortID>::max())
-    light_mode_subscription = node_hdl.create_subscription<uavcan::primitive::scalar::Integer8_1_0>(port_id_light_mode, [](uavcan::primitive::scalar::Integer8_1_0 const & msg) { light_mode_msg = msg; });
+    light_mode_subscription = node_hdl.create_subscription<uavcan::primitive::scalar::Integer8_1_0>(
+      port_id_light_mode,
+      [](uavcan::primitive::scalar::Integer8_1_0 const & msg)
+      {
+        light_mode_msg = msg;
+      });
 
   /* NODE INFO **************************************************************************/
   static const auto node_info = node_hdl.create_node_info
@@ -424,10 +433,10 @@ void setup()
   pinMode(INPUT3_PIN, INPUT_PULLUP);
 
   /* Setup OUT0/OUT1. */
-  pinMode(OUT0_PIN, OUTPUT);
-  pinMode(OUT1_PIN, OUTPUT);
-  digitalWrite(OUT0_PIN, LOW);
-  digitalWrite(OUT1_PIN, LOW);
+  pinMode(OUTPUT0_PIN, OUTPUT);
+  pinMode(OUTPUT1_PIN, OUTPUT);
+  digitalWrite(OUTPUT0_PIN, LOW);
+  digitalWrite(OUTPUT1_PIN, LOW);
 
   /* Setup SERVO0/SERVO1. */
   servo_0.attach(SERVO0_PIN, 800, 2200);
@@ -448,12 +457,12 @@ void setup()
   mcp2515.begin();
   mcp2515.setBitRate(CanBitRate::BR_250kBPS_16MHZ);
 
+  /* Only pass service requests/responses for this node ID through to receive buffer #0. */
   CanardFilter const CAN_FILTER_SERVICES = canardMakeFilterForServices(node_id);
   DBG_INFO("CAN Filter #1\n\r\tExt. Mask : %8X\n\r\tExt. ID   : %8X",
            CAN_FILTER_SERVICES.extended_mask,
            CAN_FILTER_SERVICES.extended_can_id);
 
-  /* Only pass service requests/responses for this node ID through to receive buffer #0. */
   uint32_t const RXMB0_MASK = CAN_FILTER_SERVICES.extended_mask;
   size_t const RXMB0_FILTER_SIZE = 2;
   uint32_t const RXMB0_FILTER[RXMB0_FILTER_SIZE] =
@@ -463,12 +472,29 @@ void setup()
     };
   mcp2515.enableFilter(MCP2515::RxB::RxB0, RXMB0_MASK, RXMB0_FILTER, RXMB0_FILTER_SIZE);
 
-  /* Only pass messages with ID 0 to receive buffer #1 (filtering out most). */
-  uint32_t const RXMB1_MASK = 0x01FFFFFF;
+  /* Only pass messages with subscribed port IDs. */
+  CanardFilter const CAN_FILTER_OUT_0   = canardMakeFilterForSubject(port_id_output0);
+  CanardFilter const CAN_FILTER_OUT_1   = canardMakeFilterForSubject(port_id_output1);
+  CanardFilter const CAN_FILTER_SERVO_0 = canardMakeFilterForSubject(port_id_servo0);
+  CanardFilter const CAN_FILTER_SERVO_1 = canardMakeFilterForSubject(port_id_servo1);
+  CanardFilter const CAN_FILTER_LIGHT   = canardMakeFilterForSubject(port_id_light_mode);
+  CanardFilter const CAN_FILTER_LED     = canardMakeFilterForSubject(port_id_led1);
+
+  CanardFilter consolidated_filter = canardConsolidateFilters(&CAN_FILTER_OUT_0, &CAN_FILTER_OUT_1);
+               consolidated_filter = canardConsolidateFilters(&consolidated_filter, &CAN_FILTER_SERVO_0);
+               consolidated_filter = canardConsolidateFilters(&consolidated_filter, &CAN_FILTER_SERVO_1);
+               consolidated_filter = canardConsolidateFilters(&consolidated_filter, &CAN_FILTER_LIGHT);
+               consolidated_filter = canardConsolidateFilters(&consolidated_filter, &CAN_FILTER_LED);
+
+  DBG_INFO("CAN Filter #2\n\r\tExt. Mask : %8X\n\r\tExt. ID   : %8X",
+           consolidated_filter.extended_mask,
+           consolidated_filter.extended_can_id);
+
+  uint32_t const RXMB1_MASK = consolidated_filter.extended_mask;
   size_t const RXMB1_FILTER_SIZE = 4;
   uint32_t const RXMB1_FILTER[RXMB1_FILTER_SIZE] =
   {
-    MCP2515::CAN_EFF_BITMASK | 0,
+    MCP2515::CAN_EFF_BITMASK | consolidated_filter.extended_can_id,
     MCP2515::CAN_EFF_BITMASK | 0,
     MCP2515::CAN_EFF_BITMASK | 0,
     MCP2515::CAN_EFF_BITMASK | 0
@@ -737,20 +763,6 @@ void onReceiveBufferFull(CanardFrame const & frame)
 {
   digitalWrite(LED3_PIN, !digitalRead(LED3_PIN));
   node_hdl.onCanFrameReceived(frame);
-}
-
-void onLed1_Received(uavcan::primitive::scalar::Bit_1_0 const & msg)
-{
-  if(msg.value)
-  {
-    digitalWrite(LED_BUILTIN, HIGH);
-    Serial.println("Received Bit1: true");
-  }
-  else
-  {
-    digitalWrite(LED_BUILTIN, LOW);
-    Serial.println("Received Bit1: false");
-  }
 }
 
 ExecuteCommand::Response_1_1 onExecuteCommand_1_1_Request_Received(ExecuteCommand::Request_1_1 const & req)
