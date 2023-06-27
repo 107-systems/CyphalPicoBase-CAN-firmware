@@ -62,22 +62,22 @@ using namespace uavcan::node;
 
 static uint8_t const EEPROM_I2C_DEV_ADDR = 0x50;
 
-static int const INPUT0_PIN        =  6;
-static int const INPUT1_PIN        =  7;
-static int const INPUT2_PIN        =  8;
-static int const INPUT3_PIN        =  9;
-static int const OUTPUT0_PIN       = 10;
-static int const OUTPUT1_PIN       = 11;
-static int const NEOPIXEL_PIN      = 13; /* Raspberry Pi Pico */
-static int const SERVO0_PIN        = 14;
-static int const SERVO1_PIN        = 15;
-static int const MCP2515_CS_PIN  = 17;
-static int const MCP2515_INT_PIN = 20;
-static int const LED2_PIN        = 21; /* GP21 */
-static int const LED3_PIN        = 22; /* GP22 */
-static int const ANALOG_PIN        = 26;
-static int const ANALOG_INPUT0_PIN = 27;
-static int const ANALOG_INPUT1_PIN = 28;
+static int const INPUT_0_PIN        =  6;
+static int const INPUT_1_PIN        =  7;
+static int const INPUT_2_PIN        =  8;
+static int const INPUT_3_PIN        =  9;
+static int const OUTPUT_0_PIN       = 10;
+static int const OUTPUT_1_PIN       = 11;
+static int const NEOPIXEL_PIN       = 13; /* Raspberry Pi Pico */
+static int const SERVO_0_PIN        = 14;
+static int const SERVO_1_PIN        = 15;
+static int const MCP2515_CS_PIN     = 17;
+static int const MCP2515_INT_PIN    = 20;
+static int const LED_2_PIN          = 21; /* GP21 */
+static int const LED_3_PIN          = 22; /* GP22 */
+static int const ANALOG_PIN         = 26;
+static int const ANALOG_INPUT_0_PIN = 27;
+static int const ANALOG_INPUT_1_PIN = 28;
 
 static int const NEOPIXEL_NUM_PIXELS = 8; /* Popular NeoPixel ring size */
 
@@ -345,9 +345,9 @@ void setup()
       [](uavcan::primitive::scalar::Bit_1_0 const & msg)
       {
         if(msg.value)
-          digitalWrite(OUTPUT0_PIN, HIGH);
+          digitalWrite(OUTPUT_0_PIN, HIGH);
         else
-          digitalWrite(OUTPUT0_PIN, LOW);
+          digitalWrite(OUTPUT_0_PIN, LOW);
       });
 
   if (port_id_output1 != std::numeric_limits<CanardPortID>::max())
@@ -356,9 +356,9 @@ void setup()
       [](uavcan::primitive::scalar::Bit_1_0 const & msg)
       {
         if(msg.value)
-          digitalWrite(OUTPUT1_PIN, HIGH);
+          digitalWrite(OUTPUT_1_PIN, HIGH);
         else
-          digitalWrite(OUTPUT1_PIN, LOW);
+          digitalWrite(OUTPUT_1_PIN, LOW);
       });
 
   if (port_id_servo0 != std::numeric_limits<CanardPortID>::max())
@@ -421,26 +421,26 @@ void setup()
   );
 
   /* Setup LED pins and initialize */
-  pinMode(LED2_PIN, OUTPUT);
-  pinMode(LED3_PIN, OUTPUT);
+  pinMode(LED_2_PIN, OUTPUT);
+  pinMode(LED_3_PIN, OUTPUT);
   pinMode(LED_BUILTIN, OUTPUT);
-  digitalWrite(LED2_PIN, LOW);
-  digitalWrite(LED3_PIN, LOW);
+  digitalWrite(LED_2_PIN, LOW);
+  digitalWrite(LED_3_PIN, LOW);
   digitalWrite(LED_BUILTIN, LOW);
-  pinMode(INPUT0_PIN, INPUT_PULLUP);
-  pinMode(INPUT1_PIN, INPUT_PULLUP);
-  pinMode(INPUT2_PIN, INPUT_PULLUP);
-  pinMode(INPUT3_PIN, INPUT_PULLUP);
+  pinMode(INPUT_0_PIN, INPUT_PULLUP);
+  pinMode(INPUT_1_PIN, INPUT_PULLUP);
+  pinMode(INPUT_2_PIN, INPUT_PULLUP);
+  pinMode(INPUT_3_PIN, INPUT_PULLUP);
 
   /* Setup OUT0/OUT1. */
-  pinMode(OUTPUT0_PIN, OUTPUT);
-  pinMode(OUTPUT1_PIN, OUTPUT);
-  digitalWrite(OUTPUT0_PIN, LOW);
-  digitalWrite(OUTPUT1_PIN, LOW);
+  pinMode(OUTPUT_0_PIN, OUTPUT);
+  pinMode(OUTPUT_1_PIN, OUTPUT);
+  digitalWrite(OUTPUT_0_PIN, LOW);
+  digitalWrite(OUTPUT_1_PIN, LOW);
 
   /* Setup SERVO0/SERVO1. */
-  servo_0.attach(SERVO0_PIN, 800, 2200);
-  servo_1.attach(SERVO1_PIN, 800, 2200);
+  servo_0.attach(SERVO_0_PIN, 800, 2200);
+  servo_1.attach(SERVO_1_PIN, 800, 2200);
   servo_0.writeMicroseconds(1500);
   servo_1.writeMicroseconds(1500);
 
@@ -558,15 +558,15 @@ void loop()
   /* toggle status LEDS */
   if((now - prev_led_toggle) > 200)
   {
-    if(digitalRead(LED2_PIN)==LOW)
+    if(digitalRead(LED_2_PIN)==LOW)
     {
-      digitalWrite(LED2_PIN, HIGH);
-      digitalWrite(LED3_PIN, LOW);
+      digitalWrite(LED_2_PIN, HIGH);
+      digitalWrite(LED_3_PIN, LOW);
     }
     else
     {
-      digitalWrite(LED2_PIN, LOW);
-      digitalWrite(LED3_PIN, HIGH);
+      digitalWrite(LED_2_PIN, LOW);
+      digitalWrite(LED_3_PIN, HIGH);
     }
     prev_led_toggle = now;
   }
@@ -671,7 +671,7 @@ void loop()
 
     heartbeat_pub->publish(msg);
 
-    digitalWrite(LED2_PIN, !digitalRead(LED2_PIN));
+    digitalWrite(LED_2_PIN, !digitalRead(LED_2_PIN));
   }
   if((now - prev_battery_voltage) > (update_period_ms_inputvoltage))
   {
@@ -702,7 +702,7 @@ void loop()
   if((now - prev_input0) > update_period_ms_input0)
   {
     uavcan::primitive::scalar::Bit_1_0 uavcan_input0;
-    uavcan_input0.value = digitalRead(INPUT0_PIN);
+    uavcan_input0.value = digitalRead(INPUT_0_PIN);
     if(input_0_pub) input_0_pub->publish(uavcan_input0);
 
     prev_input0 = now;
@@ -710,7 +710,7 @@ void loop()
   if((now - prev_input1) > update_period_ms_input1)
   {
     uavcan::primitive::scalar::Bit_1_0 uavcan_input1;
-    uavcan_input1.value = digitalRead(INPUT1_PIN);
+    uavcan_input1.value = digitalRead(INPUT_1_PIN);
     if(input_1_pub) input_1_pub->publish(uavcan_input1);
 
     prev_input1 = now;
@@ -718,7 +718,7 @@ void loop()
   if((now - prev_input2) > update_period_ms_input2)
   {
     uavcan::primitive::scalar::Bit_1_0 uavcan_input2;
-    uavcan_input2.value = digitalRead(INPUT2_PIN);
+    uavcan_input2.value = digitalRead(INPUT_2_PIN);
     if(input_2_pub) input_2_pub->publish(uavcan_input2);
 
     prev_input2 = now;
@@ -726,7 +726,7 @@ void loop()
   if((now - prev_input3) > update_period_ms_input3)
   {
     uavcan::primitive::scalar::Bit_1_0 uavcan_input3;
-    uavcan_input3.value = digitalRead(INPUT3_PIN);
+    uavcan_input3.value = digitalRead(INPUT_3_PIN);
     if(input_3_pub) input_3_pub->publish(uavcan_input3);
 
     prev_input3 = now;
@@ -734,7 +734,7 @@ void loop()
   if((now - prev_analog_input0) > update_period_ms_analoginput0)
   {
     uavcan::primitive::scalar::Integer16_1_0 uavcan_analog_input0;
-    uavcan_analog_input0.value = analogRead(ANALOG_INPUT0_PIN);
+    uavcan_analog_input0.value = analogRead(ANALOG_INPUT_0_PIN);
     if(analog_input_0_pub) analog_input_0_pub->publish(uavcan_analog_input0);
 
     prev_analog_input0 = now;
@@ -742,7 +742,7 @@ void loop()
   if((now - prev_analog_input1) > update_period_ms_analoginput1)
   {
     uavcan::primitive::scalar::Integer16_1_0 uavcan_analog_input1;
-    uavcan_analog_input1.value = analogRead(ANALOG_INPUT1_PIN);
+    uavcan_analog_input1.value = analogRead(ANALOG_INPUT_1_PIN);
     if(analog_input_1_pub) analog_input_1_pub->publish(uavcan_analog_input1);
 
     prev_analog_input1 = now;
@@ -761,7 +761,7 @@ void loop()
 
 void onReceiveBufferFull(CanardFrame const & frame)
 {
-  digitalWrite(LED3_PIN, !digitalRead(LED3_PIN));
+  digitalWrite(LED_3_PIN, !digitalRead(LED_3_PIN));
   node_hdl.onCanFrameReceived(frame);
 }
 
@@ -809,8 +809,8 @@ ExecuteCommand::Response_1_1 onExecuteCommand_1_1_Request_Received(ExecuteComman
     /* Send the response. */
     rsp.status = ExecuteCommand::Response_1_1::STATUS_SUCCESS;
 
-    digitalWrite(LED2_PIN, HIGH);
-    digitalWrite(LED3_PIN, HIGH);
+    digitalWrite(LED_2_PIN, HIGH);
+    digitalWrite(LED_3_PIN, HIGH);
     neo_pixel_ctrl.light_off();
   }
   else if (req.command == ExecuteCommand::Request_1_1::COMMAND_BEGIN_SOFTWARE_UPDATE)
