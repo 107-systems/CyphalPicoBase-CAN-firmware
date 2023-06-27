@@ -50,7 +50,6 @@
 
 #include "src/ServoControl.h"
 #include "src/NeoPixelControl.h"
-#include "src/DigitalOutControl.h"
 
 /**************************************************************************************
  * NAMESPACE
@@ -149,10 +148,11 @@ Subscription led_subscription;
 uavcan::primitive::scalar::Integer8_1_0 light_mode_msg{LIGHT_MODE_WHITE};
 Subscription light_mode_subscription;
 
+Subscription output_0_subscription, output_1_subscription;
+
 ServiceServer execute_command_srv = node_hdl.create_service_server<ExecuteCommand::Request_1_1, ExecuteCommand::Response_1_1>(2*1000*1000UL, onExecuteCommand_1_1_Request_Received);
 
 ServoControl servo_ctrl(SERVO0_PIN, SERVO1_PIN, node_hdl);
-DigitalOutControl digital_out_ctrl(OUTPUT0_PIN, OUTPUT1_PIN, node_hdl);
 NeoPixelControl neo_pixel_ctrl(NEOPIXEL_PIN, NEOPIXEL_NUM_PIXELS);
 
 /* LITTLEFS/EEPROM ********************************************************************/
@@ -331,6 +331,31 @@ void setup()
     led_subscription = node_hdl.create_subscription<uavcan::primitive::scalar::Bit_1_0>(port_id_led1, onLed1_Received);
   if (port_id_internal_temperature != std::numeric_limits<CanardPortID>::max())
     internal_temperature_pub = node_hdl.create_publisher<uavcan::primitive::scalar::Real32_1_0>(port_id_internal_temperature, 1*1000*1000UL /* = 1 sec in usecs. */);
+
+  if (port_id_output0 != std::numeric_limits<CanardPortID>::max())
+    output_0_subscription = node_hdl.create_subscription<uavcan::primitive::scalar::Bit_1_0>(
+      port_id_output0,
+      1*1000*1000UL /* = 1 sec in usecs. */,
+      [this](uavcan::primitive::scalar::Bit_1_0 const & msg)
+      {
+        if(msg.value)
+          digitalWrite(OUTPUT0_PIN, HIGH);
+        else
+          digitalWrite(OUTPUT0_PIN, LOW);
+      });
+
+  if (port_id_output1 != std::numeric_limits<CanardPortID>::max())
+    output_1_subscription = node_hdl.create_subscription<uavcan::primitive::scalar::Bit_1_0>(
+      port_id_output1,
+      1*1000*1000UL /* = 1 sec in usecs. */,
+      [this](uavcan::primitive::scalar::Bit_1_0 const & msg)
+      {
+        if(msg.value)
+          digitalWrite(OUTPUT1_PIN, HIGH);
+        else
+          digitalWrite(OUTPUT1_PIN, LOW);
+      });
+
   if (port_id_input0 != std::numeric_limits<CanardPortID>::max())
     input_0_pub = node_hdl.create_publisher<uavcan::primitive::scalar::Bit_1_0>(port_id_input0, 1*1000*1000UL /* = 1 sec in usecs. */);
   if (port_id_input1 != std::numeric_limits<CanardPortID>::max())
@@ -339,10 +364,12 @@ void setup()
     input_2_pub = node_hdl.create_publisher<uavcan::primitive::scalar::Bit_1_0>(port_id_input2, 1*1000*1000UL /* = 1 sec in usecs. */);
   if (port_id_input3 != std::numeric_limits<CanardPortID>::max())
     input_3_pub = node_hdl.create_publisher<uavcan::primitive::scalar::Bit_1_0>(port_id_input3, 1*1000*1000UL /* = 1 sec in usecs. */);
+
   if (port_id_analog_input0 != std::numeric_limits<CanardPortID>::max())
     analog_input_0_pub = node_hdl.create_publisher<uavcan::primitive::scalar::Integer16_1_0>(port_id_analog_input0, 1*1000*1000UL /* = 1 sec in usecs. */);
   if (port_id_analog_input1 != std::numeric_limits<CanardPortID>::max())
     analog_input_1_pub = node_hdl.create_publisher<uavcan::primitive::scalar::Integer16_1_0>(port_id_analog_input1, 1*1000*1000UL /* = 1 sec in usecs. */);
+
   if (port_id_light_mode != std::numeric_limits<CanardPortID>::max())
     light_mode_subscription = node_hdl.create_subscription<uavcan::primitive::scalar::Integer8_1_0>(port_id_light_mode, [](uavcan::primitive::scalar::Integer8_1_0 const & msg) { light_mode_msg = msg; });
 
@@ -379,8 +406,13 @@ void setup()
   pinMode(INPUT2_PIN, INPUT_PULLUP);
   pinMode(INPUT3_PIN, INPUT_PULLUP);
 
+  /* Setup OUT0/OUT1. */
+  pinMode(OUT0_PIN, OUTPUT);
+  pinMode(OUT1_PIN, OUTPUT);
+  digitalWrite(OUT0_PIN, LOW);
+  digitalWrite(OUT1_PIN, LOW);
+
   servo_ctrl.begin();
-  digital_out_ctrl.begin();
   neo_pixel_ctrl.begin();
 
   /* Setup SPI access */
