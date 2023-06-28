@@ -542,7 +542,6 @@ void loop()
    * different intervals.
    */
   static unsigned long prev_led = 0;
-  static unsigned long prev_led_toggle = 0;
   static unsigned long prev_heartbeat = 0;
   static unsigned long prev_battery_voltage = 0;
   static unsigned long prev_internal_temperature = 0;
@@ -554,22 +553,6 @@ void loop()
   static unsigned long prev_analog_input1 = 0;
 
   unsigned long const now = millis();
-
-  /* toggle status LEDS */
-  if((now - prev_led_toggle) > 200)
-  {
-    if(digitalRead(LED_2_PIN)==LOW)
-    {
-      digitalWrite(LED_2_PIN, HIGH);
-      digitalWrite(LED_3_PIN, LOW);
-    }
-    else
-    {
-      digitalWrite(LED_2_PIN, LOW);
-      digitalWrite(LED_3_PIN, HIGH);
-    }
-    prev_led_toggle = now;
-  }
 
   /* light mode for neopixels */
   if((now - prev_led) > update_period_ms_light)
