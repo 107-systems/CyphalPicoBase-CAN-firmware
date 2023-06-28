@@ -261,15 +261,15 @@ const auto reg_rw_cyphal_sub_servo1_id                     = node_registry->expo
 const auto reg_ro_cyphal_sub_servo1_type                   = node_registry->route ("cyphal.sub.servo1.type",                   {true}, []() { return "cyphal.primitive.scalar.Integer16.1.0"; });
 const auto reg_rw_cyphal_sub_lightmode_id                  = node_registry->expose("cyphal.sub.lightmode.id",                  {true}, port_id_light_mode);
 const auto reg_ro_cyphal_sub_lightmode_type                = node_registry->route ("cyphal.sub.lightmode.type",                {true}, []() { return "cyphal.primitive.scalar.Integer8.1.0"; });
-const auto reg_rw_aux_update_period_ms_inputvoltage        = node_registry->expose("aux.update_period_ms.inputvoltage",        {}, update_period_ms_inputvoltage);
-const auto reg_rw_aux_update_period_ms_internaltemperature = node_registry->expose("aux.update_period_ms.internaltemperature", {}, update_period_ms_internaltemperature);
-const auto reg_rw_aux_update_period_ms_input0              = node_registry->expose("aux.update_period_ms.input0",              {}, update_period_ms_input0);
-const auto reg_rw_aux_update_period_ms_input1              = node_registry->expose("aux.update_period_ms.input1",              {}, update_period_ms_input1);
-const auto reg_rw_aux_update_period_ms_input2              = node_registry->expose("aux.update_period_ms.input2",              {}, update_period_ms_input2);
-const auto reg_rw_aux_update_period_ms_input3              = node_registry->expose("aux.update_period_ms.input3",              {}, update_period_ms_input3);
-const auto reg_rw_aux_update_period_ms_analoginput0        = node_registry->expose("aux.update_period_ms.analoginput0",        {}, update_period_ms_analoginput0);
-const auto reg_rw_aux_update_period_ms_analoginput1        = node_registry->expose("aux.update_period_ms.analoginput1",        {}, update_period_ms_analoginput1);
-const auto reg_rw_aux_update_period_ms_light               = node_registry->expose("aux.update_period_ms.light",               {}, update_period_ms_light);
+const auto reg_rw_aux_update_period_ms_inputvoltage        = node_registry->expose("aux.update_period_ms.inputvoltage",        {true}, update_period_ms_inputvoltage);
+const auto reg_rw_aux_update_period_ms_internaltemperature = node_registry->expose("aux.update_period_ms.internaltemperature", {true}, update_period_ms_internaltemperature);
+const auto reg_rw_aux_update_period_ms_input0              = node_registry->expose("aux.update_period_ms.input0",              {true}, update_period_ms_input0);
+const auto reg_rw_aux_update_period_ms_input1              = node_registry->expose("aux.update_period_ms.input1",              {true}, update_period_ms_input1);
+const auto reg_rw_aux_update_period_ms_input2              = node_registry->expose("aux.update_period_ms.input2",              {true}, update_period_ms_input2);
+const auto reg_rw_aux_update_period_ms_input3              = node_registry->expose("aux.update_period_ms.input3",              {true}, update_period_ms_input3);
+const auto reg_rw_aux_update_period_ms_analoginput0        = node_registry->expose("aux.update_period_ms.analoginput0",        {true}, update_period_ms_analoginput0);
+const auto reg_rw_aux_update_period_ms_analoginput1        = node_registry->expose("aux.update_period_ms.analoginput1",        {true}, update_period_ms_analoginput1);
+const auto reg_rw_aux_update_period_ms_light               = node_registry->expose("aux.update_period_ms.light",               {true}, update_period_ms_light);
 
 #endif /* __GNUC__ >= 11 */
 
