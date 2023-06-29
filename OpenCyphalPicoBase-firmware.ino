@@ -399,6 +399,17 @@ void setup()
         light_mode_msg = msg;
       });
 
+    /* set factory settings */
+    if(update_period_ms_inputvoltage==0xFFFF)        update_period_ms_inputvoltage=3*1000;
+    if(update_period_ms_internaltemperature==0xFFFF) update_period_ms_internaltemperature=10*1000;
+    if(update_period_ms_input0==0xFFFF)              update_period_ms_input0=500;
+    if(update_period_ms_input1==0xFFFF)              update_period_ms_input1=500;
+    if(update_period_ms_input2==0xFFFF)              update_period_ms_input2=500;
+    if(update_period_ms_input3==0xFFFF)              update_period_ms_input3=500;
+    if(update_period_ms_analoginput0==0xFFFF)        update_period_ms_analoginput0=500;
+    if(update_period_ms_analoginput1==0xFFFF)        update_period_ms_analoginput1=500;
+    if(update_period_ms_light==0xFFFF)               update_period_ms_light=250;
+
   /* NODE INFO **************************************************************************/
   static const auto node_info = node_hdl.create_node_info
   (
@@ -804,16 +815,14 @@ ExecuteCommand::Response_1_1 onExecuteCommand_1_1_Request_Received(ExecuteComman
   }
   else if (req.command == ExecuteCommand::Request_1_1::COMMAND_FACTORY_RESET)
   {
-    /* set factory settings */
-    update_period_ms_inputvoltage=3*1000;
-    update_period_ms_internaltemperature=10*1000;
-    update_period_ms_input0=500;
-    update_period_ms_input1=500;
-    update_period_ms_input2=500;
-    update_period_ms_input3=500;
-    update_period_ms_analoginput0=500;
-    update_period_ms_analoginput1=500;
-    update_period_ms_light=250;
+    /* erasing eeprom by writing FF in every cell */
+    size_t const NUM_PAGES = eeprom.device_size() / eeprom.page_size();
+    for(size_t page = 0; page < NUM_PAGES; page++)
+    {
+      uint16_t const page_addr = page * eeprom.page_size();
+
+      eeprom.fill_page(page_addr, 0xFF);
+    }
 
     /* Send the response. */
     rsp.status = ExecuteCommand::Response_1_1::STATUS_SUCCESS;
