@@ -1,25 +1,10 @@
-/*
- * Software for the auxiliary controller for the L3X-Z Hexapod
+/**
+ * default firmware for the OpenCyphalPicoBase (https://github.com/generationmake/OpenCyphalPicoBase)
  *
- * Hardware:
- *   - Raspberry Pi Pico
- *   - MCP2515
- *
- * Used Subject-IDs
- * 1001 - pub - Real32    - input voltage
- * 1005 - sub - Bit       - LED1
- * 1010 - pub - Real32    - internal temperature
- * 2000 - pub - Bit       - input0
- * 2001 - pub - Bit       - input1
- * 2002 - pub - Bit       - input2
- * 2003 - pub - Bit       - input3
- * 2004 - sub - Bit       - output0
- * 2005 - sub - Bit       - output1
- * 2006 - sub - Integer16 - servo0
- * 2007 - sub - Integer16 - servo1
- * 2008 - pub - Integer16 - analog_input0
- * 2009 - pub - Integer16 - analog_input1
- * 2010 - sub - Integer8  - light mode
+ * This software is distributed under the terms of the MIT License.
+ * Copyright (c) 2023 LXRobotics.
+ * Author: Alexander Entinger <alexander.entinger@lxrobotics.com>
+ * Contributors: https://github.com/107-systems/OpenCyphalPicoBase-firmware/graphs/contributors.
  */
 
 /**************************************************************************************
