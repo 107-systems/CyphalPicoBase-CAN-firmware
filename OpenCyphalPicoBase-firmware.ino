@@ -220,6 +220,7 @@ const auto node_registry = node_hdl.create_registry();
 
 const auto reg_rw_cyphal_node_id                            = node_registry->expose("cyphal.node.id",                           {true}, node_id);
 const auto reg_rw_cyphal_node_description                   = node_registry->expose("cyphal.node.description",                  {true}, node_description);
+//const auto reg_ro_cyphal_node_description                   = node_registry->route ("cyphal.node.description",                  {true}, []() { return "L3X-Z AUX_CONTROLLER"; });
 const auto reg_rw_cyphal_pub_inputvoltage_id                = node_registry->expose("cyphal.pub.inputvoltage.id",               {true}, port_id_input_voltage);
 const auto reg_ro_cyphal_pub_inputvoltage_type              = node_registry->route ("cyphal.pub.inputvoltage.type",             {true}, []() { return "cyphal.primitive.scalar.Real32.1.0"; });
 const auto reg_rw_cyphal_pub_internaltemperature_id         = node_registry->expose("cyphal.pub.internaltemperature.id",        {true}, port_id_internal_temperature);
@@ -809,6 +810,7 @@ ExecuteCommand::Response_1_1 onExecuteCommand_1_1_Request_Received(ExecuteComman
       uint16_t const page_addr = page * eeprom.page_size();
 
       eeprom.fill_page(page_addr, 0xFF);
+      rp2040.wdt_reset();
     }
 
     /* Send the response. */
