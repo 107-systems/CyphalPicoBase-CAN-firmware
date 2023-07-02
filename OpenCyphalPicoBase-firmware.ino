@@ -1,5 +1,5 @@
 /**
- * default firmware for the OpenCyphalPicoBase (https://github.com/generationmake/OpenCyphalPicoBase)
+ * Default firmware for the OpenCyphalPicoBase (https://github.com/generationmake/OpenCyphalPicoBase)
  *
  * This software is distributed under the terms of the MIT License.
  * Copyright (c) 2023 LXRobotics.

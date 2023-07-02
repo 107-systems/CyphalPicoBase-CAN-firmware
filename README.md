@@ -8,7 +8,18 @@
 
 Firmware for the [OpenCyphalPicoBase](https://github.com/generationmake/OpenCyphalPicoBase) board.
 
-## register list
+## How-to-build/upload
+```bash
+arduino-cli compile -b rp2040:rp2040:rpipico -v .
+arduino-cli upload -b rp2040:rp2040:rpipico -v . -p /dev/ttyACM0
+```
+**or**
+```bash
+arduino-cli compile -b rp2040:rp2040:rpipico -v . --build-property compiler.cpp.extra_flags="-DCYPHAL_NODE_INFO_GIT_VERSION=0x$(git rev-parse --short=16 HEAD)"
+```
+Adding argument `--build-property compiler.cpp.extra_flags="-DCYPHAL_NODE_INFO_GIT_VERSION=0x$(git rev-parse --short=16 HEAD)"` allows to feed the Git hash of the current software version to [107-Arduino-Cyphal](https://github.com/107-systems/107-Arduino-Cyphal) stack from where it can be retrieved via i.e. [yakut](https://github.com/opencyphal/yakut).
+
+## Register list
 
 | **name**                                  | **type** | **default value**                     | **Description**                        |
 |:-----------------------------------------:|:--------:|:-------------------------------------:|:--------------------------------------:|
