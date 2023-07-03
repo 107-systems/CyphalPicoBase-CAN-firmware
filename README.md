@@ -22,7 +22,7 @@ Adding argument `--build-property compiler.cpp.extra_flags="-DCYPHAL_NODE_INFO_G
 ## Register list
 
 | **name**                                  | **type** | **default value**                     | **Description**                        |
-|:-----------------------------------------:|:--------:|:-------------------------------------:|:--------------------------------------:|
+| ----------------------------------------- | -------- | ------------------------------------- | -------------------------------------- |
 | cyphal.node.description                   | rw       | L3X-Z AUX_CONTROLLER                  | node description                       |
 | cyphal.node.id                            | rw       | 0                                     | node id (max 127)                      |
 | cyphal.pub.analoginput0.id                | rw       | 65535                                 | subject-id (publish) for analoginput0  |
@@ -63,6 +63,49 @@ Adding argument `--build-property compiler.cpp.extra_flags="-DCYPHAL_NODE_INFO_G
 | pico.update_period_ms.internaltemperature | rw       | 10000                                 | update period for internal temperature |
 | pico.update_period_ms.light               | rw       | 250                                   | update period for light functions      |
 
+## functions
+### Node-ID
+
+Set `cyphal.node.id`to the desired value, for example 30.
+
+```bash
+y r 0 cyphal.node.id 30
+```
+
+Store settings to eeprom and restart controller.
+
+```bash
+y cmd 30 store
+y cmd 30 restart
+```
+
+### LED
+How to control the built-in LED on the Raspberry Pi Pico.
+
+Set `cyphal.sub.led1.id`to a value different than 65535, for example 100.
+
+```bash
+y r 30 cyphal.sub.led1.id 100
+```
+
+Store settings to eeprom and restart controller.
+
+```bash
+y cmd 30 store
+y cmd 30 restart
+```
+
+Turn LED on by publishing to Subject-ID 100
+
+```bash
+y pub -N 1 100:uavcan.primitive.scalar.Bit.1.0 true
+```
+
+Turn LED off by publishing to Subject-ID 100
+
+```bash
+y pub -N 1 100:uavcan.primitive.scalar.Bit.1.0 false
+```
 
 ## How-to-build/upload
 ```bash
