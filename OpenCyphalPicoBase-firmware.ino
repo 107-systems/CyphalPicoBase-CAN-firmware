@@ -212,7 +212,7 @@ static uint16_t update_period_ms_analoginput0        =     500;
 static uint16_t update_period_ms_analoginput1        =     500;
 static uint16_t update_period_ms_light               =     250;
 
-static std::string_view node_description{"OpenCyphalPicoBase"};
+static std::string node_description{"OpenCyphalPicoBase"};
 
 #if __GNUC__ >= 11
 
