@@ -110,30 +110,30 @@ ArduinoMCP2515 mcp2515([]() { digitalWrite(MCP2515_CS_PIN, LOW); },
                        [](MCP2515::EFLG const err_flag) { DBG_ERROR("MCP2515::OnError, error code = \"%s\"", MCP2515::toStr(err_flag)); },
                        [](MCP2515::EFLG const err_flag) { DBG_ERROR("MCP2515::OnWarning, warning code = \"%s\"", MCP2515::toStr(err_flag)); });
 
-Node::Heap<Node::DEFAULT_O1HEAP_SIZE> node_heap;
-Node node_hdl(node_heap.data(), node_heap.size(), micros, [] (CanardFrame const & frame) { return mcp2515.transmit(frame); });
+cyphal::Node::Heap<cyphal::Node::DEFAULT_O1HEAP_SIZE> node_heap;
+cyphal::Node node_hdl(node_heap.data(), node_heap.size(), micros, [] (CanardFrame const & frame) { return mcp2515.transmit(frame); });
 
-Publisher<Heartbeat_1_0> heartbeat_pub = node_hdl.create_publisher<Heartbeat_1_0>(1*1000*1000UL /* = 1 sec in usecs. */);
-Publisher<uavcan::primitive::scalar::Real32_1_0> input_voltage_pub;
-Publisher<uavcan::primitive::scalar::Real32_1_0> internal_temperature_pub;
-Publisher<uavcan::primitive::scalar::Bit_1_0> input_0_pub;
-Publisher<uavcan::primitive::scalar::Bit_1_0> input_1_pub;
-Publisher<uavcan::primitive::scalar::Bit_1_0> input_2_pub;
-Publisher<uavcan::primitive::scalar::Bit_1_0> input_3_pub;
-Publisher<uavcan::primitive::scalar::Integer16_1_0> analog_input_0_pub;
-Publisher<uavcan::primitive::scalar::Integer16_1_0> analog_input_1_pub;
+cyphal::Publisher<Heartbeat_1_0> heartbeat_pub = node_hdl.create_publisher<Heartbeat_1_0>(1*1000*1000UL /* = 1 sec in usecs. */);
+cyphal::Publisher<uavcan::primitive::scalar::Real32_1_0> input_voltage_pub;
+cyphal::Publisher<uavcan::primitive::scalar::Real32_1_0> internal_temperature_pub;
+cyphal::Publisher<uavcan::primitive::scalar::Bit_1_0> input_0_pub;
+cyphal::Publisher<uavcan::primitive::scalar::Bit_1_0> input_1_pub;
+cyphal::Publisher<uavcan::primitive::scalar::Bit_1_0> input_2_pub;
+cyphal::Publisher<uavcan::primitive::scalar::Bit_1_0> input_3_pub;
+cyphal::Publisher<uavcan::primitive::scalar::Integer16_1_0> analog_input_0_pub;
+cyphal::Publisher<uavcan::primitive::scalar::Integer16_1_0> analog_input_1_pub;
 
-Subscription led_subscription;
+cyphal::Subscription led_subscription;
 
 uavcan::primitive::scalar::Integer8_1_0 light_mode_msg{LIGHT_MODE_WHITE};
-Subscription light_mode_subscription;
+cyphal::Subscription light_mode_subscription;
 
-Subscription output_0_subscription, output_1_subscription;
+cyphal::Subscription output_0_subscription, output_1_subscription;
 
 Servo servo_0, servo_1;
-Subscription servo_0_subscription, servo_1_subscription;
+cyphal::Subscription servo_0_subscription, servo_1_subscription;
 
-ServiceServer execute_command_srv = node_hdl.create_service_server<ExecuteCommand::Request_1_1, ExecuteCommand::Response_1_1>(2*1000*1000UL, onExecuteCommand_1_1_Request_Received);
+cyphal::ServiceServer execute_command_srv = node_hdl.create_service_server<ExecuteCommand::Request_1_1, ExecuteCommand::Response_1_1>(2*1000*1000UL, onExecuteCommand_1_1_Request_Received);
 
 NeoPixelControl neo_pixel_ctrl(NEOPIXEL_PIN, NEOPIXEL_NUM_PIXELS);
 
