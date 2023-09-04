@@ -74,7 +74,7 @@ y sub 1001:uavcan.primitive.scalar.Bit.1.0 --with-metadata
 | pico.update_period_ms.light               | rw       | 250                                   | Update period for light functions             |
 
 ## Quickstart
-### Node-ID
+### How-to-configure the Node-ID
 Set `cyphal.node.id`to the desired value, for example 30.
 ```bash
 y r 0 cyphal.node.id 30
@@ -84,7 +84,7 @@ Store settings to eeprom and restart controller.
 y cmd 0 store
 y cmd 0 restart
 ```
-### LED
+### How-to-control the built-in LED
 How to control the built-in LED on the Raspberry Pi Pico.
 
 Set `cyphal.sub.led1.id`to a value different than 65535, for example 100.
@@ -105,7 +105,7 @@ Turn LED off by publishing to Subject-ID 100
 y pub -N 1 100:uavcan.primitive.scalar.Bit.1.0 false
 ```
 
-### Output
+### How-to-control a digital output
 How to control digital output 0 and digital output1 of the OpenCyphalPicoBase.
 
 Set `cyphal.sub.output0.id`to a value different than 65535, for example 200.
@@ -126,7 +126,7 @@ Turn digital output 0 off by publishing to Subject-ID 200
 y pub -N 1 200:uavcan.primitive.scalar.Bit.1.0 false
 ```
 
-### Servo
+### How-to-control a servo PWM output
 How to control the servo PWM outputs 0 and 1 of the OpenCyphalPicoBase.
 
 Set `cyphal.sub.servo0.id`to a value different than 65535, for example 300.
