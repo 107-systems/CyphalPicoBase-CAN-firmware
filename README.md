@@ -19,6 +19,16 @@ arduino-cli compile -b rp2040:rp2040:rpipico -v . --build-property compiler.cpp.
 ```
 Adding argument `--build-property compiler.cpp.extra_flags="-DCYPHAL_NODE_INFO_GIT_VERSION=0x$(git rev-parse --short=16 HEAD)"` allows to feed the Git hash of the current software version to [107-Arduino-Cyphal](https://github.com/107-systems/107-Arduino-Cyphal) stack from where it can be retrieved via i.e. [yakut](https://github.com/opencyphal/yakut).
 
+### How-to-`yakut`
+[Install](https://github.com/OpenCyphal/yakut) and configure `yakut`:
+```bash
+. setup_yakut.sh
+```
+Obtain value of digital input 0 using `yakut` (`cyphal.pub.input0.id` = `1001`):
+```bash
+y sub 1001:uavcan.primitive.scalar.Bit.1.0 --with-metadata
+```
+
 ## Register list
 
 | **name**                                  | **type** | **default value**                     | **Description**                        |
