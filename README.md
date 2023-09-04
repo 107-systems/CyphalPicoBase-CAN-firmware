@@ -32,8 +32,8 @@ y sub 1001:uavcan.primitive.scalar.Bit.1.0 --with-metadata
 ## Register list
 
 | **name**                                  | **type** | **default value**                     | **Description**                        |
-| ----------------------------------------- | -------- | ------------------------------------- | -------------------------------------- |
-| cyphal.node.description                   | rw       | L3X-Z AUX_CONTROLLER                  | node description                       |
+| ----------------------------------------- | -------- |---------------------------------------| -------------------------------------- |
+| cyphal.node.description                   | rw       | OpenCyphalPicoBase                    | node description                       |
 | cyphal.node.id                            | rw       | 0                                     | node id (max 127)                      |
 | cyphal.pub.analoginput0.id                | rw       | 65535                                 | subject-id (publish) for analoginput0  |
 | cyphal.pub.analoginput0.type              | ro       | cyphal.primitive.scalar.Integer16.1.0 |                                        |
