@@ -106,7 +106,7 @@ y pub -N 1 100:uavcan.primitive.scalar.Bit.1.0 false
 ```
 
 ### Output
-How to control output0 and output1 of the OpenCyphalPicoBase.
+How to control digital output 0 and digital output1 of the OpenCyphalPicoBase.
 
 Set `cyphal.sub.output0.id`to a value different than 65535, for example 200.
 ```bash
@@ -117,17 +117,17 @@ Store settings to eeprom and restart controller.
 y cmd 30 store
 y cmd 30 restart
 ```
-Turn output0 on by publishing to Subject-ID 200
+Turn digital output 0 on by publishing to Subject-ID 200
 ```bash
 y pub -N 1 200:uavcan.primitive.scalar.Bit.1.0 true
 ```
-Turn output0 off by publishing to Subject-ID 200
+Turn digital output 0 off by publishing to Subject-ID 200
 ```bash
 y pub -N 1 200:uavcan.primitive.scalar.Bit.1.0 false
 ```
 
 ### Servo
-How to control the servo outputs (servo0 and servo1) of the OpenCyphalPicoBase.
+How to control the servo PWM outputs 0 and 1 of the OpenCyphalPicoBase.
 
 Set `cyphal.sub.servo0.id`to a value different than 65535, for example 300.
 ```bash
