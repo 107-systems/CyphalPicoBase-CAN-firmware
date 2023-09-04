@@ -29,50 +29,6 @@ Obtain value of digital input 0 using `yakut` (`cyphal.pub.input0.id` = `1001`):
 y sub 1001:uavcan.primitive.scalar.Bit.1.0 --with-metadata
 ```
 
-## Register list
-
-| **Name**                                  | **Type** | **Default Value**                     | **Description**                               |
-|-------------------------------------------|----------|---------------------------------------|-----------------------------------------------|
-| cyphal.node.description                   | rw       | OpenCyphalPicoBase                    | Node description                              |
-| cyphal.node.id                            | rw       | 0                                     | Node id (max 127)                             |
-| cyphal.pub.analoginput0.id                | rw       | 65535                                 | Subject-ID (publish) for analog input 0       |
-| cyphal.pub.analoginput0.type              | ro       | cyphal.primitive.scalar.Integer16.1.0 |                                               |
-| cyphal.pub.analoginput1.id                | rw       | 65535                                 | Subject-ID (publish) for analog input 1       |
-| cyphal.pub.analoginput1.type              | ro       | cyphal.primitive.scalar.Integer16.1.0 |                                               |
-| cyphal.pub.input0.id                      | rw       | 65535                                 | Subject-ID (publish) for digital input 0      |
-| cyphal.pub.input0.type                    | ro       | cyphal.primitive.scalar.Bit.1.0       |                                               |
-| cyphal.pub.input1.id                      | rw       | 65535                                 | Subject-ID (publish) for digital input 1      |
-| cyphal.pub.input1.type                    | ro       | cyphal.primitive.scalar.Bit.1.0       |                                               |
-| cyphal.pub.input2.id                      | rw       | 65535                                 | Subject-ID (publish) for digital input 2      |
-| cyphal.pub.input2.type                    | ro       | cyphal.primitive.scalar.Bit.1.0       |                                               |
-| cyphal.pub.input3.id                      | rw       | 65535                                 | Subject-ID (publish) for digital input 3      |
-| cyphal.pub.input3.type                    | ro       | cyphal.primitive.scalar.Bit.1.0       |                                               |
-| cyphal.pub.inputvoltage.id                | rw       | 65535                                 | Subject-ID (publish) for input voltage        |
-| cyphal.pub.inputvoltage.type              | ro       | cyphal.primitive.scalar.Real32.1.0    |                                               |
-| cyphal.pub.internaltemperature.id         | rw       | 65535                                 | Subject-ID (publish) for internal temp        |
-| cyphal.pub.internaltemperature.type       | ro       | cyphal.primitive.scalar.Real32.1.0    |                                               |
-| cyphal.sub.led1.id                        | rw       | 65535                                 | Subject-ID (subscribe) for led1               |
-| cyphal.sub.led1.type                      | ro       | cyphal.primitive.scalar.Bit.1.0       |                                               |
-| cyphal.sub.lightmode.id                   | rw       | 65535                                 | Subject-ID (subscribe) for light mode         |
-| cyphal.sub.lightmode.type                 | ro       | cyphal.primitive.scalar.Integer8.1.0  |                                               |
-| cyphal.sub.output0.id                     | rw       | 65535                                 | Subject-ID (subscribe) for digital output 0   |
-| cyphal.sub.output0.type                   | ro       | cyphal.primitive.scalar.Bit.1.0       |                                               |
-| cyphal.sub.output1.id                     | rw       | 65535                                 | Subject-ID (subscribe) for digital output 1   |
-| cyphal.sub.output1.type                   | ro       | cyphal.primitive.scalar.Bit.1.0       |                                               |
-| cyphal.sub.servo0.id                      | rw       | 65535                                 | Subject-ID (subscribe) for servo PWM output 0 |
-| cyphal.sub.servo0.type                    | ro       | cyphal.primitive.scalar.Integer16.1.0 |                                               |
-| cyphal.sub.servo1.id                      | rw       | 65535                                 | Subject-ID (subscribe) for servo PWM output 1 |
-| cyphal.sub.servo1.type                    | ro       | cyphal.primitive.scalar.Integer16.1.0 |                                               |
-| pico.update_period_ms.analoginput0        | rw       | 500                                   | Update period for analog input 0              |
-| pico.update_period_ms.analoginput1        | rw       | 500                                   | Update period for analog input 1              |
-| pico.update_period_ms.input0              | rw       | 500                                   | Update period for digital input 0             |
-| pico.update_period_ms.input1              | rw       | 500                                   | Update period for digital input 1             |
-| pico.update_period_ms.input2              | rw       | 500                                   | Update period for digital input 2             |
-| pico.update_period_ms.input3              | rw       | 500                                   | Update period for digital input 3             |
-| pico.update_period_ms.inputvoltage        | rw       | 3000                                  | Update period for input voltage               |
-| pico.update_period_ms.internaltemperature | rw       | 10000                                 | Update period for internal temperature        |
-| pico.update_period_ms.light               | rw       | 250                                   | Update period for light functions             |
-
 ## Quickstart
 ### How-to-configure the Node-ID
 Set `cyphal.node.id`to the desired value, for example 30.
@@ -142,3 +98,46 @@ Turn servo to a dedicated position by publishing to Subject-ID 300. Possible val
 ```bash
 y pub -N 1 300:uavcan.primitive.scalar.Integer16.1.0 1500
 ```
+
+## Register list
+| **Name**                                  | **Type** | **Default Value**                     | **Description**                               |
+|-------------------------------------------|----------|---------------------------------------|-----------------------------------------------|
+| cyphal.node.description                   | rw       | OpenCyphalPicoBase                    | Node description                              |
+| cyphal.node.id                            | rw       | 0                                     | Node id (max 127)                             |
+| cyphal.pub.analoginput0.id                | rw       | 65535                                 | Subject-ID (publish) for analog input 0       |
+| cyphal.pub.analoginput0.type              | ro       | cyphal.primitive.scalar.Integer16.1.0 |                                               |
+| cyphal.pub.analoginput1.id                | rw       | 65535                                 | Subject-ID (publish) for analog input 1       |
+| cyphal.pub.analoginput1.type              | ro       | cyphal.primitive.scalar.Integer16.1.0 |                                               |
+| cyphal.pub.input0.id                      | rw       | 65535                                 | Subject-ID (publish) for digital input 0      |
+| cyphal.pub.input0.type                    | ro       | cyphal.primitive.scalar.Bit.1.0       |                                               |
+| cyphal.pub.input1.id                      | rw       | 65535                                 | Subject-ID (publish) for digital input 1      |
+| cyphal.pub.input1.type                    | ro       | cyphal.primitive.scalar.Bit.1.0       |                                               |
+| cyphal.pub.input2.id                      | rw       | 65535                                 | Subject-ID (publish) for digital input 2      |
+| cyphal.pub.input2.type                    | ro       | cyphal.primitive.scalar.Bit.1.0       |                                               |
+| cyphal.pub.input3.id                      | rw       | 65535                                 | Subject-ID (publish) for digital input 3      |
+| cyphal.pub.input3.type                    | ro       | cyphal.primitive.scalar.Bit.1.0       |                                               |
+| cyphal.pub.inputvoltage.id                | rw       | 65535                                 | Subject-ID (publish) for input voltage        |
+| cyphal.pub.inputvoltage.type              | ro       | cyphal.primitive.scalar.Real32.1.0    |                                               |
+| cyphal.pub.internaltemperature.id         | rw       | 65535                                 | Subject-ID (publish) for internal temp        |
+| cyphal.pub.internaltemperature.type       | ro       | cyphal.primitive.scalar.Real32.1.0    |                                               |
+| cyphal.sub.led1.id                        | rw       | 65535                                 | Subject-ID (subscribe) for led1               |
+| cyphal.sub.led1.type                      | ro       | cyphal.primitive.scalar.Bit.1.0       |                                               |
+| cyphal.sub.lightmode.id                   | rw       | 65535                                 | Subject-ID (subscribe) for light mode         |
+| cyphal.sub.lightmode.type                 | ro       | cyphal.primitive.scalar.Integer8.1.0  |                                               |
+| cyphal.sub.output0.id                     | rw       | 65535                                 | Subject-ID (subscribe) for digital output 0   |
+| cyphal.sub.output0.type                   | ro       | cyphal.primitive.scalar.Bit.1.0       |                                               |
+| cyphal.sub.output1.id                     | rw       | 65535                                 | Subject-ID (subscribe) for digital output 1   |
+| cyphal.sub.output1.type                   | ro       | cyphal.primitive.scalar.Bit.1.0       |                                               |
+| cyphal.sub.servo0.id                      | rw       | 65535                                 | Subject-ID (subscribe) for servo PWM output 0 |
+| cyphal.sub.servo0.type                    | ro       | cyphal.primitive.scalar.Integer16.1.0 |                                               |
+| cyphal.sub.servo1.id                      | rw       | 65535                                 | Subject-ID (subscribe) for servo PWM output 1 |
+| cyphal.sub.servo1.type                    | ro       | cyphal.primitive.scalar.Integer16.1.0 |                                               |
+| pico.update_period_ms.analoginput0        | rw       | 500                                   | Update period for analog input 0              |
+| pico.update_period_ms.analoginput1        | rw       | 500                                   | Update period for analog input 1              |
+| pico.update_period_ms.input0              | rw       | 500                                   | Update period for digital input 0             |
+| pico.update_period_ms.input1              | rw       | 500                                   | Update period for digital input 1             |
+| pico.update_period_ms.input2              | rw       | 500                                   | Update period for digital input 2             |
+| pico.update_period_ms.input3              | rw       | 500                                   | Update period for digital input 3             |
+| pico.update_period_ms.inputvoltage        | rw       | 3000                                  | Update period for input voltage               |
+| pico.update_period_ms.internaltemperature | rw       | 10000                                 | Update period for internal temperature        |
+| pico.update_period_ms.light               | rw       | 250                                   | Update period for light functions             |
