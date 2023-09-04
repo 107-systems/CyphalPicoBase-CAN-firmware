@@ -63,15 +63,15 @@ y sub 1001:uavcan.primitive.scalar.Bit.1.0 --with-metadata
 | cyphal.sub.servo0.type                    | ro       | cyphal.primitive.scalar.Integer16.1.0 |                                               |
 | cyphal.sub.servo1.id                      | rw       | 65535                                 | Subject-ID (subscribe) for servo PWM output 1 |
 | cyphal.sub.servo1.type                    | ro       | cyphal.primitive.scalar.Integer16.1.0 |                                               |
-| pico.update_period_ms.analoginput0        | rw       | 500                                   | update period for analog input 0              |
-| pico.update_period_ms.analoginput1        | rw       | 500                                   | update period for analog input 1              |
-| pico.update_period_ms.input0              | rw       | 500                                   | update period for digital input 0             |
-| pico.update_period_ms.input1              | rw       | 500                                   | update period for digital input 1             |
-| pico.update_period_ms.input2              | rw       | 500                                   | update period for digital input 2             |
-| pico.update_period_ms.input3              | rw       | 500                                   | update period for digital input 3             |
-| pico.update_period_ms.inputvoltage        | rw       | 3000                                  | update period for input voltage               |
-| pico.update_period_ms.internaltemperature | rw       | 10000                                 | update period for internal temperature        |
-| pico.update_period_ms.light               | rw       | 250                                   | update period for light functions             |
+| pico.update_period_ms.analoginput0        | rw       | 500                                   | Update period for analog input 0              |
+| pico.update_period_ms.analoginput1        | rw       | 500                                   | Update period for analog input 1              |
+| pico.update_period_ms.input0              | rw       | 500                                   | Update period for digital input 0             |
+| pico.update_period_ms.input1              | rw       | 500                                   | Update period for digital input 1             |
+| pico.update_period_ms.input2              | rw       | 500                                   | Update period for digital input 2             |
+| pico.update_period_ms.input3              | rw       | 500                                   | Update period for digital input 3             |
+| pico.update_period_ms.inputvoltage        | rw       | 3000                                  | Update period for input voltage               |
+| pico.update_period_ms.internaltemperature | rw       | 10000                                 | Update period for internal temperature        |
+| pico.update_period_ms.light               | rw       | 250                                   | Update period for light functions             |
 
 ## Quickstart
 ### Node-ID
