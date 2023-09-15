@@ -1,12 +1,12 @@
 <a href="https://107-systems.org/"><img align="right" src="https://raw.githubusercontent.com/107-systems/.github/main/logo/107-systems.png" width="15%"></a>
-:floppy_disk: `OpenCyphalPicoBase-firmware`
+:floppy_disk: `CyphalPicoBase/CAN-firmware`
 ===========================================
 <a href="https://opencyphal.org/"><img align="right" src="https://raw.githubusercontent.com/107-systems/.github/main/logo/opencyphal.svg" width="25%"></a>
-[![General Formatting Checks](https://github.com/107-systems/OpenCyphalPicoBase-firmware/workflows/General%20Formatting%20Checks/badge.svg)](https://github.com/107-systems/OpenCyphalPicoBase-firmware/actions?workflow=General+Formatting+Checks)
-[![Spell Check](https://github.com/107-systems/OpenCyphalPicoBase-firmware/workflows/Spell%20Check/badge.svg)](https://github.com/107-systems/OpenCyphalPicoBase-firmware/actions?workflow=Spell+Check)
-[![Compile Examples](https://github.com/107-systems/OpenCyphalPicoBase-firmware/workflows/Compile/badge.svg)](https://github.com/107-systems/OpenCyphalPicoBase-firmware/actions?workflow=Compile)
+[![General Formatting Checks](https://github.com/107-systems/CyphalPicoBase-CAN-firmware/workflows/General%20Formatting%20Checks/badge.svg)](https://github.com/107-systems/CyphalPicoBase-CAN-firmware/actions?workflow=General+Formatting+Checks)
+[![Spell Check](https://github.com/107-systems/CyphalPicoBase-CAN-firmware/workflows/Spell%20Check/badge.svg)](https://github.com/107-systems/CyphalPicoBase-CAN-firmware/actions?workflow=Spell+Check)
+[![Compile Examples](https://github.com/107-systems/CyphalPicoBase-CAN-firmware/workflows/Compile/badge.svg)](https://github.com/107-systems/CyphalPicoBase-CAN-firmware/actions?workflow=Compile)
 
-Firmware for the [OpenCyphalPicoBase](https://github.com/generationmake/OpenCyphalPicoBase) board.
+Firmware for the [CyphalPicoBase/CAN](https://github.com/generationmake/CyphalPicoBase-CAN) board.
 
 ## How-to-build/upload
 ```bash
@@ -62,7 +62,7 @@ y pub -N 1 100:uavcan.primitive.scalar.Bit.1.0 false
 ```
 
 ### How-to-control a digital output
-How to control digital output 0 and digital output1 of the OpenCyphalPicoBase.
+How to control digital output 0 and digital output1 of the CyphalPicoBase-CAN.
 
 Set `cyphal.sub.output0.id`to a value different than 65535, for example 200.
 ```bash
@@ -83,7 +83,7 @@ y pub -N 1 200:uavcan.primitive.scalar.Bit.1.0 false
 ```
 
 ### How-to-control a servo PWM output
-How to control the servo PWM outputs 0 and 1 of the OpenCyphalPicoBase.
+How to control the servo PWM outputs 0 and 1 of the CyphalPicoBase-CAN.
 
 Set `cyphal.sub.servo0.id`to a value different than 65535, for example 300.
 ```bash
@@ -102,7 +102,7 @@ y pub -N 1 300:uavcan.primitive.scalar.Integer16.1.0 1500
 ## Register list
 | **Name**                                  | **Type** | **Default Value**                     | **Description**                               |
 |-------------------------------------------|----------|---------------------------------------|-----------------------------------------------|
-| cyphal.node.description                   | rw       | OpenCyphalPicoBase                    | Node description                              |
+| cyphal.node.description                   | rw       | CyphalPicoBase-CAN                    | Node description                              |
 | cyphal.node.id                            | rw       | 0                                     | Node id (max 127)                             |
 | cyphal.pub.analoginput0.id                | rw       | 65535                                 | Subject-ID (publish) for analog input 0       |
 | cyphal.pub.analoginput0.type              | ro       | cyphal.primitive.scalar.Integer16.1.0 |                                               |
