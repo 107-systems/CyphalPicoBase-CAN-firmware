@@ -1,10 +1,10 @@
 /**
- * Default firmware for the OpenCyphalPicoBase (https://github.com/generationmake/OpenCyphalPicoBase)
+ * Default firmware for the CyphalPicoBase-CAN (https://github.com/generationmake/CyphalPicoBase-CAN)
  *
  * This software is distributed under the terms of the MIT License.
  * Copyright (c) 2023 LXRobotics.
  * Author: Alexander Entinger <alexander.entinger@lxrobotics.com>
- * Contributors: https://github.com/107-systems/OpenCyphalPicoBase-firmware/graphs/contributors.
+ * Contributors: https://github.com/107-systems/CyphalPicoBase-CAN-firmware/graphs/contributors.
  */
 
 /**************************************************************************************
@@ -212,7 +212,7 @@ static uint16_t update_period_ms_analoginput0        =     500;
 static uint16_t update_period_ms_analoginput1        =     500;
 static uint16_t update_period_ms_light               =     250;
 
-static std::string node_description{"OpenCyphalPicoBase"};
+static std::string node_description{"CyphalPicoBase/CAN"};
 
 #if __GNUC__ >= 11
 
