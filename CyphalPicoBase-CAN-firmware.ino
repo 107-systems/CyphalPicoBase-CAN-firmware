@@ -415,7 +415,7 @@ void setup()
     /* saturated uint8[16] unique_id */
     cyphal::support::UniqueId::instance().value(),
     /* saturated uint8[<=50] name */
-    "107-systems.open-cyphal-pico-base"
+    "107-systems.CyphalPicoBase/CAN"
   );
 
   /* Setup LED pins and initialize */
