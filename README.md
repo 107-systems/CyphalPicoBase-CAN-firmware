@@ -6,7 +6,7 @@
 [![Spell Check](https://github.com/107-systems/CyphalPicoBase-CAN-firmware/workflows/Spell%20Check/badge.svg)](https://github.com/107-systems/CyphalPicoBase-CAN-firmware/actions?workflow=Spell+Check)
 [![Compile Examples](https://github.com/107-systems/CyphalPicoBase-CAN-firmware/workflows/Compile/badge.svg)](https://github.com/107-systems/CyphalPicoBase-CAN-firmware/actions?workflow=Compile)
 
-Firmware for the [CyphalPicoBase/CAN](https://github.com/generationmake/CyphalPicoBase-CAN) board.
+Firmware for the [CyphalPicoBase/CAN](https://github.com/generationmake/CyphalPicoBase-CAN) board. You can buy one [here](https://cyphal.store/products/lxrobotics-cyphalpicobase-can) 💸.
 
 ## How-to-build/upload
 ```bash
