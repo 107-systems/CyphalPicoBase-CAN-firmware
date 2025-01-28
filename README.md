@@ -9,6 +9,27 @@
 Firmware for the [CyphalPicoBase/CAN](https://github.com/generationmake/CyphalPicoBase-CAN) board. You can buy one [here](https://cyphal.store/products/lxrobotics-cyphalpicobase-can) 💸.
 
 ## How-to-build/upload
+
+This firmware relies on the excellent work of Earle F. Philhower, III to create an arduino integration with the Raspberry Pi Pico SDK (as opposed to the Mbed-based integration).
+You'll need to install this first to build. Instructions can be found [in the arduino-pico documentation](https://arduino-pico.readthedocs.io/en/latest/install.html#installing-via-arduino-cli) but the TLDR is:
+
+```bash
+arduino-cli config add board_manager.additional_urls https://github.com/earlephilhower/arduino-pico/releases/download/global/package_rp2040_index.json
+arduino-cli core update-index
+arduino-cli core install rp2040:rp2040
+```
+
+Next you'll need to install the libraries this firmware depends on:
+
+```bash
+arduino-cli lib update-index
+arduino-cli lib install 107-Arduino-Debug 107-Arduino-MCP2515 107-Arduino-UniqueId 107-Arduino-24LCxx 107-Arduino-littlefs
+arduino-cli lib install 107-Arduino-Cyphal-Support 107-Arduino-Cyphal
+arduino-cli lib install "Adafruit NeoPixel"
+```
+
+Now you should be able to build.
+
 ```bash
 arduino-cli compile -b rp2040:rp2040:rpipico -v .
 arduino-cli upload -b rp2040:rp2040:rpipico -v . -p /dev/ttyACM0
@@ -18,6 +39,10 @@ arduino-cli upload -b rp2040:rp2040:rpipico -v . -p /dev/ttyACM0
 arduino-cli compile -b rp2040:rp2040:rpipico -v . --build-property compiler.cpp.extra_flags="-DCYPHAL_NODE_INFO_GIT_VERSION=0x$(git rev-parse --short=16 HEAD)"
 ```
 Adding argument `--build-property compiler.cpp.extra_flags="-DCYPHAL_NODE_INFO_GIT_VERSION=0x$(git rev-parse --short=16 HEAD)"` allows to feed the Git hash of the current software version to [107-Arduino-Cyphal](https://github.com/107-systems/107-Arduino-Cyphal) stack from where it can be retrieved via i.e. [yakut](https://github.com/opencyphal/yakut).
+
+### Platform.io
+
+This repository also allows you to build using platform.io. The platformio.ini has all the details and it should "just work™".
 
 ### How-to-`yakut`
 [Install](https://github.com/OpenCyphal/yakut) and configure `yakut`:
